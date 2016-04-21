@@ -36,7 +36,7 @@ def check_pidfile(pidfile):
 def start():
     if not os.path.exists(config.pidfile):
         print('Starting... ', end="")
-        os.system('gunicorn --config config/gunicorn_config.py %s' % config.app_name)
+        os.system('gunicorn --config gunicorn_config.py %s' % config.app_name)
         time.sleep(1)
         if check_pidfile(config.pidfile):
             print(green('OK'))
