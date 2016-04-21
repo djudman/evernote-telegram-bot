@@ -2,7 +2,7 @@ import multiprocessing
 import os
 from os.path import join, dirname, realpath
 
-current_dir = realpath(dirname(dirname(__file__)))
+current_dir = realpath(dirname(__file__))
 
 os.makedirs(join(current_dir, 'logs'), mode=0o700, exist_ok=True)
 
