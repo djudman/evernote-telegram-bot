@@ -7,7 +7,7 @@ import sys
 import os
 import time
 import signal
-import config.gunicorn_config as config
+import gunicorn_config as config
 
 
 def green(s):
