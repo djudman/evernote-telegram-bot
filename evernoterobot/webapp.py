@@ -1,18 +1,19 @@
-import os
+import logging
+import logging.config
 
-import json
-import asyncio
 from aiohttp import web
 
-PROJECT_DIR = os.path.realpath(os.path.dirname(__file__))
+import settings
 
 
 async def handle_update(request):
-    return web.Response(body=b"Hello, world")
+    data = await request.text()
+    request.app.logger.info(data)
+    return web.Response(body=b'ok')
 
-
-with open(os.path.join(PROJECT_DIR, 'secret.json')) as f:
-    data = json.load(f)
 
 app = web.Application()
-app.router.add_route('GET', '/%s' % data['token'], handle_update)
+app.router.add_route('POST', '/%s' % settings.SECRET['token'], handle_update)
+
+logging.config.dictConfig(settings.LOG_SETTINGS)
+app.logger = logging.getLogger('aiohttp.server')
