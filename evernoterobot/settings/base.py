@@ -1,16 +1,17 @@
 from os.path import dirname, join, realpath
-
 import json
 
 
 PROJECT_DIR = realpath(dirname(dirname(__file__)))
+ROOT_DIR = realpath(dirname(PROJECT_DIR))
 PROJECT_NAME = dirname(PROJECT_DIR).lower()
-LOGS_DIR = realpath(dirname(PROJECT_DIR))
+LOGS_DIR = join(realpath(dirname(PROJECT_DIR)), 'logs')
 
-with open('secret.json', 'r') as f:
+with open(join(PROJECT_DIR, 'settings/secret.json'), 'r') as f:
     SECRET = json.load(f)
 
 SMTP = SECRET['smtp']
+WEBHOOK_URL = "https://evernoterobot.djudman.info/%s" % SECRET['token']
 
 LOG_SETTINGS = {
     'version': 1,
@@ -34,7 +35,7 @@ LOG_SETTINGS = {
         },
         'email': {
             'level': 'ERROR',
-            'class': 'web.util.logging.SslSMTPHandler',
+            'class': 'settings.logging.SslSMTPHandler',
             'mailhost': (SMTP['host'], SMTP['port']),
             'fromaddr': SMTP['email'],
             'toaddrs': [SMTP['email']],

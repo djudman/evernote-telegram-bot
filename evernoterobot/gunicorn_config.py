@@ -1,18 +1,22 @@
+import sys
 import multiprocessing
 import os
 from os.path import join, dirname, realpath
 
-current_dir = realpath(dirname(__file__))
+sys.path.insert(0, realpath(dirname(__file__)))
 
-os.makedirs(join(current_dir, 'logs'), mode=0o700, exist_ok=True)
+import settings
+
+
+os.makedirs(settings.LOGS_DIR, mode=0o700, exist_ok=True)
 
 bind = '127.0.0.1:9001'
 backlog = 128
 workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = 'aiohttp.worker.GunicornWebWorker'
-pidfile = join(current_dir, 'evernoterobot.pid')
-accesslog = join(current_dir, 'logs/gunicorn.log')
-errorlog = join(current_dir, 'logs/gunicorn.log')
+pidfile = join(settings.ROOT_DIR, 'evernoterobot.pid')
+accesslog = join(settings.LOGS_DIR, 'gunicorn.log')
+errorlog = join(settings.LOGS_DIR, 'gunicorn.log')
 loglevel = 'info'
 app_name = 'webapp:app'
 access_log_format = '%a %l %u %t "%r" %s %b "%{Referrer}i" "%{User-Agent}i"'
