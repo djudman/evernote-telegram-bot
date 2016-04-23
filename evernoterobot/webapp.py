@@ -20,6 +20,6 @@ logging.config.dictConfig(settings.LOG_SETTINGS)
 app.logger = logging.getLogger()
 
 bot = EvernoteRobot(settings.SECRET['token'])
-bot.api.sync_call(bot.setWebhook(settings.WEBHOOK_URL))
+bot.api.sync_call(bot.api.setWebhook(settings.WEBHOOK_URL))
 
 app.bot = bot
