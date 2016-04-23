@@ -23,8 +23,8 @@ logging.config.dictConfig(settings.LOG_SETTINGS)
 app.logger = logging.getLogger()
 
 bot = EvernoteRobot(settings.SECRET['token'], {
-        'key': settings.SECRET['evernote'],
-        'secret': settings.SECRET['secret'],
+        'key': settings.SECRET['evernote']['key'],
+        'secret': settings.SECRET['evernote']['secret'],
         'oauth_callback': settings.EVERNOTE_OAUTH_CALLBACK,
     })
 bot.api.sync_call(bot.api.setWebhook(settings.WEBHOOK_URL))
