@@ -1,6 +1,7 @@
 from os.path import dirname, join, realpath, basename
 import json
 
+DEBUG = False
 
 PROJECT_DIR = realpath(dirname(dirname(__file__)))
 ROOT_DIR = realpath(dirname(PROJECT_DIR))

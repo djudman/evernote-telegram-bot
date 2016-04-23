@@ -88,12 +88,12 @@ LOG_SETTINGS = {
         'aiohttp.access': {
             'level': 'INFO',
             'handlers': ['accessfile'],
-            'propagate': True,
+            'propagate': False,
         },
         'aiohttp.server': {
             'level': 'INFO',
             'handlers': ['file', 'email'],
-            'propagate': True,
+            'propagate': False,
         },
         'gunicorn.access': {
             'level': 'INFO',
@@ -106,8 +106,9 @@ LOG_SETTINGS = {
             'propagate': True,
         },
         '': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['file'],
+            'propagate': True,
         },
     },
 }
