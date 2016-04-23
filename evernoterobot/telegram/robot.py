@@ -1,11 +1,14 @@
 import logging
 from .api import BotApi
+from libevernote.client import Evernote
 
 
 class EvernoteRobot:
 
-    def __init__(self, token):
+    def __init__(self, token, evernote_data):
         self.api = BotApi(token)
+        self.evernote_oauth_callback = evernote_data['oauth_callback']
+        self.evernote = Evernote(evernote_data['key'], evernote_data['secret'])
         self.logger = logging.getLogger()
 
     async def handle_update(self, data):
@@ -56,7 +59,19 @@ class EvernoteRobot:
 
     def start(self):
         return '''Hi! I'm robot for __fast__ saving your notes to Evernote.
-First of all you should link your Evernote account with me.'''
+First of all you should link your Evernote account with me.
+
+Open this link to sign in to Evernote:
+%s
+''' % self.evernote.get_oauth_url(self.evernote_oauth_callback)
+
+    def auth(self):
+        # TODO:
+        pass
+
+    def logout(self):
+        # TODO:
+        pass
 
     def help(self):
         return '''
