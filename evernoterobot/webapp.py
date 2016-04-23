@@ -6,7 +6,7 @@ from aiohttp import web
 
 import settings
 from telegram.api import BotApi
-from handler import handle_update
+from telegram.handler import handle_update
 
 sys.path.insert(0, settings.PROJECT_DIR)
 
@@ -21,3 +21,5 @@ app.logger = logging.getLogger()
 
 bot = BotApi(settings.SECRET['token'])
 bot.sync_call(bot.setWebhook(settings.WEBHOOK_URL))
+
+app.bot = bot
