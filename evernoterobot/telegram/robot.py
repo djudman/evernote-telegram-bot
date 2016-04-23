@@ -48,7 +48,7 @@ class EvernoteRobot:
     def execute_command(self, cmd):
         if hasattr(self, cmd):
             func = getattr(self, cmd)
-            text = func(self)
+            text = func()
         else:
             text = "Unsupported command '%s'" % cmd
             self.logger.warning(text)
