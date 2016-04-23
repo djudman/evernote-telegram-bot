@@ -5,7 +5,7 @@ import logging.config
 from aiohttp import web
 
 import settings
-from telegram.api import BotApi
+from telegram.robot import EvernoteRobot
 from telegram.handler import handle_update
 
 sys.path.insert(0, settings.PROJECT_DIR)
@@ -19,7 +19,7 @@ if settings.DEBUG:
 logging.config.dictConfig(settings.LOG_SETTINGS)
 app.logger = logging.getLogger()
 
-bot = BotApi(settings.SECRET['token'])
-bot.sync_call(bot.setWebhook(settings.WEBHOOK_URL))
+bot = EvernoteRobot(settings.SECRET['token'])
+bot.api.sync_call(bot.setWebhook(settings.WEBHOOK_URL))
 
 app.bot = bot
