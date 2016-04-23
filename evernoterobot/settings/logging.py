@@ -98,12 +98,12 @@ LOG_SETTINGS = {
         'gunicorn.access': {
             'level': 'INFO',
             'handlers': ['accessfile'],
-            'propagate': True,
+            'propagate': False,
         },
         'gunicorn.error': {
             'level': 'INFO',
             'handlers': ['file', 'email'],
-            'propagate': True,
+            'propagate': False,
         },
         '': {
             'level': 'INFO',
