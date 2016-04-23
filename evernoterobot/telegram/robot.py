@@ -45,14 +45,14 @@ class EvernoteRobot:
             text = message.get('text', '')
             await self.api.sendMessage(self.chat_id, text)
 
-    async def execute_command(self, cmd):
+    def execute_command(self, cmd):
         if hasattr(self, cmd):
             func = getattr(self, cmd)
             text = func(self)
         else:
             text = "Unsupported command '%s'" % cmd
             self.logger.warning(text)
-        await self.api.sendMessage(self.chat_id, text)
+        return text
 
     def start(self):
         return '''Hi! I'm robot for __fast__ saving your notes to Evernote.
