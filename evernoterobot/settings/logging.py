@@ -1,6 +1,10 @@
+from os.path import join
+
 import logging
 from logging.handlers import SMTPHandler
 import smtplib
+
+from .base import LOGS_DIR, PROJECT_NAME, SMTP
 
 
 class SslSMTPHandler(SMTPHandler):
@@ -37,7 +41,7 @@ class SslSMTPHandler(SMTPHandler):
             raise
         except Exception as e:
             import traceback
-            logger = logging.getLogger('myfeed.file')
+            logger = logging.getLogger()
             logger.error(traceback.format_exc())
             # self.handleError(record)
 
@@ -45,3 +49,65 @@ class SslSMTPHandler(SMTPHandler):
         if record.exc_info:
             return "[%s] %s" % (record.levelname, str(record.exc_info[1]))
         return '[%s] %s' % (record.levelname, record.message)
+
+
+LOG_SETTINGS = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s - PID:%(process)d - %(levelname)s - %(message)s (%(pathname)s:%(lineno)d)',
+        },
+    },
+
+    'handlers': {
+        'accessfile': {
+            'class': 'logging.FileHandler',
+            'filename': join(LOGS_DIR, 'access.log')
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join(LOGS_DIR, '%s.log' % PROJECT_NAME),
+            'formatter': 'default',
+        },
+        'email': {
+            'level': 'ERROR',
+            'class': 'settings.logging.SslSMTPHandler',
+            'mailhost': (SMTP['host'], SMTP['port']),
+            'fromaddr': SMTP['email'],
+            'toaddrs': [SMTP['email']],
+            'subject': '',
+            'credentials': (SMTP['user'], SMTP['password']),
+            'secure': (),
+        },
+    },
+
+    'loggers': {
+        'aiohttp.access': {
+            'level': 'INFO',
+            'handlers': ['accessfile'],
+            'propagate': True,
+        },
+        'aiohttp.server': {
+            'level': 'INFO',
+            'handlers': ['file', 'email'],
+            'propagate': True,
+        },
+        'gunicorn.access': {
+            'level': 'INFO',
+            'handlers': ['accessfile'],
+            'propagate': True,
+        },
+        'gunicorn.error': {
+            'level': 'INFO',
+            'handlers': ['file', 'email'],
+            'propagate': True,
+        },
+        '': {
+            'level': 'DEBUG',
+            'handlers': ['file'],
+        },
+    },
+}
