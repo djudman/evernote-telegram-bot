@@ -34,7 +34,7 @@ class EvernoteRobot:
                 length = entity['length']
                 cmd = message.get('text', '')[offset:length]
                 if cmd.startswith('/'):
-                    cmd.replace('/', '')
+                    cmd = cmd.replace('/', '')
                 commands.append(cmd)
 
         if commands:
