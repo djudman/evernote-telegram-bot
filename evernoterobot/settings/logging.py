@@ -106,7 +106,7 @@ LOG_SETTINGS = {
             'propagate': False,
         },
         '': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['file'],
             'propagate': True,
         },
