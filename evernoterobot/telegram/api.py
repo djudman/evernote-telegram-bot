@@ -24,11 +24,11 @@ class BotApi:
         # TODO: only 'GET' http method uses now. May be add support of 'POST'?
         with aiohttp.ClientSession() as session:
             self.logger.debug("API request %(http_method)s %(url)s?%(qs)s" % {
-                    'http_method': 'GET',
+                    'http_method': 'POST',
                     'url': url,
-                    'qs': '',
+                    'data': kwargs,
                 })
-            async with session.get(url, params=kwargs) as response:
+            async with session.post(url, data=kwargs) as response:
                 data = await response.json()
                 self.logger.debug("API response: %s" % str(data))
 

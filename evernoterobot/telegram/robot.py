@@ -1,6 +1,5 @@
 import logging
 import asyncio
-import json
 from .api import BotApi
 from libevernote.client import Evernote
 from user import User
@@ -78,7 +77,7 @@ Please tap on button below to link your Evernote account with me.'''
         }
         inline_keyboard = [[signin_button]]
         message = await self.api.sendMessage(self.chat_id, welcome_text,
-                                             json.dumps(inline_keyboard))
+                                             inline_keyboard)
         # startsession = await session.get_start_session(self.user.id)
         # if not startsession:
         #     callback_key = self.get_callback_key(self.user.id)
@@ -99,7 +98,7 @@ Please tap on button below to link your Evernote account with me.'''
         signin_button['text'] = 'Sign in to Evernote'
         signin_button['url'] = 'oauth_url'
         await self.api.editMessageReplyMarkup(
-            self.chat_id, message['message_id'], json.dumps(inline_keyboard))
+            self.chat_id, message['message_id'], inline_keyboard)
 
     def get_callback_key(self, user_id):
         return "%s.%s" % (user_id, self.api.token)
