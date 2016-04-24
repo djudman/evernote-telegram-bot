@@ -1,4 +1,3 @@
-import urllib.parse
 from libevernote import EvernoteSdk
 
 
@@ -14,10 +13,11 @@ class Evernote:
     def get_oauth_url(self, callback_url):
         if not self.oauth_url:
             request_token = self.sdk.get_request_token(callback_url)
-            self.oauth_token = urllib.parse.quote(request_token['oauth_token'])
+            self.oauth_token = request_token['oauth_token']
+            self.oauth_token_secret = request_token['oauth_token_secret']
             self.oauth_url = self.sdk.get_authorize_url(request_token)
         return self.oauth_url
 
-    def get_access_token(self, oauth_token_secret, oauth_verifier):
-        return self.sdk.get_access_token(self.oauth_token, oauth_token_secret,
+    def get_access_token(self, oauth_token, oauth_verifier):
+        return self.sdk.get_access_token(oauth_token, self.oauth_token_secret,
                                          oauth_verifier)
