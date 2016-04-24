@@ -14,3 +14,7 @@ class Evernote:
             request_token = self.sdk.get_request_token(callback_url)
             self.oauth_url = self.sdk.get_authorize_url(request_token)
         return self.oauth_url
+
+    def get_access_token(self, oauth_token, oauth_verifier):
+        return self.sdk.get_access_token(oauth_token,
+                                         oauth_verifier=oauth_verifier)
