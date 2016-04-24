@@ -21,7 +21,10 @@ class BotApi:
             'token': self.token,
             'method_name': method_name,
         }
-        # TODO: only 'GET' http method uses now. May be add support of 'POST'?
+        data = {}
+        for k, v in kwargs.items():
+            if v is not None:
+                data.update({k: v})
         with aiohttp.ClientSession() as session:
             self.logger.debug("API request %(http_method)s %(url)s, data: %(data)s" % {
                     'http_method': 'POST',

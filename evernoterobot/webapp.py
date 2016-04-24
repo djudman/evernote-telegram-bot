@@ -14,6 +14,12 @@ sys.path.insert(0, settings.PROJECT_DIR)
 
 memcached_lock = Lock()
 
+bot = EvernoteRobot(settings.SECRET['token'], {
+        'key': settings.SECRET['evernote']['key'],
+        'secret': settings.SECRET['evernote']['secret'],
+        'oauth_callback': settings.EVERNOTE_OAUTH_CALLBACK,
+    })
+
 app = web.Application()
 app.router.add_route('POST', '/%s' % settings.SECRET['token'], handle_update)
 app.router.add_route('GET', '/evernote/oauth', oauth_callback)
@@ -24,12 +30,7 @@ if settings.DEBUG:
 logging.config.dictConfig(settings.LOG_SETTINGS)
 app.logger = logging.getLogger()
 
-bot = EvernoteRobot(settings.SECRET['token'], {
-        'key': settings.SECRET['evernote']['key'],
-        'secret': settings.SECRET['evernote']['secret'],
-        'oauth_callback': settings.EVERNOTE_OAUTH_CALLBACK,
-    })
-# bot.api.sync_call(bot.api.setWebhook(settings.WEBHOOK_URL))
+bot.api.sync_call(bot.api.setWebhook(settings.WEBHOOK_URL))
 
 app.bot = bot
 app.memcached_lock = memcached_lock
