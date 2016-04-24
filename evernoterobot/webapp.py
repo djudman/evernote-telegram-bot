@@ -21,6 +21,10 @@ bot = EvernoteRobot(settings.SECRET['token'], {
         'oauth_callback': settings.EVERNOTE_OAUTH_CALLBACK,
     })
 
+loop = asyncio.new_event_loop()
+loop.run_until_complete(bot.api.setWebhook(settings.WEBHOOK_URL))
+
+
 app = web.Application()
 app.router.add_route('POST', '/%s' % settings.SECRET['token'], handle_update)
 app.router.add_route('GET', '/evernote/oauth', oauth_callback)
@@ -30,9 +34,6 @@ if settings.DEBUG:
 
 logging.config.dictConfig(settings.LOG_SETTINGS)
 app.logger = logging.getLogger()
-
-task = asyncio.ensure_future(bot.api.setWebhook(settings.WEBHOOK_URL))
-app.loop.run_until_complete(task)
 
 app.bot = bot
 app.memcached_lock = memcached_lock
