@@ -31,7 +31,8 @@ if settings.DEBUG:
 logging.config.dictConfig(settings.LOG_SETTINGS)
 app.logger = logging.getLogger()
 
-asyncio.ensure_future(bot.api.setWebhook(settings.WEBHOOK_URL))
+task = asyncio.ensure_future(bot.api.setWebhook(settings.WEBHOOK_URL))
+app.loop.run_until_complete(task)
 
 app.bot = bot
 app.memcached_lock = memcached_lock

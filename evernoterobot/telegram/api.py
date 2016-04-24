@@ -39,11 +39,6 @@ class BotApi:
             raise BotApiError(data['error_code'], data['description'])
         return data
 
-    def sync_call(self, future):
-        loop = asyncio.get_event_loop()
-        result = loop.run_until_complete(future)
-        return result
-
     async def setWebhook(self, url):
         return await self.__request('setWebhook', url=url)
 
