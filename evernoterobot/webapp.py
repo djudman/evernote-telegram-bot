@@ -29,7 +29,7 @@ bot = EvernoteRobot(settings.SECRET['token'], {
         'secret': settings.SECRET['evernote']['secret'],
         'oauth_callback': settings.EVERNOTE_OAUTH_CALLBACK,
     })
-bot.api.sync_call(bot.api.setWebhook(settings.WEBHOOK_URL))
+# bot.api.sync_call(bot.api.setWebhook(settings.WEBHOOK_URL))
 
 app.bot = bot
 app.memcached_lock = memcached_lock
