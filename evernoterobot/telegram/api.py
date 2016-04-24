@@ -3,6 +3,13 @@ import asyncio
 import aiohttp
 
 
+class BotApiError(Exception):
+
+    def __init__(self, code, description):
+        super(BotApiError, self).__init__(description)
+        self.code = code
+
+
 class BotApi:
 
     def __init__(self, token):
@@ -24,6 +31,9 @@ class BotApi:
             async with session.get(url, params=kwargs) as response:
                 data = await response.json()
                 self.logger.debug("API response: %s" % str(data))
+
+        if not data['ok']:
+            raise BotApiError(data['error_code'], data['description'])
         return data
 
     def sync_call(self, future):
