@@ -2,6 +2,7 @@ import sys
 import logging
 import logging.config
 from multiprocessing import Lock
+import asyncio
 
 from aiohttp import web
 
@@ -30,7 +31,7 @@ if settings.DEBUG:
 logging.config.dictConfig(settings.LOG_SETTINGS)
 app.logger = logging.getLogger()
 
-bot.api.sync_call(bot.api.setWebhook(settings.WEBHOOK_URL))
+asyncio.ensure_future(bot.api.setWebhook(settings.WEBHOOK_URL))
 
 app.bot = bot
 app.memcached_lock = memcached_lock
