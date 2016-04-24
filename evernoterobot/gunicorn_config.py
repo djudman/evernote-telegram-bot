@@ -21,6 +21,7 @@ loglevel = 'info'
 app_name = 'webapp:app'
 access_log_format = '%a %l %u %t "%r" %s %b "%{Referrer}i" "%{User-Agent}i"'
 daemon = True
+preload_app = True
 
 # Run this command to start gunicorn
 # $ gunicorn --config gunicorn_config.py webapp:app

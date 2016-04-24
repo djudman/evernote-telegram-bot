@@ -34,5 +34,11 @@ class BotApi:
     async def setWebhook(self, url):
         return await self.__request('setWebhook', url=url)
 
-    async def sendMessage(self, chat_id, text):
-        return await self.__request('sendMessage', chat_id=chat_id, text=text)
+    async def sendMessage(self, chat_id, text, reply_markup):
+        return await self.__request('sendMessage', chat_id=chat_id, text=text,
+                                    reply_markup=reply_markup)
+
+    async def editMessageReplyMarkup(self, chat_id, message_id, reply_markup):
+        return await self.__request('editMessageReplyMarkup', chat_id=chat_id,
+                                    message_id=message_id,
+                                    reply_markup=reply_markup)

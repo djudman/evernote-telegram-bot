@@ -1,6 +1,7 @@
 import sys
 import logging
 import logging.config
+from multiprocessing import Lock
 
 from aiohttp import web
 
@@ -11,6 +12,7 @@ from libevernote.handler import oauth_callback
 
 sys.path.insert(0, settings.PROJECT_DIR)
 
+memcached_lock = Lock()
 
 app = web.Application()
 app.router.add_route('POST', '/%s' % settings.SECRET['token'], handle_update)
@@ -30,3 +32,4 @@ bot = EvernoteRobot(settings.SECRET['token'], {
 bot.api.sync_call(bot.api.setWebhook(settings.WEBHOOK_URL))
 
 app.bot = bot
+app.memcached_lock = memcached_lock
