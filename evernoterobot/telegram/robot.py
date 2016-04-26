@@ -71,9 +71,9 @@ class EvernoteRobot:
             callable_func = self.commands.get(cmd_name)
             if callable_func:
                 if asyncio.iscoroutinefunction(callable_func):
-                    await callable_func()
+                    await callable_func(self, self.chat_id, self.telegram)
                 else:
-                    callable_func()
+                    callable_func(self, self.chat_id, self.telegram)
             else:
                 text = "WTF? I don't know this words: '%s'" % cmd_name
                 await self.telegram.sendMessage(self.chat_id, text)
