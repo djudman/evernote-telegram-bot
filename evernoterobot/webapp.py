@@ -1,10 +1,9 @@
 import sys
 import logging
 import logging.config
-from multiprocessing import Lock
-import asyncio
 
 from aiohttp import web
+from motor.motor_asyncio import AsyncIOMotorClient
 
 import settings
 from telegram.robot import EvernoteRobot
@@ -13,7 +12,7 @@ from libevernote.handler import oauth_callback
 
 sys.path.insert(0, settings.PROJECT_DIR)
 
-memcached_lock = Lock()
+logging.config.dictConfig(settings.LOG_SETTINGS)
 
 bot = EvernoteRobot(settings.SECRET['token'], {
         'key': settings.SECRET['evernote']['key'],
@@ -21,19 +20,23 @@ bot = EvernoteRobot(settings.SECRET['token'], {
         'oauth_callback': settings.EVERNOTE_OAUTH_CALLBACK,
     })
 
-loop = asyncio.new_event_loop()
-loop.run_until_complete(bot.api.setWebhook(settings.WEBHOOK_URL))
-
-
 app = web.Application()
+app.logger = logging.getLogger()
+
 app.router.add_route('POST', '/%s' % settings.SECRET['token'], handle_update)
 app.router.add_route('GET', '/evernote/oauth', oauth_callback)
 
 if settings.DEBUG:
     app.router.add_route('GET', '/', handle_update)
 
-logging.config.dictConfig(settings.LOG_SETTINGS)
-app.logger = logging.getLogger()
+app.loop.run_until_complete(bot.api.setWebhook(settings.WEBHOOK_URL))
 
 app.bot = bot
-app.memcached_lock = memcached_lock
+app.db = AsyncIOMotorClient(settings.MONGODB_URI)
+
+
+async def on_cleanup(app):
+    app.db.close()
+
+
+app.on_cleanup.append(on_cleanup)
