@@ -64,7 +64,7 @@ class EvernoteRobot:
         else:
             # TODO: just for fun
             text = message.get('text', '')
-            await self.api.sendMessage(self.chat_id, text)
+            await self.telegram.sendMessage(self.chat_id, text)
 
     async def execute_command(self, cmd_name):
         try:
