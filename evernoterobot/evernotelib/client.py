@@ -1,9 +1,10 @@
-from libevernote import EvernoteSdk
+from evernotelib import EvernoteSdk
 
 
-class Evernote:
+class EvernoteClient:
 
-    def __init__(self, consumer_key, consumer_secret):
+    def __init__(self, consumer_key, consumer_secret, oauth_callback):
+        self.oauth_callback = oauth_callback
         self.sdk = EvernoteSdk(consumer_key=consumer_key,
                                consumer_secret=consumer_secret,
                                sandbox=True)

@@ -1,20 +1,31 @@
+from os.path import realpath, dirname, join
 import logging
 import asyncio
-from .api import BotApi
-from libevernote.client import Evernote
+import traceback
+
 from user import User
-import session
 
 
 class EvernoteRobot:
 
-    def __init__(self, token, evernote_data):
-        self.link = 'https://telegram.me/evernoterobot'
-        self.api = BotApi(token)
-        self.evernote_oauth_callback = evernote_data['oauth_callback']
-        self.evernote = Evernote(evernote_data['key'], evernote_data['secret'])
+    def __init__(self, telegram, evernote, db_client):
+        self.bot_url = 'https://telegram.me/evernoterobot'
+        self.telegram = telegram
+        self.evernote = evernote
+        self.db = db_client
         self.logger = logging.getLogger()
-        # TODO: add cache
+        self.commands = self.collect_commands(
+                join(realpath(dirname(__file__)), 'commands')
+            )
+
+    def collect_commands(self, dir_path):
+        # TODO:
+        from .commands.help import help
+        from .commands.start import start
+        return {
+            'start': start,
+            'help': help,
+        }
 
     async def handle_update(self, data):
         if 'message' in data:
@@ -49,74 +60,28 @@ class EvernoteRobot:
 
         if commands:
             for cmd in commands:
-                text = await self.execute_command(cmd)
-                if isinstance(text, str):
-                    await self.api.sendMessage(self.chat_id, text)
+                await self.execute_command(cmd)
         else:
+            # TODO: just for fun
             text = message.get('text', '')
             await self.api.sendMessage(self.chat_id, text)
 
-    async def execute_command(self, cmd):
-        if hasattr(self, cmd):
-            func = getattr(self, cmd)
-            if asyncio.iscoroutinefunction(func):
-                text = await func()
+    async def execute_command(self, cmd_name):
+        try:
+            callable_func = self.commands.get(cmd_name)
+            if callable_func:
+                if asyncio.iscoroutinefunction(callable_func):
+                    await callable_func()
+                else:
+                    callable_func()
             else:
-                text = func()
-        else:
-            text = "Unsupported command '%s'" % cmd
-            self.logger.warning(text)
-        return text
-
-    async def start(self):
-        welcome_text = '''Hi! I'm robot for saving your notes to Evernote on fly.
-Please tap on button below to link your Evernote account with me.'''
-        signin_button = {
-            'text': 'Preparing link for you...',
-            'url': self.link,
-        }
-        inline_keyboard = [[signin_button]]
-        message = await self.api.sendMessage(self.chat_id, welcome_text,
-                                             inline_keyboard)
-        # startsession = await session.get_start_session(self.user.id)
-        # if not startsession:
-        #     callback_key = self.get_callback_key(self.user.id)
-        #     callback_url = "%(callback_url)s?key=%(key)s" % {
-        #             'callback_url': self.evernote_oauth_callback,
-        #             'key': callback_key,
-        #         }
-        #     request_token = self.evernote.get_request_token(callback_url)
-        #     oauth_token = request_token['oauth_token']
-        #     oauth_token_secret = request_token['oauth_token_secret']
-        #     # TODO: put tokens to cache
-        #     oauth_url = self.evernote.get_authorize_url(request_token)
-        #     await session.save_start_session(self.user.id, oauth_url,
-        #                                      callback_key)
-        # else:
-        #     oauth_url = startsession['oauth_url']
-
-        signin_button['text'] = 'Sign in to Evernote'
-        signin_button['url'] = 'oauth_url'
-        await self.api.editMessageReplyMarkup(
-            self.chat_id, message['message_id'], inline_keyboard)
-
-    def get_callback_key(self, user_id):
-        return "%s.%s" % (user_id, self.api.token)
-
-    async def verify_callback_key(callback_key):
-        return await session.get_start_session(sid=callback_key)
-
-    def auth(self):
-        # TODO:
-        pass
-
-    def logout(self):
-        # TODO:
-        pass
-
-    def help(self):
-        return '''
-What is it?
-- Bot for fast saving notes to Evernote
-Contacts
-- djudman@gmail.com'''
+                text = "WTF? I don't know this words: '%s'" % cmd_name
+                await self.telegram.sendMessage(self.chat_id, text)
+                # TODO: send list available commands
+                # help_cmd = self.commands['help']
+                # await help_cmd(self.chat_id, self.telegram)
+                self.logger.error("Unsupported command '%s'" % cmd_name)
+        except Exception:
+            text = "Houston, we have a problem. Please try again later"
+            await self.telegram.sendMessage(self.chat_id, text)
+            self.logger.error(traceback.format_exc())

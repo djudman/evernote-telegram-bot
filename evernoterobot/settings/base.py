@@ -12,7 +12,7 @@ with open(join(PROJECT_DIR, 'settings/secret.json')) as f:
     SECRET = json.load(f)
 
 SMTP = SECRET['smtp']
-WEBHOOK_URL = "https://evernoterobot.djudman.info/%s" % SECRET['token']
-EVERNOTE_OAUTH_CALLBACK = "https://evernoterobot.djudman.info/evernote/oauth"
+TELEGRAM = SECRET['telegram']
+EVERNOTE = SECRET['evernote']
 
 MONGODB_URI = 'mongodb://localhost:27017'
