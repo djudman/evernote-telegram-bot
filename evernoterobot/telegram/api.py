@@ -21,17 +21,17 @@ class BotApi:
             'token': self.token,
             'method_name': method_name,
         }
-        data = {}
+        args_data = {}
         for k, v in kwargs.items():
             if v is not None:
-                data.update({k: v})
+                args_data.update({k: v})
         with aiohttp.ClientSession() as session:
             self.logger.debug("API request %(http_method)s %(url)s, data: %(data)s" % {
                     'http_method': 'POST',
                     'url': url,
-                    'data': str(kwargs),
+                    'data': str(args_data),
                 })
-            async with session.post(url, data=kwargs) as response:
+            async with session.post(url, data=args_data) as response:
                 data = await response.json()
                 self.logger.debug("API response: %s" % str(data))
 
