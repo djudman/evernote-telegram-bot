@@ -37,7 +37,7 @@ class BotApi:
 
         if not data['ok']:
             raise BotApiError(data['error_code'], data['description'])
-        return data
+        return data['result']
 
     async def setWebhook(self, url):
         return await self.__request('setWebhook', url=url)
