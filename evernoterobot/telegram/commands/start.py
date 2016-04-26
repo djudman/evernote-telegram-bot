@@ -8,7 +8,7 @@ Please tap on button below to link your Evernote account with me.'''
         'text': 'Preparing link for you...',
         'url': robot.bot_url,
     }
-    inline_keyboard = [[signin_button]]
+    inline_keyboard = {'inline_keyboard': [[signin_button]]}
     message = await telegram.sendMessage(chat_id, welcome_text,
                                          json.dumps(inline_keyboard))
     # startsession = await session.get_start_session(self.user.id)
