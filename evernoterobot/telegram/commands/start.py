@@ -11,23 +11,6 @@ Please tap on button below to link your Evernote account with me.'''
     inline_keyboard = {'inline_keyboard': [[signin_button]]}
     message = await telegram.sendMessage(chat_id, welcome_text,
                                          json.dumps(inline_keyboard))
-    # startsession = await session.get_start_session(self.user.id)
-    # if not startsession:
-    #     callback_key = self.get_callback_key(self.user.id)
-    #     callback_url = "%(callback_url)s?key=%(key)s" % {
-    #             'callback_url': self.evernote_oauth_callback,
-    #             'key': callback_key,
-    #         }
-    #     request_token = self.evernote.get_request_token(callback_url)
-    #     oauth_token = request_token['oauth_token']
-    #     oauth_token_secret = request_token['oauth_token_secret']
-    #     # TODO: put tokens to cache
-    #     oauth_url = self.evernote.get_authorize_url(request_token)
-    #     await session.save_start_session(self.user.id, oauth_url,
-    #                                      callback_key)
-    # else:
-    #     oauth_url = startsession['oauth_url']
-
     # TODO: async
     user_id = robot.user.id
     oauth_data = robot.evernote.get_oauth_data(user_id)
