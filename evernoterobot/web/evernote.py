@@ -31,4 +31,4 @@ async def oauth_callback(request):
         text = "We are sorry, but you declined authorization 😢"
         await robot.send_message(session['user_id'], text)
 
-    return web.HTTPFound('https://telegram.me/evernoterobot')
+    return web.HTTPFound(robot.bot_url)
