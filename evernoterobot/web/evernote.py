@@ -6,7 +6,7 @@ async def oauth_callback(request):
     logger = request.app.logger
     robot = request.app.bot
     params = parse_qs(request.query_string)
-    callback_key = params.get('key', '')
+    callback_key = params.get('key', [''])[0]
 
     session = await robot.get_start_session(callback_key)
     if not session:
