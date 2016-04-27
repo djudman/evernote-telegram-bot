@@ -1,14 +1,17 @@
+import time
 from os.path import realpath, dirname, join
 import logging
 import asyncio
 import traceback
 
+from evernotelib.client import EvernoteClient, EvernoteOauthData
+from telegram.api import BotApi
 from user import User
 
 
 class EvernoteRobot:
 
-    def __init__(self, telegram, evernote, db_client):
+    def __init__(self, telegram: BotApi, evernote: EvernoteClient, db_client):
         self.bot_url = 'https://telegram.me/evernoterobot'
         self.telegram = telegram
         self.evernote = evernote
@@ -18,7 +21,7 @@ class EvernoteRobot:
                 join(realpath(dirname(__file__)), 'commands')
             )
 
-    def collect_commands(self, dir_path):
+    def collect_commands(self, dir_path: str):
         # TODO:
         from .commands.help import help
         from .commands.start import start
@@ -27,7 +30,7 @@ class EvernoteRobot:
             'help': help,
         }
 
-    async def handle_update(self, data):
+    async def handle_update(self, data: dict):
         if 'message' in data:
             await self.handle_message(data['message'])
         elif 'inline_query' in data:
@@ -43,7 +46,7 @@ class EvernoteRobot:
             # TODO: unsupported update
             pass
 
-    async def handle_message(self, message):
+    async def handle_message(self, message: dict):
         self.chat_id = message['chat']['id']
         if message.get('from'):
             self.user = User(message.get('from'))
@@ -67,7 +70,7 @@ class EvernoteRobot:
             if text:
                 await self.telegram.sendMessage(self.chat_id, text)
 
-    async def execute_command(self, cmd_name):
+    async def execute_command(self, cmd_name: str):
         try:
             callable_func = self.commands.get(cmd_name)
             if callable_func:
@@ -86,3 +89,20 @@ class EvernoteRobot:
             text = "Houston, we have a problem. Please try again later"
             await self.telegram.sendMessage(self.chat_id, text)
             self.logger.error(traceback.format_exc())
+
+    async def create_start_session(self, user_id,
+                                   evernote_oauth_data: EvernoteOauthData):
+        session = {
+            '_id': user_id,
+            'created': time.time(),
+            'oauth_token': evernote_oauth_data.oauth_token,
+            'oauth_token_secret': evernote_oauth_data.oauth_token_secret,
+            'oauth_url': evernote_oauth_data.oauth_url,
+            'callback_key': evernote_oauth_data.callback_key,
+        }
+        db = self.db.evernoterobot
+        await db.start_sessions.save(session)
+
+    async def get_start_session(self, evernote_callback_key: str):
+        # TODO:
+        pass

@@ -29,9 +29,11 @@ Please tap on button below to link your Evernote account with me.'''
     #     oauth_url = startsession['oauth_url']
 
     # TODO: async
-    oauth_url = robot.evernote.get_oauth_url(robot.user.id)
+    user_id = robot.user.id
+    oauth_data = robot.evernote.get_oauth_data(user_id)
+    await robot.create_start_session(user_id, oauth_data)
 
     signin_button['text'] = 'Sign in to Evernote'
-    signin_button['url'] = oauth_url
+    signin_button['url'] = oauth_data.oauth_url
     await telegram.editMessageReplyMarkup(chat_id, message['message_id'],
                                           json.dumps(inline_keyboard))

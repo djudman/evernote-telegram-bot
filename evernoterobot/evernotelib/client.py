@@ -2,6 +2,15 @@ import hashlib
 from evernotelib import EvernoteSdk
 
 
+class EvernoteOauthData:
+
+    def __init__(self, request_token, oauth_url, callback_key):
+        self.oauth_url = oauth_url
+        self.oauth_token = request_token['oauth_token']
+        self.oauth_token_secret = request_token['oauth_token_secret']
+        self.callback_key = callback_key
+
+
 class EvernoteClient:
 
     def __init__(self, consumer_key, consumer_secret, oauth_callback):
@@ -22,19 +31,17 @@ class EvernoteClient:
         return self.sdk.get_access_token(oauth_token, self.oauth_token_secret,
                                          oauth_verifier)
 
-    def get_oauth_url(self, user_id):
+    def get_oauth_data(self, user_id):
         bytes_key = ('%s%s%s' % (self.consumer_key, self.consumer_secret,
                                  user_id)).encode()
-        key = hashlib.sha1(bytes_key).hexdigest()
+        callback_key = hashlib.sha1(bytes_key).hexdigest()
         callback_url = "%(callback_url)s?key=%(key)s" % {
             'callback_url': self.oauth_callback,
-            'key': key,
+            'key': callback_key,
         }
         request_token = self.get_request_token(callback_url)
-        oauth_token = request_token['oauth_token']
-        oauth_token_secret = request_token['oauth_token_secret']
         oauth_url = self.get_authorize_url(request_token)
-        return oauth_url
+        return EvernoteOauthData(request_token, oauth_url, callback_key)
 
     async def get_oauth_url_async(self, user_id):
         # with ThreadPoolExecutor(max_workers=1) as executor:
