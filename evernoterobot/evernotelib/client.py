@@ -27,9 +27,15 @@ class EvernoteClient:
     def get_authorize_url(self, request_token):
         return self.sdk.get_authorize_url(request_token)
 
-    def get_access_token(self, oauth_token, oauth_verifier):
-        return self.sdk.get_access_token(oauth_token, self.oauth_token_secret,
+    def get_access_token(self, oauth_token, oauth_token_secret,
+                         oauth_verifier):
+        return self.sdk.get_access_token(oauth_token, oauth_token_secret,
                                          oauth_verifier)
+
+    async def get_access_token_async(self, oauth_token, oauth_token_secret,
+                                     oauth_verifier):
+        # TODO:
+        pass
 
     def get_oauth_data(self, user_id):
         bytes_key = ('%s%s%s' % (self.consumer_key, self.consumer_secret,

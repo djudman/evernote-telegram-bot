@@ -90,11 +90,17 @@ class EvernoteRobot:
             await self.telegram.sendMessage(self.chat_id, text)
             self.logger.error(traceback.format_exc())
 
+    async def send_message(self, user_id, text):
+        db = self.db.evernoterobot
+        session = await db.start_sessions.find_one({'_id': user_id})
+        await self.telegram.sendMessage(session['telegram_chat_id'], text)
+
     async def create_start_session(self, user_id,
                                    evernote_oauth_data: EvernoteOauthData):
         session = {
             '_id': user_id,
             'created': time.time(),
+            'telegram_chat_id': self.chat_id,
             'oauth_token': evernote_oauth_data.oauth_token,
             'oauth_token_secret': evernote_oauth_data.oauth_token_secret,
             'oauth_url': evernote_oauth_data.oauth_url,
@@ -104,5 +110,18 @@ class EvernoteRobot:
         await db.start_sessions.save(session)
 
     async def get_start_session(self, evernote_callback_key: str):
-        # TODO:
-        pass
+        db = self.db.evernoterobot
+        session = await db.start_sessions.find_one(
+            {'callback_key': evernote_callback_key})
+        if session:
+            session['user_id'] = session['_id']
+            del session['_id']
+            return session
+
+    async def register_user(self, start_session, evernote_access_token):
+        db = self.db.evernoterobot
+        user = {
+            '_id': start_session['user_id'],
+            'evernote_access_token': evernote_access_token,
+        }
+        await db.users.save(user)

@@ -4,21 +4,31 @@ from aiohttp import web
 
 async def oauth_callback(request):
     logger = request.app.logger
+    robot = request.app.bot
     params = parse_qs(request.query_string)
     callback_key = params.get('key', '')
 
-    key_info = await request.app.bot.verify_callback_key(callback_key)
-    if not key_info:
+    session = await robot.get_start_session(callback_key)
+    if not session:
         return web.HTTPForbidden()
 
-    oauth_token = params['oauth_token'][0]
     if params.get('oauth_verifier'):
         oauth_verifier = params['oauth_verifier'][0]
-        access_token = request.app.bot.evernote.get_access_token(
-            oauth_token, oauth_verifier)
+        # TODO: async
+        access_token = robot.evernote.get_access_token(
+            session['oauth_token'],
+            session['oauth_token_secret'],
+            oauth_verifier)
+
         logger.info('evernote access_token = %s' % access_token)
+        await robot.register_user(session, access_token)
+
+        text = "Woohoo! Now you can just send message and I create note"
+        await robot.send_message(session['user_id'], text)
     else:
         # User decline access
         logger.info('User declined access. No access token =(')
+        text = "We are sorry, but you declined authorization 😢"
+        await robot.send_message(session['user_id'], text)
 
     return web.HTTPFound('https://telegram.me/evernoterobot')
