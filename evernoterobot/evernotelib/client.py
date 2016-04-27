@@ -23,8 +23,9 @@ class EvernoteClient:
                                          oauth_verifier)
 
     def get_oauth_url(self, user_id):
-        key = hashlib.sha1('%s%s%s' % (self.consumer_key, self.consumer_secret,
-                                       user_id)).hexdigest()
+        bytes_key = ('%s%s%s' % (self.consumer_key, self.consumer_secret,
+                                 user_id)).encode()
+        key = hashlib.sha1(bytes_key).hexdigest()
         callback_url = "%(callback_url)s?key=%(key)s" % {
             'callback_url': self.oauth_callback,
             'key': key,
