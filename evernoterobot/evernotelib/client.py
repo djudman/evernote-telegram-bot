@@ -30,7 +30,7 @@ class EvernoteClient:
             'callback_url': self.oauth_callback,
             'key': key,
         }
-        request_token = self.evernote.get_request_token(callback_url)
+        request_token = self.get_request_token(callback_url)
         oauth_token = request_token['oauth_token']
         oauth_token_secret = request_token['oauth_token_secret']
         oauth_url = self.get_authorize_url(request_token)
