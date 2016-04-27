@@ -29,7 +29,7 @@ Please tap on button below to link your Evernote account with me.'''
     #     oauth_url = startsession['oauth_url']
 
     # TODO: async
-    oauth_url = robot.evernote.get_oauth_url()
+    oauth_url = robot.evernote.get_oauth_url(robot.user.id)
 
     signin_button['text'] = 'Sign in to Evernote'
     signin_button['url'] = oauth_url
