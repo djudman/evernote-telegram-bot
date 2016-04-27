@@ -5,12 +5,12 @@ async def start(robot, chat_id, telegram):
     welcome_text = '''Hi! I'm robot for saving your notes to Evernote on fly.
 Please tap on button below to link your Evernote account with me.'''
     signin_button = {
-        'text': 'Preparing link for you...',
+        'text': 'Waiting for Evernote...',
         'url': robot.bot_url,
     }
-    inline_keyboard = {'inline_keyboard': [[signin_button]]}
+    inline_keyboard = json.dumps({'inline_keyboard': [[signin_button]]})
     message = await telegram.sendMessage(chat_id, welcome_text,
-                                         json.dumps(inline_keyboard))
+                                         inline_keyboard)
     # startsession = await session.get_start_session(self.user.id)
     # if not startsession:
     #     callback_key = self.get_callback_key(self.user.id)
@@ -28,7 +28,10 @@ Please tap on button below to link your Evernote account with me.'''
     # else:
     #     oauth_url = startsession['oauth_url']
 
+    # TODO: async
+    oauth_url = robot.evernote.get_oauth_url()
+
     signin_button['text'] = 'Sign in to Evernote'
-    signin_button['url'] = robot.bot_url
+    signin_button['url'] = oauth_url
     await telegram.editMessageReplyMarkup(chat_id, message['message_id'],
-                                          json.dumps(inline_keyboard))
+                                          inline_keyboard)
