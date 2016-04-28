@@ -54,3 +54,11 @@ class BotApi:
     async def editMessageText(self, chat_id, message_id, text):
         return await self.__request('editMessageText', chat_id=chat_id,
                                     message_id=message_id, text=text)
+
+    async def getFile(self, file_id):
+        file = await self.__request('getFile', file_id=file_id)
+        download_url = 'https://api.telegram.org/file/bot%(token)s/%(path)s' % {
+            'token': self.token,
+            'path': file['file_path'],
+        }
+        return download_url

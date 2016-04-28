@@ -51,24 +51,27 @@ class EvernoteRobot:
         if message.get('from'):
             self.user = User(message.get('from'))
 
-        commands = []
-        for entity in message.get('entities', []):
-            if entity['type'] == 'bot_command':
-                offset = entity['offset']
-                length = entity['length']
-                cmd = message.get('text', '')[offset:length]
-                if cmd.startswith('/'):
-                    cmd = cmd.replace('/', '')
-                commands.append(cmd)
-
-        if commands:
-            for cmd in commands:
-                await self.execute_command(cmd)
+        if message.get('photo'):
+            self.handle_photo(message)
         else:
-            # TODO: just for fun
-            text = message.get('text')
-            if text:
-                await self.handle_text_message(self.chat_id, text)
+            commands = []
+            for entity in message.get('entities', []):
+                if entity['type'] == 'bot_command':
+                    offset = entity['offset']
+                    length = entity['length']
+                    cmd = message.get('text', '')[offset:length]
+                    if cmd.startswith('/'):
+                        cmd = cmd.replace('/', '')
+                    commands.append(cmd)
+
+            if commands:
+                for cmd in commands:
+                    await self.execute_command(cmd)
+            else:
+                # TODO: just for fun
+                text = message.get('text')
+                if text:
+                    await self.handle_text_message(self.chat_id, text)
 
     async def execute_command(self, cmd_name: str):
         try:
@@ -137,6 +140,21 @@ class EvernoteRobot:
         access_token = user['evernote_access_token']
         # TODO: async
         self.evernote.create_note(access_token, text)
+
+        await self.telegram.editMessageText(chat_id, reply['message_id'],
+                                            '✅ Saved')
+
+    async def handle_photo(self, message):
+        chat_id = message['chat']['id']
+        reply = await self.telegram.sendMessage(chat_id, '🔄 Accepted')
+        caption = message.get('caption')
+        title = caption or 'Photo'
+
+        db = self.db.evernoterobot
+        user = await db.users.find_one({'_id': self.user.id})
+        access_token = user['evernote_access_token']
+        # TODO:
+        self.evernote.create_note(access_token, 'photo')
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Saved')

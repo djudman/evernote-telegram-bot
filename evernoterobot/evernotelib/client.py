@@ -63,7 +63,7 @@ class EvernoteClient:
         # user_store = sdk.get_user_store()
         note_store = sdk.get_note_store()
         note = Types.Note()
-        note.title = "Test note from Evernoterobot"
+        note.title = '%s...' % text[:25] if len(text) > 30 else text
         note.content = '<?xml version="1.0" encoding="UTF-8"?>'
         note.content += '<!DOCTYPE en-note SYSTEM ' \
                         '"http://xml.evernote.com/pub/enml2.dtd">'
