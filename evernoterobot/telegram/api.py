@@ -50,3 +50,7 @@ class BotApi:
         return await self.__request('editMessageReplyMarkup', chat_id=chat_id,
                                     message_id=message_id,
                                     reply_markup=reply_markup)
+
+    async def editMessageText(self, chat_id, message_id, text):
+        return await self.__request('editMessageText', chat_id=chat_id,
+                                    message_id=message_id, text=text)

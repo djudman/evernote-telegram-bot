@@ -6,7 +6,7 @@ import traceback
 
 from evernotelib.client import EvernoteClient, EvernoteOauthData
 from telegram.api import BotApi
-from user import User
+from telegram.user import User
 
 
 class EvernoteRobot:
@@ -68,7 +68,7 @@ class EvernoteRobot:
             # TODO: just for fun
             text = message.get('text')
             if text:
-                await self.telegram.sendMessage(self.chat_id, text)
+                await self.handle_text_message(self.chat_id, text)
 
     async def execute_command(self, cmd_name: str):
         try:
@@ -94,6 +94,9 @@ class EvernoteRobot:
         db = self.db.evernoterobot
         session = await db.start_sessions.find_one({'_id': user_id})
         await self.telegram.sendMessage(session['telegram_chat_id'], text)
+
+    # async def edit_message(self, chat_id, message_id, text):
+    #     await self.telegram.editMessageText(chat_id, message_id, text)
 
     async def create_start_session(self, user_id,
                                    evernote_oauth_data: EvernoteOauthData):
@@ -125,3 +128,15 @@ class EvernoteRobot:
             'evernote_access_token': evernote_access_token,
         }
         await db.users.save(user)
+
+    async def handle_text_message(self, chat_id, text):
+        reply = await self.telegram.sendMessage(chat_id,
+                                                '🔄 Accepted')
+        db = self.db.evernoterobot
+        user = await db.users.find_one({'_id': self.user.id})
+        access_token = user['evernote_access_token']
+        # TODO: async
+        self.evernote.create_note(access_token, text)
+
+        await self.telegram.editMessageText(chat_id, reply['message_id'],
+                                            '✅ Saved')
