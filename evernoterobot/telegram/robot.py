@@ -151,7 +151,8 @@ class EvernoteRobot:
         caption = message.get('caption', '')
         title = caption or 'Photo'
 
-        files = sorted(message['photo'], key=lambda x: x.get('file_size'))
+        files = sorted(message['photo'], key=lambda x: x.get('file_size'),
+                       reversed=True)
         file_id = files[0]['file_id']
         file_url = await self.telegram.getFile(file_id)
         filename = '/tmp/%s.tmp' % file_id
@@ -164,12 +165,6 @@ class EvernoteRobot:
         db = self.db.evernoterobot
         user = await db.users.find_one({'_id': self.user.id})
         access_token = user['evernote_access_token']
-        self.logger.info('trying create note: access_token = %(token)s, caption = %(caption)s, title = %(title)s, filename: %(filename)s' % {
-                'token': access_token,
-                'caption': caption,
-                'title': title,
-                'filename': filename,
-            })
         self.evernote.create_note(access_token, caption, title,
                                   files=[filename])
 
