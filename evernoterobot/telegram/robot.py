@@ -164,7 +164,7 @@ class EvernoteRobot:
         db = self.db.evernoterobot
         user = await db.users.find_one({'_id': self.user.id})
         access_token = user['evernote_access_token']
-        self.logger('trying create note: access_token = %(token)s, caption = %(caption)s, title = %(title)s, filename: %(filename)s' % {
+        self.logger.info('trying create note: access_token = %(token)s, caption = %(caption)s, title = %(title)s, filename: %(filename)s' % {
                 'token': access_token,
                 'caption': caption,
                 'title': title,
