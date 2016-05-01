@@ -1,4 +1,6 @@
 import hashlib
+import logging
+import traceback
 from evernotelib import EvernoteSdk
 import evernote.edam.type.ttypes as Types
 
@@ -69,16 +71,26 @@ class EvernoteClient:
 
         attachments = []
         for filename in files:
+            mime_type = 'image/jpg'  # TODO:
             with open(filename, 'rb') as f:
                 data_bytes = f.read()
                 md5 = hashlib.md5()
                 md5.update(data_bytes)
+
                 data = Types.Data()
                 data.size = len(data_bytes)
                 data.bodyHash = md5.digest()
                 data.body = data_bytes
+
+                resource = Types.Resource()
+                resource.mime = mime_type
+                resource.data = data
+
+                # Now, add the new Resource to the note's list of resources
+                note.resources = [resource]
+
             attachments.append('<en-media type="%(mime_type)s" hash="%(md5)s" />' % {
-                    'mime_type': 'image/jpg',  # TODO:
+                    'mime_type': mime_type,
                     'md5': md5.hexdigest(),
             })
 
@@ -88,5 +100,8 @@ class EvernoteClient:
                 'text': text,
                 'attachments': ''.join(attachments),
             }
-        created_note = note_store.createNote(note)
+        try:
+            created_note = note_store.createNote(note)
+        except Exception:
+            logging.getLogger().error(traceback.format_exc())
         return created_note
