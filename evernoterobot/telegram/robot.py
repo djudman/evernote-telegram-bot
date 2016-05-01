@@ -155,7 +155,7 @@ class EvernoteRobot:
         file_id = files[0]['file_id']
         file_url = await self.telegram.getFile(file_id)
         filename = '/tmp/%s.tmp' % file_id
-        with open(filename, 'w') as f:
+        with open(filename, 'wb') as f:
             with aiohttp.ClientSession() as session:
                 async with session.get(file_url) as resp:
                     content = await resp.content.read()
