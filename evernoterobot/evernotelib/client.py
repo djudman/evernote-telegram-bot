@@ -58,15 +58,35 @@ class EvernoteClient:
         #     print(future.result())
         pass
 
-    def create_note(self, auth_token, text):
+    def create_note(self, auth_token, text, title=None, files=None):
+        if files is None:
+            files = []
         sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
         # user_store = sdk.get_user_store()
         note_store = sdk.get_note_store()
         note = Types.Note()
-        note.title = '%s...' % text[:25] if len(text) > 30 else text
-        note.content = '<?xml version="1.0" encoding="UTF-8"?>'
-        note.content += '<!DOCTYPE en-note SYSTEM ' \
-                        '"http://xml.evernote.com/pub/enml2.dtd">'
-        note.content += '<en-note>%s</en-note>' % text
+        note.title = title or ('%s...' % text[:25] if len(text) > 30 else text)
+
+        attachments = []
+        for filename in files:
+            with open(filename, 'rb') as f:
+                data_bytes = f.read()
+                md5 = hashlib.md5()
+                md5.update(data_bytes)
+                data = Types.Data()
+                data.size = len(data_bytes)
+                data.bodyHash = md5.digest()
+                data.body = data_bytes
+            attachments.append('<en-media type="%(mime_type)s" hash="%(md5)s" />' % {
+                    'mime_type': 'image/jpg',  # TODO:
+                    'md5': md5.hexdigest(),
+            })
+
+        note.content = '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">' \
+            '<en-note>%(text)s%(attachments)s</en-note>' % {
+                'text': text,
+                'attachments': ''.join(attachments),
+            }
         created_note = note_store.createNote(note)
         return created_note

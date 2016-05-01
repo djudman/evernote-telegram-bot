@@ -3,6 +3,7 @@ from os.path import realpath, dirname, join
 import logging
 import asyncio
 import traceback
+import aiohttp
 
 from evernotelib.client import EvernoteClient, EvernoteOauthData
 from telegram.api import BotApi
@@ -147,14 +148,25 @@ class EvernoteRobot:
     async def handle_photo(self, message):
         chat_id = message['chat']['id']
         reply = await self.telegram.sendMessage(chat_id, '🔄 Accepted')
-        caption = message.get('caption')
+        caption = message.get('caption', '')
         title = caption or 'Photo'
+
+        files = sorted(message['photo'], lambda x: x.get('file_size'))
+        file_id = files[0]['file_id']
+        file_url = await self.telegram.getFile(file_id)
+        filename = '/tmp/%s.tmp' % file_id
+        with open(filename, 'w') as f:
+            with aiohttp.ClientSession() as session:
+                async with session.get(file_url) as resp:
+                    content = await resp.content.read()
+            f.write(content)
 
         db = self.db.evernoterobot
         user = await db.users.find_one({'_id': self.user.id})
         access_token = user['evernote_access_token']
-        # TODO:
-        self.evernote.create_note(access_token, 'photo')
+
+        self.evernote.create_note(access_token, caption, title,
+                                  files=[filename])
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Saved')
