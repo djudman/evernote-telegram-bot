@@ -151,7 +151,7 @@ class EvernoteRobot:
         caption = message.get('caption', '')
         title = caption or 'Photo'
 
-        files = sorted(message['photo'], lambda x: x.get('file_size'))
+        files = sorted(message['photo'], key=lambda x: x.get('file_size'))
         file_id = files[0]['file_id']
         file_url = await self.telegram.getFile(file_id)
         filename = '/tmp/%s.tmp' % file_id
