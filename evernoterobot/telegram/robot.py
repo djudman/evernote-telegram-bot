@@ -53,7 +53,7 @@ class EvernoteRobot:
             self.user = User(message.get('from'))
 
         if message.get('photo'):
-            self.handle_photo(message)
+            await self.handle_photo(message)
         else:
             commands = []
             for entity in message.get('entities', []):
