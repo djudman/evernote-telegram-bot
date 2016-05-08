@@ -70,8 +70,7 @@ class EvernoteClient:
         note.title = title or ('%s...' % text[:25] if len(text) > 30 else text)
 
         attachments = []
-        for filename in files:
-            mime_type = 'image/jpg'  # TODO:
+        for filename, mime_type in files:
             with open(filename, 'rb') as f:
                 data_bytes = f.read()
                 md5 = hashlib.md5()
