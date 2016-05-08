@@ -192,7 +192,7 @@ class EvernoteRobot:
         user = await db.users.find_one({'_id': self.user.id})
         access_token = user['evernote_access_token']
         self.evernote.create_note(access_token, caption, title,
-                                  files=[(filename, 'audio/wav')])
+                                  files=[(filename, 'audio/ogg')])
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Saved')
