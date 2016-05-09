@@ -1,4 +1,5 @@
 import time
+import os
 from os.path import realpath, dirname, join
 import logging
 import asyncio
@@ -8,7 +9,6 @@ import aiohttp
 from evernotelib.client import EvernoteClient, EvernoteOauthData
 from telegram.api import BotApi
 from telegram.user import User
-from ext import audiotranscode
 
 
 class EvernoteRobot:
@@ -192,8 +192,7 @@ class EvernoteRobot:
         mime_type = 'audio/wav'
         try:
             # convert to wav
-            audiotranscode.AudioTranscode().transcode(ogg_filename,
-                                                      wav_filename)
+            os.system('opusdec %s %s' % (ogg_filename, wav_filename))
         except Exception:
             self.logger.error("Cant't convert ogg to wav, %s" %
                               traceback.format_exc())
