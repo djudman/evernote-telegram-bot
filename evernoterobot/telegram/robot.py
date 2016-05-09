@@ -213,7 +213,7 @@ class EvernoteRobot:
             'lng': longitude,
         }
         title = 'Location'
-        text = maps_url
+        text = "<a href='%(url)s'>%(url)s</a>" % {'url': maps_url}
 
         if message.get('venue'):
             address = message['venue'].get('address', '')
