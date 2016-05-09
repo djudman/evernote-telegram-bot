@@ -3,6 +3,7 @@ import logging
 import logging.config
 
 import aiohttp
+import aiomcache
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import settings
@@ -26,8 +27,8 @@ evernote_client = EvernoteClient(
     )
 
 db_client = AsyncIOMotorClient(settings.MONGODB_URI)
-bot = EvernoteRobot(telegram_api, evernote_client, db_client)
-
+memcached_client = aiomcache.Client("127.0.0.1", 11211)
+bot = EvernoteRobot(telegram_api, evernote_client, db_client, memcached_client)
 
 app = aiohttp.web.Application()
 app.logger = logging.getLogger()

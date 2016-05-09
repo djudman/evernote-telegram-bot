@@ -12,11 +12,13 @@ from telegram.user import User
 
 class EvernoteRobot:
 
-    def __init__(self, telegram: BotApi, evernote: EvernoteClient, db_client):
+    def __init__(self, telegram: BotApi, evernote: EvernoteClient, db_client,
+                 memcached_client):
         self.bot_url = 'https://telegram.me/evernoterobot'
         self.telegram = telegram
         self.evernote = evernote
         self.db = db_client
+        self.cache = memcached_client
         self.logger = logging.getLogger()
         self.commands = self.collect_commands(
                 join(realpath(dirname(__file__)), 'commands')
@@ -127,6 +129,8 @@ class EvernoteRobot:
             return session
 
     async def register_user(self, start_session, evernote_access_token):
+        await self.cache.set(start_session['user_id'].encode(),
+                             evernote_access_token)
         db = self.db.evernoterobot
         user = {
             '_id': start_session['user_id'],
@@ -134,15 +138,22 @@ class EvernoteRobot:
         }
         await db.users.save(user)
 
-    async def handle_text_message(self, chat_id, text):
-        reply = await self.telegram.sendMessage(chat_id,
-                                                '🔄 Accepted')
-        db = self.db.evernoterobot
-        user = await db.users.find_one({'_id': self.user.id})
-        access_token = user['evernote_access_token']
-        # TODO: async
-        self.evernote.create_note(access_token, text)
+    async def get_evernote_access_token(self, user_id):
+        key = str(user_id).encode()
+        token = await self.cache.get(key)
+        if token:
+            return token.decode()
+        else:
+            db = self.db.evernoterobot
+            user = await db.users.find_one({'_id': self.user.id})
+            token = user['evernote_access_token']
+            await self.cache.set(key, token.encode())
+            return token
 
+    async def handle_text_message(self, chat_id, text):
+        reply = await self.telegram.sendMessage(chat_id, '🔄 Accepted')
+        access_token = await self.get_evernote_access_token(self.user.id)
+        self.evernote.create_note(access_token, text)  # TODO: async
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Text saved')
 
@@ -156,10 +167,7 @@ class EvernoteRobot:
                        reverse=True)
         file_id = files[0]['file_id']
         filename = await self.telegram.downloadFile(file_id)
-        # TODO: put access tokens to cache?
-        db = self.db.evernoterobot
-        user = await db.users.find_one({'_id': self.user.id})
-        access_token = user['evernote_access_token']
+        access_token = await self.get_evernote_access_token(self.user.id)
         self.evernote.create_note(access_token, caption, title,
                                   files=[(filename, 'image/jpeg')])
 
@@ -184,10 +192,7 @@ class EvernoteRobot:
                               traceback.format_exc())
             wav_filename = ogg_filename
             mime_type = 'audio/ogg'
-        # TODO: put access tokens to cache?
-        db = self.db.evernoterobot
-        user = await db.users.find_one({'_id': self.user.id})
-        access_token = user['evernote_access_token']
+        access_token = await self.get_evernote_access_token(self.user.id)
         self.evernote.create_note(access_token, caption, title,
                                   files=[(wav_filename, mime_type)])
 
