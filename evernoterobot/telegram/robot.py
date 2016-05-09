@@ -192,7 +192,8 @@ class EvernoteRobot:
         mime_type = 'audio/wav'
         try:
             # convert to wav
-            audiotranscode.AudioTranscode().convert(ogg_filename, wav_filename)
+            audiotranscode.AudioTranscode().transcode(ogg_filename,
+                                                      wav_filename)
         except Exception:
             self.logger.error("Cant't convert ogg to wav, %s" %
                               traceback.format_exc())
