@@ -4,7 +4,6 @@ from os.path import realpath, dirname, join
 import logging
 import asyncio
 import traceback
-import aiohttp
 
 from evernotelib.client import EvernoteClient, EvernoteOauthData
 from telegram.api import BotApi
@@ -145,7 +144,7 @@ class EvernoteRobot:
         self.evernote.create_note(access_token, text)
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
-                                            '✅ Saved')
+                                            '✅ Text saved')
 
     async def handle_photo(self, message):
         chat_id = message['chat']['id']
@@ -156,14 +155,8 @@ class EvernoteRobot:
         files = sorted(message['photo'], key=lambda x: x.get('file_size'),
                        reverse=True)
         file_id = files[0]['file_id']
-        file_url = await self.telegram.getFile(file_id)
-        filename = '/tmp/%s.tmp' % file_id
-        with open(filename, 'wb') as f:
-            with aiohttp.ClientSession() as session:
-                async with session.get(file_url) as resp:
-                    content = await resp.content.read()
-            f.write(content)
-
+        filename = await self.telegram.downloadFile(file_id)
+        # TODO: put access tokens to cache?
         db = self.db.evernoterobot
         user = await db.users.find_one({'_id': self.user.id})
         access_token = user['evernote_access_token']
@@ -171,7 +164,7 @@ class EvernoteRobot:
                                   files=[(filename, 'image/jpeg')])
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
-                                            '✅ Saved')
+                                            '✅ Image saved')
 
     async def handle_voice(self, message):
         chat_id = message['chat']['id']
@@ -182,14 +175,6 @@ class EvernoteRobot:
         file_id = message['voice']['file_id']
         ogg_filename = await self.telegram.downloadFile(file_id)
         wav_filename = ogg_filename + '.wav'
-        # file_url = await self.telegram.getFile(file_id)
-        # ogg_filename = '/tmp/%s.ogg' % file_id
-        # wav_filename = '/tmp/%s.wav' % file_id
-        # with open(ogg_filename, 'wb') as f:
-        #     with aiohttp.ClientSession() as session:
-        #         async with session.get(file_url) as resp:
-        #             content = await resp.content.read()
-        #     f.write(content)
         mime_type = 'audio/wav'
         try:
             # convert to wav
@@ -199,7 +184,7 @@ class EvernoteRobot:
                               traceback.format_exc())
             wav_filename = ogg_filename
             mime_type = 'audio/ogg'
-
+        # TODO: put access tokens to cache?
         db = self.db.evernoterobot
         user = await db.users.find_one({'_id': self.user.id})
         access_token = user['evernote_access_token']
@@ -207,4 +192,4 @@ class EvernoteRobot:
                                   files=[(wav_filename, mime_type)])
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
-                                            '✅ Saved')
+                                            '✅ Voice saved')
