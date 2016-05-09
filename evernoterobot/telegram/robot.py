@@ -129,7 +129,7 @@ class EvernoteRobot:
             return session
 
     async def register_user(self, start_session, evernote_access_token):
-        await self.cache.set(start_session['user_id'].encode(),
+        await self.cache.set(str(start_session['user_id']).encode(),
                              evernote_access_token)
         db = self.db.evernoterobot
         user = {
