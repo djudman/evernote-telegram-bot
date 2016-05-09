@@ -218,11 +218,16 @@ class EvernoteRobot:
         if message.get('venue'):
             address = message['venue'].get('address', '')
             title = message['venue'].get('title', '')
-            text = "%(title)s<br />%(address)s<br /><a href='%(url)s'>%(url)s</a>" % {
+            text = "%(title)s<br />%(address)s<br />\
+                <a href='%(url)s'>%(url)s</a>" % {
                 'title': title,
                 'address': address,
                 'url': maps_url
             }
+            foursquare_id = message['venue'].get('foursquare_id')
+            if foursquare_id:
+                url = "https://foursquare.com/v/%s" % foursquare_id
+                text += "<br /><a href='%(url)s'>%(url)s</a>" % {'url': url}
 
         access_token = await self.get_evernote_access_token(self.user.id)
         self.evernote.create_note(access_token, text, title)
