@@ -218,7 +218,7 @@ class EvernoteRobot:
         if message.get('venue'):
             address = message['venue'].get('address', '')
             title = message['venue'].get('title', '')
-            text = "%(title)s\n%(address)s\n%(url)s" % {
+            text = "%(title)s\r\n%(address)s\r\n%(url)s " % {
                 'title': title,
                 'address': address,
                 'url': maps_url
