@@ -1,3 +1,6 @@
 [submodule "evernoterobot/evernotelib/evernote-sdk-python3"]
 	path = evernoterobot/evernotelib/evernote-sdk-python3
 	url = git@github.com:djudman/evernote-sdk-python3.git
+[submodule "evernoterobot/ext/python-audiotranscode"]
+	path = evernoterobot/ext/python-audiotranscode
+	url = https://github.com/devsnd/python-audiotranscode.git

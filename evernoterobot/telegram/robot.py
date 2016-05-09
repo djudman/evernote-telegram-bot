@@ -8,6 +8,7 @@ import aiohttp
 from evernotelib.client import EvernoteClient, EvernoteOauthData
 from telegram.api import BotApi
 from telegram.user import User
+from ext import audiotranscode
 
 
 class EvernoteRobot:
@@ -181,18 +182,28 @@ class EvernoteRobot:
 
         file_id = message['voice']['file_id']
         file_url = await self.telegram.getFile(file_id)
-        filename = '/tmp/%s.tmp' % file_id
-        with open(filename, 'wb') as f:
+        ogg_filename = '/tmp/%s.ogg' % file_id
+        wav_filename = '/tmp/%s.wav' % file_id
+        with open(ogg_filename, 'wb') as f:
             with aiohttp.ClientSession() as session:
                 async with session.get(file_url) as resp:
                     content = await resp.content.read()
             f.write(content)
+        mime_type = 'audio/wav'
+        try:
+            # convert to wav
+            audiotranscode.AudioTranscode().convert(ogg_filename, wav_filename)
+        except Exception:
+            self.logger.error("Cant't convert ogg to wav, %s" %
+                              traceback.format_exc())
+            wav_filename = ogg_filename
+            mime_type = 'audio/ogg'
 
         db = self.db.evernoterobot
         user = await db.users.find_one({'_id': self.user.id})
         access_token = user['evernote_access_token']
         self.evernote.create_note(access_token, caption, title,
-                                  files=[(filename, 'audio/ogg')])
+                                  files=[(wav_filename, mime_type)])
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Saved')
