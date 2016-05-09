@@ -36,17 +36,16 @@ class EvernoteRobot:
         if 'message' in data:
             await self.handle_message(data['message'])
         elif 'inline_query' in data:
+            self.logger.info('Inline query: %s' % data)
             # TODO: process inline query
-            pass
         elif 'chosen_inline_result' in data:
+            self.logger.info('Chosen inline result: %s' % data)
             # TODO: process inline result
-            pass
         elif 'callback_query' in data:
+            self.logger.info('Callback query: %s' % data)
             # TODO: process callback query
-            pass
         else:
-            # TODO: unsupported update
-            pass
+            self.logger.error('Unsupported update: %s' % data)
 
     async def handle_message(self, message: dict):
         self.chat_id = message['chat']['id']
@@ -181,20 +180,22 @@ class EvernoteRobot:
         title = caption or 'Voice'
 
         file_id = message['voice']['file_id']
-        file_url = await self.telegram.getFile(file_id)
-        ogg_filename = '/tmp/%s.ogg' % file_id
-        wav_filename = '/tmp/%s.wav' % file_id
-        with open(ogg_filename, 'wb') as f:
-            with aiohttp.ClientSession() as session:
-                async with session.get(file_url) as resp:
-                    content = await resp.content.read()
-            f.write(content)
+        ogg_filename = await self.telegram.downloadFile(file_id)
+        wav_filename = ogg_filename + '.wav'
+        # file_url = await self.telegram.getFile(file_id)
+        # ogg_filename = '/tmp/%s.ogg' % file_id
+        # wav_filename = '/tmp/%s.wav' % file_id
+        # with open(ogg_filename, 'wb') as f:
+        #     with aiohttp.ClientSession() as session:
+        #         async with session.get(file_url) as resp:
+        #             content = await resp.content.read()
+        #     f.write(content)
         mime_type = 'audio/wav'
         try:
             # convert to wav
             os.system('opusdec %s %s' % (ogg_filename, wav_filename))
         except Exception:
-            self.logger.error("Cant't convert ogg to wav, %s" %
+            self.logger.error("Can't convert ogg to wav, %s" %
                               traceback.format_exc())
             wav_filename = ogg_filename
             mime_type = 'audio/ogg'

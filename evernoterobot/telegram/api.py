@@ -1,5 +1,4 @@
 import logging
-import asyncio
 import aiohttp
 
 
@@ -62,3 +61,15 @@ class BotApi:
             'path': file['file_path'],
         }
         return download_url
+
+    async def downloadFile(self, file_id):
+        url = await self.getFile(file_id)
+        url_parts = url.split('/')
+        short_name = url_parts[-1]
+        filename = '/tmp/%s_%s' % (file_id, short_name)
+        with open(filename, 'wb') as f:
+            with aiohttp.ClientSession() as session:
+                async with session.get(url) as resp:
+                    content = await resp.content.read()
+            f.write(content)
+        return filename
