@@ -57,6 +57,8 @@ class EvernoteRobot:
             await self.handle_photo(message)
         elif message.get('voice'):
             await self.handle_voice(message)
+        elif message.get('location'):
+            await self.handle_location(message)
         else:
             commands = []
             for entity in message.get('entities', []):
@@ -198,3 +200,19 @@ class EvernoteRobot:
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Voice saved')
+
+    async def handle_location(self, message):
+        chat_id = message['chat']['id']
+        reply = await self.telegram.sendMessage(chat_id, '🔄 Accepted')
+        # TODO: use google maps API for getting location image
+        location = message['location']
+        latitude = location['latitude']
+        longitude = location['longitude']
+        maps_url = "https://maps.google.com/maps?q=%(lat)f,%(lng)f" % {
+            'lat': latitude,
+            'lng': longitude,
+        }
+        access_token = await self.get_evernote_access_token(self.user.id)
+        self.evernote.create_note(access_token, 'Location', maps_url)
+        await self.telegram.editMessageText(chat_id, reply['message_id'],
+                                            '✅ Location saved')
