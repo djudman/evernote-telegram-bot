@@ -212,7 +212,19 @@ class EvernoteRobot:
             'lat': latitude,
             'lng': longitude,
         }
+        title = 'Location'
+        text = maps_url
+
+        if message.get('venue'):
+            address = message['venue'].get('address', '')
+            title = message['venue'].get('title', '')
+            text = "%(title)s\n%(address)s\n%(url)s" % {
+                'title': title,
+                'address': address,
+                'url': maps_url
+            }
+
         access_token = await self.get_evernote_access_token(self.user.id)
-        self.evernote.create_note(access_token, 'Location', maps_url)
+        self.evernote.create_note(access_token, text, title)
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Location saved')
