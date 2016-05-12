@@ -23,7 +23,8 @@ telegram_api = BotApi(settings.TELEGRAM['token'])
 evernote_client = EvernoteClient(
         settings.EVERNOTE['key'],
         settings.EVERNOTE['secret'],
-        settings.EVERNOTE['oauth_callback']
+        settings.EVERNOTE['oauth_callback'],
+        sandbox=settings.DEBUG
     )
 
 db_client = AsyncIOMotorClient(settings.MONGODB_URI)

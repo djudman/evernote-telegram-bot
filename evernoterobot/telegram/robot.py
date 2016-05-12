@@ -48,10 +48,19 @@ class EvernoteRobot:
         else:
             self.logger.error('Unsupported update: %s' % data)
 
+    async def user_exists(self, user):
+        db = self.db.evernoterobot
+        user_info = await db.users.find_one({'_id': user.id})
+        return user_info is not None
+
     async def handle_message(self, message: dict):
         self.chat_id = message['chat']['id']
         if message.get('from'):
             self.user = User(message.get('from'))
+        if not self.user_exists(self.user):
+            await self.send_message(self.user.id,
+                                    'You should sign in to Evernote first')
+            return await self.execute_command('start')
 
         if message.get('photo'):
             await self.handle_photo(message)
@@ -74,7 +83,6 @@ class EvernoteRobot:
                 for cmd in commands:
                     await self.execute_command(cmd)
             else:
-                # TODO: just for fun
                 text = message.get('text')
                 if text:
                     await self.handle_text_message(self.chat_id, text)
