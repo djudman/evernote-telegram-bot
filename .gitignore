@@ -3,3 +3,4 @@ __pycache__
 evernoterobot/settings/secret.json
 *.log
 *.pid
+*.bak
