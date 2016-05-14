@@ -104,3 +104,9 @@ class EvernoteClient:
         except Exception:
             logging.getLogger().error(traceback.format_exc())
         return created_note
+
+    def list_notebooks(self, auth_token):  # TODO: async version
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        # List all of the notebooks in the user's account
+        return note_store.listNotebooks()
