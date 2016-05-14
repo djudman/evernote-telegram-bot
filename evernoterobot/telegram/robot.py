@@ -64,6 +64,8 @@ class EvernoteRobot:
 
         if message.get('photo'):
             await self.handle_photo(message)
+        elif message.get('document'):
+            await self.handle_document(message)
         elif message.get('voice'):
             await self.handle_voice(message)
         elif message.get('location'):
@@ -241,3 +243,18 @@ class EvernoteRobot:
         self.evernote.create_note(access_token, text, title)
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Location saved')
+
+    async def handle_document(self, message):
+        chat_id = message['chat']['id']
+        reply = await self.telegram.sendMessage(chat_id, '🔄 Accepted')
+        file_id = message['document']['file_id']
+        short_file_name = message['document']['file_name']
+        file_path = await self.telegram.downloadFile(file_id)
+        mime_type = message['document']['mime_type']
+
+        access_token = await self.get_evernote_access_token(self.user.id)
+        self.evernote.create_note(access_token, '', short_file_name,
+                                  files=[(file_path, mime_type)])
+
+        await self.telegram.editMessageText(chat_id, reply['message_id'],
+                                            '✅ Document saved')
