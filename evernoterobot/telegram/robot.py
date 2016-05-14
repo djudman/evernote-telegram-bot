@@ -28,9 +28,11 @@ class EvernoteRobot:
         # TODO:
         from .commands.help import help
         from .commands.start import start
+        from .commands.notebook import notebook
         return {
             'start': start,
             'help': help,
+            'notebook': notebook,
         }
 
     async def handle_update(self, data: dict):
