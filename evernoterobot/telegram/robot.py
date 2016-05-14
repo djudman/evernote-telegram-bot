@@ -1,3 +1,4 @@
+import json
 import time
 import os
 from os.path import realpath, dirname, join
@@ -46,7 +47,7 @@ class EvernoteRobot:
             # TODO: process inline result
         elif 'callback_query' in data:
             self.logger.info('Callback query: %s' % data)
-            # TODO: process callback query
+            await self.handle_callback_query(data['callback_query'])
         else:
             self.logger.error('Unsupported update: %s' % data)
 
@@ -260,3 +261,11 @@ class EvernoteRobot:
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Document saved')
+
+    async def handle_callback_query(self, query):
+        data = json.loads(query['data'])
+        cmd = data['cmd']
+        if cmd == 'set_notebook':
+            chat_id = query['message']['chat']['id']
+            notebook_guid = data['guid']
+            await self.telegram.sendMessage(chat_id, 'Current notebook is: "%s"' % notebook_guid)
