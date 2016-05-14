@@ -265,7 +265,8 @@ class EvernoteRobot:
     async def handle_callback_query(self, query):
         data = json.loads(query['data'])
         cmd = data['cmd']
-        if cmd == 'set_notebook':
+        if cmd == 'nb':
             chat_id = query['message']['chat']['id']
-            notebook_guid = data['guid']
-            await self.telegram.sendMessage(chat_id, 'Current notebook is: "%s"' % notebook_guid)
+            notebook_guid = data['id']
+            await self.telegram.sendMessage(
+                chat_id, 'Current notebook is: "%s"' % notebook_guid)
