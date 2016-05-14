@@ -105,6 +105,11 @@ class EvernoteClient:
             logging.getLogger().error(traceback.format_exc())
         return created_note
 
+    def getDefaultNotebook(self, auth_token):
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        return note_store.getDefaultNotebook()
+
     def list_notebooks(self, auth_token):  # TODO: async version
         sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
         note_store = sdk.get_note_store()
