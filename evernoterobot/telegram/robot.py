@@ -287,5 +287,7 @@ class EvernoteRobot:
             await db.users.update(
                 {"_id": self.user.id},
                 {'$set': {'notebook_guid': notebook_guid}})
+            await self.cache.set("{0}_nb".format(self.user.id).encode(),
+                                 notebook_guid.encode())
             await self.telegram.sendMessage(
                 chat_id, 'Current notebook is: "%s"' % notebook_guid)
