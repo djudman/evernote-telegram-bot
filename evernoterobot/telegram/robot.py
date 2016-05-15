@@ -147,7 +147,7 @@ class EvernoteRobot:
         user_id = start_session['user_id']
         await self.cache.set(str(user_id).encode(),
                              evernote_access_token.encode())
-        notebook = self.evernote.getDefaultNotebook()
+        notebook = self.evernote.getDefaultNotebook(evernote_access_token)
         await self.cache.set("{0}_nb".format(user_id).encode(),
                              notebook.guid.encode())
         db = self.db.evernoterobot
