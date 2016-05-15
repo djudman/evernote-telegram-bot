@@ -292,8 +292,13 @@ class EvernoteRobot:
                 {'$set': {'notebook_guid': notebook_guid}})
             await self.cache.set("{0}_nb".format(self.user.id).encode(),
                                  notebook_guid.encode())
-            await self.telegram.sendMessage(
-                chat_id, 'Current notebook is: "%s"' % notebook_name)
+
+            message_id = query['message']['message_id']
+            await self.telegram.editMessageReplyMarkup(
+                chat_id, message_id, '{"inline_keyboard":[[]]}')
+            await self.telegram.editMessageText(
+                chat_id, query['message']['message_id'],
+                'Current notebook is: "%s"' % notebook_name)
 
     async def get_notebook_name(self, guid):
         key = "notebook_name_{0}".format(guid).encode()

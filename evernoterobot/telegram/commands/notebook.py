@@ -10,7 +10,7 @@ async def notebook(robot, chat_id, telegram):
     buttons = []
     for notebook in notebooks:
         if notebook.guid == guid:
-            name = "-> %s (current)" % notebook.name
+            name = ">>> %s (current)" % notebook.name
         else:
             name = notebook.name
         btn = {
