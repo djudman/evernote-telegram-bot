@@ -9,8 +9,12 @@ async def notebook(robot, chat_id, telegram):
     notebooks = robot.evernote.list_notebooks(access_token)
     buttons = []
     for notebook in notebooks:
+        if notebook.guid == guid:
+            name = "-> %s (current)" % notebook.name
+        else:
+            name = notebook.name
         btn = {
-            'text': notebook.name,
+            'text': name,
             'callback_data': json.dumps({
                 'cmd': 'nb',
                 'id': notebook.guid,
