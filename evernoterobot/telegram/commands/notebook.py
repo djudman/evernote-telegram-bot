@@ -5,7 +5,7 @@ async def notebook(robot, chat_id, telegram):
     message = await telegram.sendMessage(
         chat_id, 'Please wait. Getting list of your notebooks...')
     user_id = robot.user.id
-    access_token = await robot.get_evernote_access_token(user_id)
+    access_token, guid = await robot.get_evernote_access_token(user_id)
     notebooks = robot.evernote.list_notebooks(access_token)
     buttons = []
     for notebook in notebooks:
