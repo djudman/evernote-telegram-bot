@@ -300,7 +300,7 @@ class EvernoteRobot:
         name = await self.cache.get(key)
         if not name:
             access_token, guid = await self.get_evernote_access_token(self.user.id)
-            for nb in self.evernote.list_notebooks():
+            for nb in self.evernote.list_notebooks(access_token):
                 k = "notebook_name_{0}".format(nb.guid).encode()
                 await self.cache.set(k, nb.name.encode())
         name = await self.cache.get(key)
