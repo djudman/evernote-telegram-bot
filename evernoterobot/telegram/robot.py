@@ -144,9 +144,12 @@ class EvernoteRobot:
             return session
 
     async def register_user(self, start_session, evernote_access_token):
-        await self.cache.set(str(start_session['user_id']).encode(),
+        user_id = start_session['user_id']
+        await self.cache.set(str(user_id).encode(),
                              evernote_access_token.encode())
         notebook = self.evernote.getDefaultNotebook()
+        await self.cache.set("{0}_nb".format(user_id).encode(),
+                             notebook.guid.encode())
         db = self.db.evernoterobot
         user = {
             '_id': start_session['user_id'],
@@ -159,7 +162,10 @@ class EvernoteRobot:
         key = str(user_id).encode()
         token = await self.cache.get(key)
         if token:
-            return token.decode()
+            notebook_guid = await self.cache.get(
+                "{0}_nb".format(user_id).encode()
+            )
+            return token.decode(), notebook_guid
         else:
             db = self.db.evernoterobot
             user = await db.users.find_one({'_id': self.user.id})
