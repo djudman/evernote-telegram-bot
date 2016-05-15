@@ -24,7 +24,7 @@ async def oauth_callback(request):
         await robot.register_user(session, access_token)
 
         notebook = robot.evernote.getDefaultNotebook(access_token)
-        text = "Evernote account is connected.\nNow you can just send message and I create note.\nCurrent notebook: %s" % notebook.name
+        text = "Evernote account is connected.\nNow you can just send message and note be created.\nCurrent notebook: %s" % notebook.name
         await robot.send_message(session['user_id'], text)
     else:
         # User decline access

@@ -60,7 +60,8 @@ class EvernoteClient:
         #     print(future.result())
         pass
 
-    def create_note(self, auth_token, text, title=None, files=None):
+    def create_note(self, auth_token, text, title=None, files=None,
+                    notebook_guid=None):
         if files is None:
             files = []
         sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
@@ -68,6 +69,8 @@ class EvernoteClient:
         note_store = sdk.get_note_store()
         note = Types.Note()
         note.title = title or ('%s...' % text[:25] if len(text) > 30 else text)
+        if notebook_guid is not None:
+            note.notebookGuid = notebook_guid
 
         attachments = []
         for filename, mime_type in files:

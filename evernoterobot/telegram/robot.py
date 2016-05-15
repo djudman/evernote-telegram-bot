@@ -146,10 +146,12 @@ class EvernoteRobot:
     async def register_user(self, start_session, evernote_access_token):
         await self.cache.set(str(start_session['user_id']).encode(),
                              evernote_access_token.encode())
+        notebook = self.evernote.getDefaultNotebook()
         db = self.db.evernoterobot
         user = {
             '_id': start_session['user_id'],
             'evernote_access_token': evernote_access_token,
+            'notebook_guid': notebook.guid,
         }
         await db.users.save(user)
 
@@ -162,13 +164,14 @@ class EvernoteRobot:
             db = self.db.evernoterobot
             user = await db.users.find_one({'_id': self.user.id})
             token = user['evernote_access_token']
+            notebook_guid = user['notebook_guid']
             await self.cache.set(key, token.encode())
-            return token
+            return token, notebook_guid
 
     async def handle_text_message(self, chat_id, text):
         reply = await self.telegram.sendMessage(chat_id, '🔄 Accepted')
-        access_token = await self.get_evernote_access_token(self.user.id)
-        self.evernote.create_note(access_token, text)  # TODO: async
+        access_token, guid = await self.get_evernote_access_token(self.user.id)
+        self.evernote.create_note(access_token, text, notebook_guid=guid)  # TODO: async
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Text saved')
 
@@ -182,9 +185,10 @@ class EvernoteRobot:
                        reverse=True)
         file_id = files[0]['file_id']
         filename = await self.telegram.downloadFile(file_id)
-        access_token = await self.get_evernote_access_token(self.user.id)
+        access_token, guid = await self.get_evernote_access_token(self.user.id)
         self.evernote.create_note(access_token, caption, title,
-                                  files=[(filename, 'image/jpeg')])
+                                  files=[(filename, 'image/jpeg')],
+                                  notebook_guid=guid)
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Image saved')
@@ -207,9 +211,10 @@ class EvernoteRobot:
                               traceback.format_exc())
             wav_filename = ogg_filename
             mime_type = 'audio/ogg'
-        access_token = await self.get_evernote_access_token(self.user.id)
+        access_token, guid = await self.get_evernote_access_token(self.user.id)
         self.evernote.create_note(access_token, caption, title,
-                                  files=[(wav_filename, mime_type)])
+                                  files=[(wav_filename, mime_type)],
+                                  notebook_guid=guid)
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Voice saved')
@@ -242,8 +247,8 @@ class EvernoteRobot:
                 url = "https://foursquare.com/v/%s" % foursquare_id
                 text += "<br /><a href='%(url)s'>%(url)s</a>" % {'url': url}
 
-        access_token = await self.get_evernote_access_token(self.user.id)
-        self.evernote.create_note(access_token, text, title)
+        access_token, guid = await self.get_evernote_access_token(self.user.id)
+        self.evernote.create_note(access_token, text, title, notebook_guid=guid)
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Location saved')
 
@@ -255,9 +260,10 @@ class EvernoteRobot:
         file_path = await self.telegram.downloadFile(file_id)
         mime_type = message['document']['mime_type']
 
-        access_token = await self.get_evernote_access_token(self.user.id)
+        access_token, guid = await self.get_evernote_access_token(self.user.id)
         self.evernote.create_note(access_token, '', short_file_name,
-                                  files=[(file_path, mime_type)])
+                                  files=[(file_path, mime_type)],
+                                  notebook_guid=guid)
 
         await self.telegram.editMessageText(chat_id, reply['message_id'],
                                             '✅ Document saved')
@@ -267,6 +273,13 @@ class EvernoteRobot:
         cmd = data['cmd']
         if cmd == 'nb':
             chat_id = query['message']['chat']['id']
+            if query.get('from'):
+                self.user = User(query.get('from'))
             notebook_guid = data['id']
+            db = self.db.evernoterobot
+            await db.users.save({
+                "_id": self.user.id,
+                'notebook_guid': notebook_guid,
+            })
             await self.telegram.sendMessage(
                 chat_id, 'Current notebook is: "%s"' % notebook_guid)
