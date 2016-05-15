@@ -171,7 +171,7 @@ class EvernoteRobot:
             token = user['evernote_access_token']
             notebook_guid = user['notebook_guid']
             await self.cache.set(key, token.encode())
-            await self.cache.set("{0}_nb".format(user_id),
+            await self.cache.set("{0}_nb".format(user_id).encode(),
                                  notebook_guid.encode())
             return token, notebook_guid
 
