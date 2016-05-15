@@ -163,15 +163,16 @@ class EvernoteRobot:
         token = await self.cache.get(key)
         if token:
             notebook_guid = await self.cache.get(
-                "{0}_nb".format(user_id).encode()
-            )
-            return token.decode(), notebook_guid
+                "{0}_nb".format(user_id).encode())
+            return token.decode(), notebook_guid.decode()
         else:
             db = self.db.evernoterobot
             user = await db.users.find_one({'_id': self.user.id})
             token = user['evernote_access_token']
             notebook_guid = user['notebook_guid']
             await self.cache.set(key, token.encode())
+            await self.cache.set("{0}_nb".format(user_id),
+                                 notebook_guid.encode())
             return token, notebook_guid
 
     async def handle_text_message(self, chat_id, text):
