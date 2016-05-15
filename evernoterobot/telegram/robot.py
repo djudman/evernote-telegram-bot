@@ -147,7 +147,7 @@ class EvernoteRobot:
         user_id = start_session['user_id']
         await self.cache.set(str(user_id).encode(),
                              evernote_access_token.encode())
-        notebook = self.evernote.getDefaultNotebook(evernote_access_token)
+        notebook = self.evernote.getNotebook(evernote_access_token)
         await self.cache.set("{0}_nb".format(user_id).encode(),
                              notebook.guid.encode())
         db = self.db.evernoterobot
@@ -283,6 +283,8 @@ class EvernoteRobot:
             if query.get('from'):
                 self.user = User(query.get('from'))
             notebook_guid = data['id']
+            access_token, guid = await self.get_evernote_access_token(self.user.id)
+            notebook = self.evernote.getNotebook(access_token, notebook_guid)
             db = self.db.evernoterobot
             await db.users.update(
                 {"_id": self.user.id},
@@ -290,4 +292,4 @@ class EvernoteRobot:
             await self.cache.set("{0}_nb".format(self.user.id).encode(),
                                  notebook_guid.encode())
             await self.telegram.sendMessage(
-                chat_id, 'Current notebook is: "%s"' % notebook_guid)
+                chat_id, 'Current notebook is: "%s"' % notebook.name)

@@ -113,6 +113,13 @@ class EvernoteClient:
         note_store = sdk.get_note_store()
         return note_store.getDefaultNotebook()
 
+    def getNotebook(self, auth_token, guid=None):
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        if guid is None:
+            return note_store.getDefaultNotebook()
+        return note_store.getNotebook(guid)
+
     def list_notebooks(self, auth_token):  # TODO: async version
         sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
         note_store = sdk.get_note_store()
