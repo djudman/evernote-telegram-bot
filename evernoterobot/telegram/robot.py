@@ -60,7 +60,7 @@ class EvernoteRobot:
         self.chat_id = message['chat']['id']
         if message.get('from'):
             self.user = User(message.get('from'))
-        if not await self.user_exists(self.user):
+        if message.get('text') != '/start' and not await self.user_exists(self.user):
             await self.send_message(self.user.id,
                                     'You should sign in to Evernote first')
             return await self.execute_command('start')
