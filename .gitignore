@@ -1,5 +1,7 @@
 *.pyc
 __pycache__
+.cache
+*.sublime*
 evernoterobot/settings/secret.json
 *.log
 *.pid
