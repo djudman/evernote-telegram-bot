@@ -32,8 +32,8 @@ def get_commands(cmd_dir=None):
 
 class EvernoteBot(TelegramBot):
 
-    def __init__(self):
-        super(EvernoteBot, self).__init__()
+    def __init__(self, token, name):
+        super(EvernoteBot, self).__init__(token, name)
         for cmd_class in get_commands():
             self.add_command(cmd_class)
 

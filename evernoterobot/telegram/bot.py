@@ -18,10 +18,11 @@ class TelegramBot:
         self.commands = {}
 
     def add_command(self, handler_class):
-        handler = handler_class()
+        handler = handler_class(self)
         if handler.__name__ in self.commands:
-            raise TelegramBotError('Command "%s" already exists' % handler.__name__)
-        self.commands[handler.__name__] = handler
+            raise TelegramBotError('Command "%s" already exists' %
+                                   handler.__name__)
+        self.commands[handler.__name__] = handler_class
 
     async def handle_update(self, data: dict):
         if 'message' in data:
@@ -75,7 +76,11 @@ class TelegramBot:
         if not CommandClass:
             raise TelegramBotError('Command "%s" not found' % cmd_name)
         obj = CommandClass(self)
-        return await obj.execute(message)
+        result = await obj.execute(message)
+        await self.on_command_completed(cmd_name, result)
+
+    async def on_command_completed(self, cmd_name, result):
+        pass
 
     async def on_message_received(self, message):
         pass

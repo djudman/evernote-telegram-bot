@@ -6,3 +6,4 @@ evernoterobot/settings/secret.json
 *.log
 *.pid
 *.bak
+.idea
