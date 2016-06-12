@@ -3,7 +3,7 @@ from telegram.bot import TelegramBotCommand
 
 class HelpCommand(TelegramBotCommand):
 
-    __name__ = 'help'
+    name = 'help'
 
     async def execute(self, message):
         return '''This is bot for evernote.

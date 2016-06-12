@@ -8,6 +8,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 import settings
 from telegram.robot import EvernoteRobot
+# from bot import EvernoteBot
 from web.telegram import handle_update
 from web.evernote import oauth_callback
 from telegram.api import BotApi

@@ -25,7 +25,8 @@ class BotApi:
             if v is not None:
                 args_data.update({k: v})
         with aiohttp.ClientSession() as session:
-            self.logger.debug("API request %(http_method)s %(url)s, data: %(data)s" % {
+            self.logger.debug(
+                "API request %(http_method)s %(url)s, data: %(data)s" % {
                     'http_method': 'POST',
                     'url': url,
                     'data': str(args_data),
@@ -56,10 +57,11 @@ class BotApi:
 
     async def getFile(self, file_id):
         file = await self.__request('getFile', file_id=file_id)
-        download_url = 'https://api.telegram.org/file/bot%(token)s/%(path)s' % {
-            'token': self.token,
-            'path': file['file_path'],
-        }
+        download_url = 'https://api.telegram.org/file/bot%(token)s/%(path)s' %\
+            {
+                'token': self.token,
+                'path': file['file_path'],
+            }
         return download_url
 
     async def downloadFile(self, file_id):

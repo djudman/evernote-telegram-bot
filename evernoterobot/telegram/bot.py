@@ -1,4 +1,5 @@
 import logging
+from abc import abstractmethod
 
 from telegram.api import BotApi
 
@@ -12,17 +13,16 @@ class TelegramBot:
 
     def __init__(self, token, bot_name):
         self.api = BotApi(token)
-        self.bot_name = bot_name
-        self.bot_url = 'https://telegram.me/%s' % bot_name
+        self.name = bot_name
+        self.url = 'https://telegram.me/%s' % bot_name
         self.logger = logging.getLogger()
         self.commands = {}
 
-    def add_command(self, handler_class):
-        handler = handler_class(self)
-        if handler.__name__ in self.commands:
-            raise TelegramBotError('Command "%s" already exists' %
-                                   handler.__name__)
-        self.commands[handler.__name__] = handler_class
+    def add_command(self, handler_class, force=False):
+        cmd_name = handler_class.name
+        if cmd_name in self.commands and not force:
+            raise TelegramBotError('Command "%s" already exists' % cmd_name)
+        self.commands[cmd_name] = handler_class
 
     async def handle_update(self, data: dict):
         if 'message' in data:
@@ -100,16 +100,19 @@ class TelegramBot:
     async def on_location(self, message):
         pass
 
-    async def on_text(self, message):
+    async def on_text(self, message, text):
         pass
 
 
 class TelegramBotCommand:
 
-    __name__ = 'test'
+    name = 'command_name'
 
     def __init__(self, bot: TelegramBot):
         self.bot = bot
+        assert self.__class__.name != 'command_name',\
+            'You must define command name with "name" class attribute'
 
+    @abstractmethod
     async def execute(self, message):
-        return self.__name__
+        pass
