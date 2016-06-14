@@ -67,3 +67,37 @@ def test_execute_bot_command():
     loop = asyncio.get_event_loop()
     loop.run_until_complete(bot.handle_update(update))
     mock.assert_called_once_with()
+
+
+def test_on_text_callback():
+    mock = Mock()
+
+    class MyBot(TelegramBot):
+        async def on_text(self, message, text):
+            mock()
+
+    bot = MyBot('token', 'test_bot')
+    update = {
+        'message': {
+            'chat': {
+                'id': 425606,
+                'username': 'djudman',
+                'last_name': 'Dorofeev',
+                'type': 'private',
+                'first_name': 'Dmitry'
+            },
+            'text': 'test text',
+            'from': {
+                'id': 425606,
+                'username': 'djudman',
+                'last_name': 'Dorofeev',
+                'first_name': 'Dmitry'
+            },
+            'date': 1465821925,
+            'message_id': 2668
+        },
+        'update_id': 84506399
+    }
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(bot.handle_update(update))
+    mock.assert_called_once_with()
