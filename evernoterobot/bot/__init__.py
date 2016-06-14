@@ -2,11 +2,10 @@ import inspect
 import importlib
 import os
 import sys
-import time
 from os.path import realpath, dirname, join
 
 from telegram.bot import TelegramBot, TelegramBotCommand
-from settings import MONGODB_CLIENT
+from bot.model import StartSession, User
 
 
 def get_commands(cmd_dir=None):
@@ -32,37 +31,6 @@ def get_commands(cmd_dir=None):
     return commands
 
 
-class StartSession:
-
-    db = MONGODB_CLIENT
-
-    def __init__(self, user_id, chat_id, oauth_data):
-        self.created = time.time()
-        self.user_id = user_id
-        self.telegram_chat_id = chat_id
-        self.oauth_token = oauth_data.oauth_token
-        self.oauth_token_secret = oauth_data.oauth_token_secret
-        self.oauth_url = oauth_data.oauth_url
-        self.callback_key = oauth_data.callback_key
-
-    async def save(self):
-        data = {}
-        for k, v in self.__dict__.items():
-            data[k] = getattr(self, k)
-        data['_id'] = data['user_id']
-        db = self.db.evernoterobot
-        await db.start_sessions.save(data)
-
-    async def find(self, evernote_callback_key: str):
-        db = self.db.evernoterobot
-        session = await db.start_sessions.find_one(
-            {'callback_key': evernote_callback_key})
-        if session:
-            session['user_id'] = session['_id']
-            del session['_id']
-            return StartSession(session)
-
-
 class EvernoteBot(TelegramBot):
 
     def __init__(self, token, name, memcached_client):
@@ -71,8 +39,38 @@ class EvernoteBot(TelegramBot):
         for cmd_class in get_commands():
             self.add_command(cmd_class)
 
-    async def create_start_session(self, user_id, oauth_data):
-        pass
+    async def create_start_session(self, user_id, chat_id, oauth_data):
+        session = StartSession(user_id, chat_id, oauth_data)
+        await session.save()
+
+    async def get_start_session(self, callback_key):
+        await StartSession.find(callback_key)
+
+    async def register_user(self, start_session, evernote_access_token):
+        user_id = start_session.user_id
+        await self.cache.set(str(user_id).encode(),
+                             evernote_access_token.encode())
+        notebook = self.evernote.getNotebook(evernote_access_token)
+        await self.cache.set("{0}_nb".format(user_id).encode(),
+                             notebook.guid.encode())
+        user = User(user_id, evernote_access_token, notebook.guid)
+        await user.save()
+
+    async def get_evernote_access_token(self, user_id):
+        key = str(user_id).encode()
+        token = await self.cache.get(key)
+        if token:
+            notebook_guid = await self.cache.get(
+                "{0}_nb".format(user_id).encode())
+            return token.decode(), notebook_guid.decode()
+        else:
+            entry = await User.find_one({'_id': user_id})
+            token = entry['evernote_access_token']
+            notebook_guid = entry['notebook_guid']
+            await self.cache.set(key, token.encode())
+            await self.cache.set("{0}_nb".format(user_id).encode(),
+                                 notebook_guid.encode())
+            return token, notebook_guid
 
     async def on_message_received(self, message):
         pass
