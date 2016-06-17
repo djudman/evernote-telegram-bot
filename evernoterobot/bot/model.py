@@ -27,14 +27,15 @@ class StartSession(Model):
 
     collection = 'start_sessions'
 
-    def __init__(self, user_id, chat_id, oauth_data):
+    def __init__(self, user_id=None, chat_id=None, oauth_data=None):
         self.created = time.time()
         self.user_id = user_id
         self.telegram_chat_id = chat_id
-        self.oauth_token = oauth_data.oauth_token
-        self.oauth_token_secret = oauth_data.oauth_token_secret
-        self.oauth_url = oauth_data.oauth_url
-        self.callback_key = oauth_data.callback_key
+        if oauth_data:
+            self.oauth_token = oauth_data.oauth_token
+            self.oauth_token_secret = oauth_data.oauth_token_secret
+            self.oauth_url = oauth_data.oauth_url
+            self.callback_key = oauth_data.callback_key
 
     async def save(self):
         data = {}
@@ -59,7 +60,7 @@ class User(Model):
 
     collection = 'users'
 
-    def __init__(self, user_id, access_token, notebook_guid):
+    def __init__(self, user_id=None, access_token=None, notebook_guid=None):
         self.user_id = user_id
         self.evernote_access_token = access_token
         self.notebook_guid = notebook_guid
