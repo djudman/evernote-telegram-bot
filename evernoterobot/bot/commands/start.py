@@ -24,7 +24,7 @@ Please tap on button below to link your Evernote account with bot.'''
 
         # session = StartSession(user_id, oauth_data)
         # session.save()
-        await self.bot.create_start_session(user_id, oauth_data)
+        await self.bot.create_start_session(user_id, chat_id, oauth_data)
 
         signin_button['text'] = 'Sign in to Evernote'
         signin_button['url'] = oauth_data.oauth_url
