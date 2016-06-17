@@ -55,7 +55,7 @@ class EvernoteBot(TelegramBot):
         await session.save()
 
     async def get_start_session(self, callback_key):
-        await StartSession.find(callback_key)
+        await StartSession().find(callback_key)
 
     async def register_user(self, start_session, evernote_access_token):
         user_id = start_session.user_id
@@ -75,7 +75,7 @@ class EvernoteBot(TelegramBot):
                 "{0}_nb".format(user_id).encode())
             return token.decode(), notebook_guid.decode()
         else:
-            entry = await User.find_one({'_id': user_id})
+            entry = await User().find_one({'_id': user_id})
             token = entry['evernote_access_token']
             notebook_guid = entry['notebook_guid']
             await self.cache.set(key, token.encode())
