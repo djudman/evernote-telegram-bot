@@ -55,7 +55,7 @@ class EvernoteBot(TelegramBot):
         await session.save()
 
     async def get_start_session(self, callback_key):
-        await StartSession().find(callback_key)
+        return await StartSession().find(callback_key)
 
     async def register_user(self, start_session, evernote_access_token):
         user_id = start_session.user_id
