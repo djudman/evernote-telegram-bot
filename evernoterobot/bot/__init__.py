@@ -4,8 +4,12 @@ import os
 import sys
 from os.path import realpath, dirname, join
 
+import aiomcache
+
 from telegram.bot import TelegramBot, TelegramBotCommand
 from bot.model import StartSession, User
+from evernotelib.client import EvernoteClient
+import settings
 
 
 def get_commands(cmd_dir=None):
@@ -26,16 +30,23 @@ def get_commands(cmd_dir=None):
                     sys.path = sys_path
                     for name, klass in inspect.getmembers(module):
                         if inspect.isclass(klass) and\
-                           issubclass(klass, TelegramBotCommand):
+                           issubclass(klass, TelegramBotCommand) and\
+                           klass != TelegramBotCommand:
                             commands.append(klass)
     return commands
 
 
 class EvernoteBot(TelegramBot):
 
-    def __init__(self, token, name, memcached_client):
+    def __init__(self, token, name):
         super(EvernoteBot, self).__init__(token, name)
-        self.cache = memcached_client
+        self.evernote = EvernoteClient(
+            settings.EVERNOTE['key'],
+            settings.EVERNOTE['secret'],
+            settings.EVERNOTE['oauth_callback'],
+            sandbox=settings.DEBUG
+        )
+        self.cache = aiomcache.Client("127.0.0.1", 11211)
         for cmd_class in get_commands():
             self.add_command(cmd_class)
 
@@ -72,5 +83,11 @@ class EvernoteBot(TelegramBot):
                                  notebook_guid.encode())
             return token, notebook_guid
 
-    async def on_message_received(self, message):
-        pass
+    async def on_text(self, message, text):
+        user_id = message['from']['id']
+        chat_id = message['chat']['id']
+        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+        access_token, guid = await self.get_evernote_access_token(user_id)
+        self.evernote.create_note(access_token, text, notebook_guid=guid)
+        await self.api.editMessageText(chat_id, reply['message_id'],
+                                       '✅ Text saved')

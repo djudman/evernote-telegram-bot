@@ -1,0 +1,12 @@
+aiohttp==0.21.5
+aiomcache==0.3.0
+chardet==2.3.0
+greenlet==0.4.10
+gunicorn==19.4.5
+motor==0.6.2
+oauthlib==1.1.2
+py==1.4.31
+pymongo==2.8
+pytest==2.9.2
+requests==2.10.0
+requests-oauthlib==0.6.1
