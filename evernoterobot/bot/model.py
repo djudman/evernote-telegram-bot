@@ -1,11 +1,20 @@
 import time
 
-from settings import MONGODB_CLIENT
+from motor.motor_asyncio import AsyncIOMotorClient
+
+from settings import MONGODB_URI
 
 
-class Model:
+class MetaModel(type):
 
-    db = MONGODB_CLIENT
+    def __call__(cls, *args, **kwargs):
+        instance = super(MetaModel, cls).__call__(*args, **kwargs)
+        instance.db = AsyncIOMotorClient(MONGODB_URI)
+        return instance
+
+
+class Model(metaclass=MetaModel):
+
     collection = ''
 
     @classmethod

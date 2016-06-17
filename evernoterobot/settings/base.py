@@ -1,8 +1,6 @@
 from os.path import dirname, join, realpath, basename
 import json
 
-from motor.motor_asyncio import AsyncIOMotorClient
-
 
 DEBUG = False
 
@@ -19,4 +17,3 @@ TELEGRAM = SECRET['telegram']
 EVERNOTE = SECRET['evernote']
 
 MONGODB_URI = 'mongodb://localhost:27017'
-MONGODB_CLIENT = AsyncIOMotorClient(MONGODB_URI)
