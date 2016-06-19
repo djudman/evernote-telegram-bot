@@ -89,6 +89,10 @@ class EvernoteBot(TelegramBot):
                                  notebook_guid.encode())
             return token, notebook_guid
 
+    async def send_message(self, user_id, text):
+        session = await StartSession().find_one({'_id': user_id})
+        await self.api.sendMessage(session['telegram_chat_id'], text)
+
     async def on_text(self, message, text):
         user_id = message['from']['id']
         chat_id = message['chat']['id']
