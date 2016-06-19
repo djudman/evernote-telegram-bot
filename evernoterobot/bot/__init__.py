@@ -103,7 +103,8 @@ class EvernoteBot(TelegramBot):
                 k = "notebook_name_{0}".format(name).encode()
                 await self.cache.set(k, nb.guid.encode())
         guid = await self.cache.get(key)
-        return guid.decode()
+        if guid:
+            return guid.decode()
 
     async def send_message(self, user_id, text):
         session = await StartSession().find_one({'_id': user_id})
@@ -114,15 +115,20 @@ class EvernoteBot(TelegramBot):
         if user.state == 'select_notebook':
             if text.startswith('> ') and text.endswith(' <'):
                 text = text[2:-2]
-            markup = json.dumps({'hide_keyboard': True})
-            user.state = ''
-            user.notebook_guid = await self.get_notebook_guid(user_id, text)
-            await user.save()
-            await self.cache.set("{0}_nb".format(user_id).encode(),
-                                 user.notebook_guid.encode())
-            await self.api.sendMessage(
-                chat_id, 'From now your current notebook is: %s' % text,
-                reply_markup=markup)
+            guid = await self.get_notebook_guid(user_id, text)
+            if guid:
+                user.notebook_guid = guid
+                user.state = ''
+                await user.save()
+                await self.cache.set("{0}_nb".format(user_id).encode(),
+                                     user.notebook_guid.encode())
+
+                markup = json.dumps({'hide_keyboard': True})
+                await self.api.sendMessage(
+                    chat_id, 'From now your current notebook is: %s' % text,
+                    reply_markup=markup)
+            else:
+                await self.api.sendMessage(chat_id, 'Please, select notebook')
         else:
             reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
             access_token, guid = await self.get_evernote_access_token(user_id)
