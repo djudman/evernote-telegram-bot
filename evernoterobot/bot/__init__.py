@@ -3,6 +3,7 @@ import importlib
 import os
 import sys
 from os.path import realpath, dirname, join
+import traceback
 
 import aiomcache
 
@@ -116,3 +117,27 @@ class EvernoteBot(TelegramBot):
 
         await self.api.editMessageText(chat_id, reply['message_id'],
                                        '✅ Image saved')
+
+    async def on_voice(self, user_id, chat_id, message):
+        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+        caption = message.get('caption', '')
+        title = caption or 'Voice'
+
+        file_id = message['voice']['file_id']
+        ogg_filename = await self.api.downloadFile(file_id)
+        wav_filename = ogg_filename + '.wav'
+        mime_type = 'audio/wav'
+        try:
+            # convert to wav
+            os.system('opusdec %s %s' % (ogg_filename, wav_filename))
+        except Exception:
+            self.logger.error("Can't convert ogg to wav, %s" %
+                              traceback.format_exc())
+            wav_filename = ogg_filename
+            mime_type = 'audio/ogg'
+        access_token, guid = await self.get_evernote_access_token(user_id)
+        self.evernote.create_note(access_token, caption, title,
+                                  files=[(wav_filename, mime_type)],
+                                  notebook_guid=guid)
+        await self.telegram.editMessageText(chat_id, reply['message_id'],
+                                            '✅ Voice saved')
