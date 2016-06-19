@@ -16,8 +16,8 @@ async def oauth_callback(request):
         oauth_verifier = params['oauth_verifier'][0]
         # TODO: async
         access_token = robot.evernote.get_access_token(
-            session['oauth_token'],
-            session['oauth_token_secret'],
+            session.oauth_token,
+            session.oauth_token_secret,
             oauth_verifier)
 
         logger.info('evernote access_token = %s' % access_token)
@@ -27,11 +27,11 @@ async def oauth_callback(request):
         text = "Evernote account is connected.\n\
 Now you can just send message and note be created.\n\
 Current notebook: %s" % notebook.name
-        await robot.send_message(session['user_id'], text)
+        await robot.send_message(session.user_id, text)
     else:
         # User decline access
         logger.info('User declined access. No access token =(')
         text = "We are sorry, but you declined authorization 😢"
-        await robot.send_message(session['user_id'], text)
+        await robot.send_message(session.user_id, text)
 
     return web.HTTPFound(robot.bot_url)

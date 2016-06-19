@@ -51,7 +51,13 @@ class EvernoteBot(TelegramBot):
             self.add_command(cmd_class)
 
     async def create_start_session(self, user_id, chat_id, oauth_data):
-        session = StartSession(user_id, chat_id, oauth_data)
+        session = StartSession(
+            user_id,
+            chat_id,
+            oauth_url=oauth_data.oauth_url,
+            oauth_token=oauth_data.oauth_token,
+            oauth_token_secret=oauth_data.oauth_token_secret,
+            callback_key=oauth_data.callback_key)
         await session.save()
 
     async def get_start_session(self, callback_key):

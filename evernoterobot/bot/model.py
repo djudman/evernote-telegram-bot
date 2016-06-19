@@ -27,15 +27,15 @@ class StartSession(Model):
 
     collection = 'start_sessions'
 
-    def __init__(self, user_id=None, chat_id=None, oauth_data=None):
+    def __init__(self, user_id=None, chat_id=None, **kwargs):
         self.created = time.time()
         self.user_id = user_id
         self.telegram_chat_id = chat_id
-        if oauth_data:
-            self.oauth_token = oauth_data.oauth_token
-            self.oauth_token_secret = oauth_data.oauth_token_secret
-            self.oauth_url = oauth_data.oauth_url
-            self.callback_key = oauth_data.callback_key
+        if kwargs:
+            self.oauth_token = kwargs.get('oauth_token')
+            self.oauth_token_secret = kwargs.get('oauth_token_secret')
+            self.oauth_url = kwargs.get('oauth_url')
+            self.callback_key = kwargs.get('callback_key')
 
     async def save(self):
         data = {}
@@ -53,7 +53,9 @@ class StartSession(Model):
         if session:
             session['user_id'] = session['_id']
             del session['_id']
-            return StartSession(session)
+            return StartSession(session['user_id'],
+                                session['telegram_chat_id'],
+                                **session)
 
 
 class User(Model):
