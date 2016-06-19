@@ -79,4 +79,4 @@ class User(Model):
     async def get(self, id):
         data = await self.find_one({'_id': id})
         return User(data['_id'], data['evernote_access_token'],
-                    data['notebook_guid'], data['state'])
+                    data['notebook_guid'], data.get('state'))
