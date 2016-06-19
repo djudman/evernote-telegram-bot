@@ -139,5 +139,5 @@ class EvernoteBot(TelegramBot):
         self.evernote.create_note(access_token, caption, title,
                                   files=[(wav_filename, mime_type)],
                                   notebook_guid=guid)
-        await self.telegram.editMessageText(chat_id, reply['message_id'],
-                                            '✅ Voice saved')
+        await self.api.editMessageText(chat_id, reply['message_id'],
+                                       '✅ Voice saved')
