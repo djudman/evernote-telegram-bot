@@ -112,6 +112,8 @@ class EvernoteBot(TelegramBot):
     async def on_text(self, user_id, chat_id, message, text):
         user = await User().get(user_id)
         if user.state == 'select_notebook':
+            if text.startswith('> ') and text.endswith(' <'):
+                text = text[2:-2]
             markup = json.dumps({'hide_keyboard': True})
             user.state = ''
             user.notebook_guid = await self.get_notebook_guid(user_id, text)
