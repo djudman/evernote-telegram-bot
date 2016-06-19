@@ -27,10 +27,10 @@ class StartSession(Model):
 
     collection = 'start_sessions'
 
-    def __init__(self, user_id=None, chat_id=None, **kwargs):
+    def __init__(self, user_id=None, telegram_chat_id=None, **kwargs):
         self.created = time.time()
         self.user_id = user_id
-        self.telegram_chat_id = chat_id
+        self.telegram_chat_id = telegram_chat_id
         if kwargs:
             self.oauth_token = kwargs.get('oauth_token')
             self.oauth_token_secret = kwargs.get('oauth_token_secret')
@@ -53,9 +53,7 @@ class StartSession(Model):
         if session:
             session['user_id'] = session['_id']
             del session['_id']
-            return StartSession(session['user_id'],
-                                session['telegram_chat_id'],
-                                **session)
+            return StartSession(**session)
 
 
 class User(Model):
