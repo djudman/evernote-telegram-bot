@@ -5,6 +5,7 @@ import sys
 from os.path import realpath, dirname, join
 import traceback
 import json
+import base64
 
 import aiomcache
 
@@ -92,7 +93,7 @@ class EvernoteBot(TelegramBot):
             return token, notebook_guid
 
     async def get_notebook_guid(self, user_id, notebook_name):
-        key = "notebook_name_{0}".format(notebook_name).encode()
+        key = "notebook_name_{0}".format(base64.b64encode(notebook_name)).encode()
         guid = await self.cache.get(key)
         if not guid:
             access_token, guid = await self.get_evernote_access_token(user_id)
