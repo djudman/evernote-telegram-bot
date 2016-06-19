@@ -173,3 +173,18 @@ class EvernoteBot(TelegramBot):
         self.evernote.create_note(access_token, text, title, notebook_guid=guid)
         await self.api.editMessageText(chat_id, reply['message_id'],
                                        '✅ Location saved')
+
+    async def on_document(self, user_id, chat_id, message):
+        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+        file_id = message['document']['file_id']
+        short_file_name = message['document']['file_name']
+        file_path = await self.api.downloadFile(file_id)
+        mime_type = message['document']['mime_type']
+
+        access_token, guid = await self.get_evernote_access_token(user_id)
+        self.evernote.create_note(access_token, '', short_file_name,
+                                  files=[(file_path, mime_type)],
+                                  notebook_guid=guid)
+
+        await self.api.editMessageText(chat_id, reply['message_id'],
+                                       '✅ Document saved')
