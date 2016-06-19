@@ -116,6 +116,8 @@ class EvernoteBot(TelegramBot):
             user.state = ''
             user.notebook_guid = await self.get_notebook_guid(user_id, text)
             await user.save()
+            await self.cache.set("{0}_nb".format(user_id).encode(),
+                                 user.notebook_guid.encode())
             await self.api.sendMessage(
                 chat_id, 'From now your current notebook is: %s' % text,
                 reply_markup=markup)
