@@ -6,7 +6,7 @@ import logging
 import asyncio
 import traceback
 
-from evernotelib.client import EvernoteClient, EvernoteOauthData
+from ext.evernote.client import EvernoteClient, EvernoteOauthData
 from telegram.api import BotApi
 from telegram.user import User
 

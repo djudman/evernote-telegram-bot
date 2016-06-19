@@ -1,7 +1,7 @@
 import hashlib
 import logging
 import traceback
-from evernotelib import EvernoteSdk
+from ext.evernote import EvernoteSdk
 import evernote.edam.type.ttypes as Types
 
 

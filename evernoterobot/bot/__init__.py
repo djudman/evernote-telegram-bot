@@ -11,7 +11,7 @@ import aiomcache
 
 from telegram.bot import TelegramBot, TelegramBotCommand
 from bot.model import StartSession, User
-from evernotelib.client import EvernoteClient
+from ext.evernote.client import EvernoteClient
 import settings
 
 
