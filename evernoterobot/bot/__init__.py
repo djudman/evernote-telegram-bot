@@ -91,6 +91,17 @@ class EvernoteBot(TelegramBot):
                                  notebook_guid.encode())
             return token, notebook_guid
 
+    async def get_notebook_guid(self, user_id, notebook_name):
+        key = "notebook_name_{0}".format(notebook_name).encode()
+        guid = await self.cache.get(key)
+        if not guid:
+            access_token, guid = await self.get_evernote_access_token(user_id)
+            for nb in self.evernote.list_notebooks(access_token):
+                k = "notebook_name_{0}".format(nb.name).encode()
+                await self.cache.set(k, nb.guid.encode())
+        guid = await self.cache.get(key)
+        return guid.decode()
+
     async def send_message(self, user_id, text):
         session = await StartSession().find_one({'_id': user_id})
         await self.api.sendMessage(session['telegram_chat_id'], text)
@@ -103,8 +114,8 @@ class EvernoteBot(TelegramBot):
                 chat_id, 'From now your current notebook is: %s' % text,
                 reply_markup=markup)
             user.state = ''
+            user.notebook_guid = await self.get_notebook_guid(user_id, text)
             await user.save()
-            # TODO: update current notebook
         else:
             reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
             access_token, guid = await self.get_evernote_access_token(user_id)
