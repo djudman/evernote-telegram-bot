@@ -109,7 +109,7 @@ class EvernoteBot(TelegramBot):
                        reverse=True)
         file_id = files[0]['file_id']
         filename = await self.api.downloadFile(file_id)
-        access_token, guid = await self.get_evernote_access_token(self.user.id)
+        access_token, guid = await self.get_evernote_access_token(user_id)
         self.evernote.create_note(access_token, caption, title,
                                   files=[(filename, 'image/jpeg')],
                                   notebook_guid=guid)
