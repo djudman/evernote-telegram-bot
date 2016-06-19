@@ -113,12 +113,12 @@ class EvernoteBot(TelegramBot):
         user = await User().get(user_id)
         if user.state == 'select_notebook':
             markup = json.dumps({'hide_keyboard': True})
-            await self.api.sendMessage(
-                chat_id, 'From now your current notebook is: %s' % text,
-                reply_markup=markup)
             user.state = ''
             user.notebook_guid = await self.get_notebook_guid(user_id, text)
             await user.save()
+            await self.api.sendMessage(
+                chat_id, 'From now your current notebook is: %s' % text,
+                reply_markup=markup)
         else:
             reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
             access_token, guid = await self.get_evernote_access_token(user_id)
