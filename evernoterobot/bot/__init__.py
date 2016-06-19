@@ -93,11 +93,26 @@ class EvernoteBot(TelegramBot):
         session = await StartSession().find_one({'_id': user_id})
         await self.api.sendMessage(session['telegram_chat_id'], text)
 
-    async def on_text(self, message, text):
-        user_id = message['from']['id']
-        chat_id = message['chat']['id']
+    async def on_text(self, user_id, chat_id, message, text):
         reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
         access_token, guid = await self.get_evernote_access_token(user_id)
         self.evernote.create_note(access_token, text, notebook_guid=guid)
         await self.api.editMessageText(chat_id, reply['message_id'],
                                        '✅ Text saved')
+
+    async def on_photo(self, user_id, chat_id, message):
+        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+        caption = message.get('caption', '')
+        title = caption or 'Photo'
+
+        files = sorted(message['photo'], key=lambda x: x.get('file_size'),
+                       reverse=True)
+        file_id = files[0]['file_id']
+        filename = await self.api.downloadFile(file_id)
+        access_token, guid = await self.get_evernote_access_token(self.user.id)
+        self.evernote.create_note(access_token, caption, title,
+                                  files=[(filename, 'image/jpeg')],
+                                  notebook_guid=guid)
+
+        await self.api.editMessageText(chat_id, reply['message_id'],
+                                       '✅ Image saved')

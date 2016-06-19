@@ -73,7 +73,7 @@ def test_on_text_callback():
     mock = Mock()
 
     class MyBot(TelegramBot):
-        async def on_text(self, message, text):
+        async def on_text(self, user_id, chat_id, message, text):
             mock()
 
     bot = MyBot('token', 'test_bot')

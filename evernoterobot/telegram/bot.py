@@ -40,16 +40,19 @@ class TelegramBot:
             raise TelegramBotError('Unsupported update %s' % data)
 
     async def handle_message(self, message: dict):
-        await self.on_message_received(message)
+        user_id = message['from']['id']
+        chat_id = message['chat']['id']
+
+        await self.on_message_received(user_id, chat_id, message)
 
         if 'photo' in message:
-            await self.on_photo(message)
+            await self.on_photo(user_id, chat_id, message)
         elif 'document' in message:
-            await self.on_document(message)
+            await self.on_document(user_id, chat_id, message)
         elif 'voice' in message:
-            await self.on_voice(message)
+            await self.on_voice(user_id, chat_id, message)
         elif 'location' in message:
-            await self.on_location(message)
+            await self.on_location(user_id, chat_id, message)
         else:
             commands = []
             for entity in message.get('entities', []):
@@ -67,9 +70,9 @@ class TelegramBot:
             else:
                 text = message.get('text')
                 if text:
-                    await self.on_text(message, text)
+                    await self.on_text(user_id, chat_id, message, text)
 
-        await self.on_message_processed(message)
+        await self.on_message_processed(user_id, chat_id, message)
 
     async def execute_command(self, cmd_name: str, message):
         CommandClass = self.commands.get(cmd_name)
@@ -82,25 +85,25 @@ class TelegramBot:
     async def on_command_completed(self, cmd_name, result):
         pass
 
-    async def on_message_received(self, message):
+    async def on_message_received(self, user_id, chat_id, message):
         pass
 
-    async def on_message_processed(self, message):
+    async def on_message_processed(self, user_id, chat_id, message):
         pass
 
-    async def on_photo(self, message):
+    async def on_photo(self, user_id, chat_id, message):
         pass
 
-    async def on_document(self, message):
+    async def on_document(self, user_id, chat_id, message):
         pass
 
-    async def on_voice(self, message):
+    async def on_voice(self, user_id, chat_id, message):
         pass
 
-    async def on_location(self, message):
+    async def on_location(self, user_id, chat_id, message):
         pass
 
-    async def on_text(self, message, text):
+    async def on_text(self, user_id, chat_id, message, text):
         pass
 
 
