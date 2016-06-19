@@ -60,10 +60,12 @@ class User(Model):
 
     collection = 'users'
 
-    def __init__(self, user_id=None, access_token=None, notebook_guid=None):
+    def __init__(self, user_id=None, access_token=None, notebook_guid=None,
+                 state=None):
         self.user_id = user_id
         self.evernote_access_token = access_token
         self.notebook_guid = notebook_guid
+        self.state = state
 
     async def save(self):
         data = {}
@@ -73,3 +75,8 @@ class User(Model):
         del data['db']
         db = self.db.evernoterobot
         await db.users.save(data)
+
+    async def get(self, id):
+        data = await self.find_one({'_id': id})
+        return User(data['_id'], data['evernote_access_token'],
+                    data['notebook_guid'], data['state'])

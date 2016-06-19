@@ -4,6 +4,7 @@ import os
 import sys
 from os.path import realpath, dirname, join
 import traceback
+import json
 
 import aiomcache
 
@@ -95,11 +96,21 @@ class EvernoteBot(TelegramBot):
         await self.api.sendMessage(session['telegram_chat_id'], text)
 
     async def on_text(self, user_id, chat_id, message, text):
-        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
-        access_token, guid = await self.get_evernote_access_token(user_id)
-        self.evernote.create_note(access_token, text, notebook_guid=guid)
-        await self.api.editMessageText(chat_id, reply['message_id'],
-                                       '✅ Text saved')
+        user = await User().get(user_id)
+        if user.state == 'select_notebook':
+            markup = json.dumps({'hide_keyboard': True})
+            await self.bot.api.sendMessage(
+                chat_id, 'From now your current notebook is: %s' % text,
+                reply_markup=markup)
+            user.state = ''
+            await user.save()
+            # TODO: update current notebook
+        else:
+            reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+            access_token, guid = await self.get_evernote_access_token(user_id)
+            self.evernote.create_note(access_token, text, notebook_guid=guid)
+            await self.api.editMessageText(chat_id, reply['message_id'],
+                                           '✅ Text saved')
 
     async def on_photo(self, user_id, chat_id, message):
         reply = await self.api.sendMessage(chat_id, '🔄 Accepted')

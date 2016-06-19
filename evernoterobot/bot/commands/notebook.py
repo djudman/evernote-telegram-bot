@@ -1,4 +1,5 @@
 from telegram.bot import TelegramBotCommand
+from bot.model import User
 
 import json
 
@@ -18,7 +19,7 @@ class NotebookCommand(TelegramBotCommand):
         buttons = []
         for notebook in notebooks:
             if notebook.guid == guid:
-                name = ">>> %s (current)" % notebook.name
+                name = "> %s <" % notebook.name
             else:
                 name = notebook.name
             buttons.append({'text': name})
@@ -32,3 +33,6 @@ class NotebookCommand(TelegramBotCommand):
             })
         await self.bot.api.sendMessage(chat_id, 'Please, select notebook',
                                        reply_markup=markup)
+        user = await User().get(user_id)
+        user.state = 'select_notebook'
+        await user.save()
