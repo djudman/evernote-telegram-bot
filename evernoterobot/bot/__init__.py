@@ -93,12 +93,14 @@ class EvernoteBot(TelegramBot):
             return token, notebook_guid
 
     async def get_notebook_guid(self, user_id, notebook_name):
-        key = "notebook_name_{0}".format(base64.b64encode(notebook_name)).encode()
+        notebook_name = base64.b64encode(notebook_name.encode()).decode()
+        key = "notebook_name_{0}".format(notebook_name).encode()
         guid = await self.cache.get(key)
         if not guid:
             access_token, guid = await self.get_evernote_access_token(user_id)
             for nb in self.evernote.list_notebooks(access_token):
-                k = "notebook_name_{0}".format(nb.name).encode()
+                name = base64.b64encode(nb.name.encode()).decode()
+                k = "notebook_name_{0}".format(name).encode()
                 await self.cache.set(k, nb.guid.encode())
         guid = await self.cache.get(key)
         return guid.decode()
