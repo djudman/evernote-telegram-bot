@@ -141,3 +141,35 @@ class EvernoteBot(TelegramBot):
                                   notebook_guid=guid)
         await self.api.editMessageText(chat_id, reply['message_id'],
                                        '✅ Voice saved')
+
+    async def on_location(self, user_id, chat_id, message):
+        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+        # TODO: use google maps API for getting location image
+        location = message['location']
+        latitude = location['latitude']
+        longitude = location['longitude']
+        maps_url = "https://maps.google.com/maps?q=%(lat)f,%(lng)f" % {
+            'lat': latitude,
+            'lng': longitude,
+        }
+        title = 'Location'
+        text = "<a href='%(url)s'>%(url)s</a>" % {'url': maps_url}
+
+        if message.get('venue'):
+            address = message['venue'].get('address', '')
+            title = message['venue'].get('title', '')
+            text = "%(title)s<br />%(address)s<br />\
+                <a href='%(url)s'>%(url)s</a>" % {
+                'title': title,
+                'address': address,
+                'url': maps_url
+            }
+            foursquare_id = message['venue'].get('foursquare_id')
+            if foursquare_id:
+                url = "https://foursquare.com/v/%s" % foursquare_id
+                text += "<br /><a href='%(url)s'>%(url)s</a>" % {'url': url}
+
+        access_token, guid = await self.get_evernote_access_token(user_id)
+        self.evernote.create_note(access_token, text, title, notebook_guid=guid)
+        await self.api.editMessageText(chat_id, reply['message_id'],
+                                       '✅ Location saved')
