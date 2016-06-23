@@ -1,8 +1,11 @@
 import sys
 import logging
 import logging.config
+from os.path import realpath, dirname
 
 import aiohttp
+
+sys.path.insert(0, realpath(dirname(dirname(__file__))))
 
 import settings
 from bot import EvernoteBot
@@ -13,7 +16,6 @@ sys.path.insert(0, settings.PROJECT_DIR)
 
 logging.config.dictConfig(settings.LOG_SETTINGS)
 
-# db_client = AsyncIOMotorClient(settings.MONGODB_URI)
 bot = EvernoteBot(settings.TELEGRAM['token'], 'evernoterobot')
 
 app = aiohttp.web.Application()
@@ -30,7 +32,6 @@ app.loop.run_until_complete(
 )
 
 app.bot = bot
-# app.db = db_client
 
 
 # async def on_cleanup(app):
