@@ -14,14 +14,14 @@ class NotebookCommand(TelegramBotCommand):
         # message = await self.bot.api.sendMessage(
         #     chat_id, 'Please wait. Getting list of your notebooks...')
         access_token, guid = await self.bot.get_evernote_access_token(user_id)
-        notebooks = self.bot.evernote.list_notebooks(access_token)
+        notebooks = await self.bot.list_notebooks(user_id)
 
         buttons = []
         for notebook in notebooks:
-            if notebook.guid == guid:
-                name = "> %s <" % notebook.name
+            if notebook['guid'] == guid:
+                name = "> %s <" % notebook['name']
             else:
-                name = notebook.name
+                name = notebook['name']
             buttons.append({'text': name})
 
         # await self.bot.api.editMessageText(chat_id, message['message_id'],
