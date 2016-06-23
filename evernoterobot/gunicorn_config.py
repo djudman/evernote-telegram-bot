@@ -18,7 +18,7 @@ pidfile = join(settings.ROOT_DIR, 'evernoterobot.pid')
 accesslog = join(settings.LOGS_DIR, 'gunicorn.log')
 errorlog = join(settings.LOGS_DIR, 'gunicorn.log')
 loglevel = 'info'
-app_name = 'web/webapp:app'
+app_name = 'web.webapp:app'
 access_log_format = '%a %l %u %t "%r" %s %b "%{Referrer}i" "%{User-Agent}i"'
 daemon = True
 
