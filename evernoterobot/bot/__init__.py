@@ -107,7 +107,7 @@ class EvernoteBot(TelegramBot):
             return guid.decode()
 
     async def list_notebooks(self, user_id, nocache=False):
-        key = "list_notebooks_%s" % user_id
+        key = "list_notebooks_{0}".format(user_id).encode()
         data = await self.cache.get(key)
         if not data:
             access_token, guid = await self.get_evernote_access_token(user_id)
