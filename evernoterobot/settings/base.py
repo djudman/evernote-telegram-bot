@@ -17,3 +17,6 @@ TELEGRAM = SECRET['telegram']
 EVERNOTE = SECRET['evernote']
 
 MONGODB_URI = 'mongodb://localhost:27017'
+
+MEMCACHED_HOST = 'localhost'
+MEMCACHED_PORT = 11211

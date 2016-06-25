@@ -36,3 +36,5 @@ class NotebookCommand(TelegramBotCommand):
         user = await User().get(user_id)
         user.state = 'select_notebook'
         await user.save()
+
+        await self.bot.update_notebooks_cache(user_id)
