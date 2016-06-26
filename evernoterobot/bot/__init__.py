@@ -76,7 +76,7 @@ class EvernoteBot(TelegramBot):
             user = await User.get({'user_id': message['from']['id']})
             if user.telegram_chat_id != message['chat']['id']:
                 user.telegram_chat_id = message['chat']['id']
-                user.save()
+                await user.save()
             return user
         except ModelNotFound:
             self.logger.warn("User %s not found" % message['from']['id'])

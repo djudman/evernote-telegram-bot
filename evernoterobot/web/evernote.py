@@ -34,7 +34,7 @@ async def oauth_callback(request):
                 'guid': notebook.guid,
                 'name': notebook.name,
             }
-            user.save()
+            await user.save()
 
             text = "Evernote account is connected.\n\
 Now you can just send message and note be created.\n\
