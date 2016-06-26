@@ -25,11 +25,13 @@ Please tap on button below to link your Evernote account with bot.'''
 
         try:
             StartSession.get({'user_id': user_id})
+            self.logger.warn("Start session for user %s already exists" % user_id)
         except ModelNotFound:
             await StartSession.create(user_id=user_id, oauth_data=oauth_data)
 
         try:
             User.get({'user_id': user_id})
+            self.logger.warn("User %s already exists" % user_id)
         except ModelNotFound:
             await User.create(user_id=user_id, telegram_chat_id=chat_id)
 
