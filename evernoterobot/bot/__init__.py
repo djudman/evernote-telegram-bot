@@ -86,7 +86,7 @@ class EvernoteBot(TelegramBot):
         for notebook in all_notebooks:
             if notebook['name'] == notebook_name:
                 user.current_notebook = notebook
-                user.state = ''
+                user.state = None
                 await user.save()
 
                 markup = json.dumps({'hide_keyboard': True})
