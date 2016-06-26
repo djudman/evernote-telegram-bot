@@ -47,6 +47,7 @@ Current notebook: %s" % notebook.name
             await bot.api.sendMessage(user.telegram_chat_id, text)
 
     except ModelNotFound as e:
+        logger.error(traceback.format_exc())
         logger.error(e)
         return web.HTTPForbidden()
     except Exception:

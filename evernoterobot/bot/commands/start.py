@@ -22,9 +22,9 @@ Please tap on button below to link your Evernote account with bot.'''
         # TODO: async
         user_id = message['from']['id']
         oauth_data = self.bot.evernote.get_oauth_data(user_id)
-        StartSession.create(user_id=user_id, telegram_chat_id=chat_id,
-                            oauth_data=oauth_data)
-        User.create(user_id=user_id, telegram_chat_id=chat_id)
+        await StartSession.create(user_id=user_id, telegram_chat_id=chat_id,
+                                  oauth_data=oauth_data)
+        await User.create(user_id=user_id, telegram_chat_id=chat_id)
 
         signin_button['text'] = 'Sign in to Evernote'
         signin_button['url'] = oauth_data["oauth_url"]

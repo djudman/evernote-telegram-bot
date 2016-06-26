@@ -48,7 +48,7 @@ class Model(metaclass=MetaModel):
     @classmethod
     async def create(cls, **kwargs):
         model = cls(**kwargs)
-        return model.save()
+        return await model.save()
 
     async def save(self) -> object:
         assert self.collection,\
