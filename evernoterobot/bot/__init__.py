@@ -5,12 +5,11 @@ import sys
 from os.path import realpath, dirname, join
 import traceback
 import json
-import base64
 
 import aiomcache
 
 from telegram.bot import TelegramBot, TelegramBotCommand
-from bot.model import StartSession, User
+from bot.model import User
 from ext.evernote.client import EvernoteClient
 import settings
 
@@ -53,64 +52,11 @@ class EvernoteBot(TelegramBot):
         for cmd_class in get_commands():
             self.add_command(cmd_class)
 
-    async def create_start_session(self, user_id, chat_id, oauth_data):
-        session = StartSession(
-            user_id,
-            chat_id,
-            oauth_url=oauth_data.oauth_url,
-            oauth_token=oauth_data.oauth_token,
-            oauth_token_secret=oauth_data.oauth_token_secret,
-            callback_key=oauth_data.callback_key)
-        await session.save()
-
-    async def get_start_session(self, callback_key):
-        return await StartSession().find(callback_key)
-
-    async def register_user(self, start_session, evernote_access_token):
-        user_id = start_session.user_id
-        await self.cache.set(str(user_id).encode(),
-                             evernote_access_token.encode())
-        notebook = self.evernote.getNotebook(evernote_access_token)
-        await self.cache.set("{0}_nb".format(user_id).encode(),
-                             notebook.guid.encode())
-        user = User(user_id, evernote_access_token, notebook.guid)
-        await user.save()
-
-    async def get_evernote_access_token(self, user_id):
-        key = str(user_id).encode()
-        token = await self.cache.get(key)
-        if token:
-            notebook_guid = await self.cache.get(
-                "{0}_nb".format(user_id).encode())
-            return token.decode(), notebook_guid.decode()
-        else:
-            entry = await User().find_one({'_id': user_id})
-            token = entry['evernote_access_token']
-            notebook_guid = entry['notebook_guid']
-            await self.cache.set(key, token.encode())
-            await self.cache.set("{0}_nb".format(user_id).encode(),
-                                 notebook_guid.encode())
-            return token, notebook_guid
-
-    async def get_notebook_guid(self, user_id, notebook_name):
-        notebook_name = base64.b64encode(notebook_name.encode()).decode()
-        key = "notebook_name_{0}".format(notebook_name).encode()
-        guid = await self.cache.get(key)
-        if not guid:
-            access_token, guid = await self.get_evernote_access_token(user_id)
-            for nb in self.evernote.list_notebooks(access_token):
-                name = base64.b64encode(nb.name.encode()).decode()
-                k = "notebook_name_{0}".format(name).encode()
-                await self.cache.set(k, nb.guid.encode())
-        guid = await self.cache.get(key)
-        if guid:
-            return guid.decode()
-
-    async def list_notebooks(self, user_id):
-        key = "list_notebooks_{0}".format(user_id).encode()
+    async def list_notebooks(self, user):
+        key = "list_notebooks_{0}".format(user.user_id).encode()
         data = await self.cache.get(key)
         if not data:
-            access_token, guid = await self.get_evernote_access_token(user_id)
+            access_token = user.evernote_access_token
             notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in
                          self.evernote.list_notebooks(access_token)]
             await self.cache.set(key, json.dumps(notebooks).encode())
@@ -118,45 +64,54 @@ class EvernoteBot(TelegramBot):
             notebooks = json.loads(data.decode())
         return notebooks
 
-    async def update_notebooks_cache(self, user_id):
-        key = "list_notebooks_{0}".format(user_id).encode()
-        access_token, guid = await self.get_evernote_access_token(user_id)
+    async def update_notebooks_cache(self, user):
+        key = "list_notebooks_{0}".format(user.user_id).encode()
+        access_token = user.evernote_access_token
         notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in
                      self.evernote.list_notebooks(access_token)]
         await self.cache.set(key, json.dumps(notebooks).encode())
 
-    async def send_message(self, user_id, text):
-        session = await StartSession().find_one({'_id': user_id})
-        await self.api.sendMessage(session['telegram_chat_id'], text)
+    async def get_user(self, message):
+        user = await User.get({'user_id': message['from']['id']})
+        if user.telegram_chat_id != message['chat']['id']:
+            user.telegram_chat_id = message['chat']['id']
+            user.save()
+        return user
 
-    async def on_text(self, user_id, chat_id, message, text):
-        user = await User().get(user_id)
-        if user.state == 'select_notebook':
-            if text.startswith('> ') and text.endswith(' <'):
-                text = text[2:-2]
-            guid = await self.get_notebook_guid(user_id, text)
-            if guid:
-                user.notebook_guid = guid
+    async def set_current_notebook(self, user, notebook_name):
+        all_notebooks = await self.list_notebooks(user)
+        for notebook in all_notebooks:
+            if notebook['name'] == notebook_name:
+                user.current_notebook = notebook
                 user.state = ''
                 await user.save()
-                await self.cache.set("{0}_nb".format(user_id).encode(),
-                                     user.notebook_guid.encode())
 
                 markup = json.dumps({'hide_keyboard': True})
                 await self.api.sendMessage(
-                    chat_id, 'From now your current notebook is: %s' % text,
+                    user.telegram_chat_id,
+                    'From now your current notebook is: %s' % notebook_name,
                     reply_markup=markup)
-            else:
-                await self.api.sendMessage(chat_id, 'Please, select notebook')
         else:
-            reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
-            access_token, guid = await self.get_evernote_access_token(user_id)
+            await self.api.sendMessage(user.telegram_chat_id,
+                                       'Please, select notebook')
+
+    async def on_text(self, user, message, text):
+        if user.state == 'select_notebook':
+            if text.startswith('> ') and text.endswith(' <'):
+                text = text[2:-2]
+            await self.set_current_notebook(user, text)
+        else:
+            reply = await self.api.sendMessage(user.telegram_chat_id,
+                                               '🔄 Accepted')
+            access_token = user.evernote_access_token
+            guid = user.current_notebook['guid']
             self.evernote.create_note(access_token, text, notebook_guid=guid)
-            await self.api.editMessageText(chat_id, reply['message_id'],
+            await self.api.editMessageText(user.telegram_chat_id,
+                                           reply['message_id'],
                                            '✅ Text saved')
 
-    async def on_photo(self, user_id, chat_id, message):
-        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+    async def on_photo(self, user, message):
+        reply = await self.api.sendMessage(user.telegram_chat_id, '🔄 Accepted')
         caption = message.get('caption', '')
         title = caption or 'Photo'
 
@@ -164,16 +119,15 @@ class EvernoteBot(TelegramBot):
                        reverse=True)
         file_id = files[0]['file_id']
         filename = await self.api.downloadFile(file_id)
-        access_token, guid = await self.get_evernote_access_token(user_id)
-        self.evernote.create_note(access_token, caption, title,
+        self.evernote.create_note(user.evernote_access_token, caption, title,
                                   files=[(filename, 'image/jpeg')],
-                                  notebook_guid=guid)
+                                  notebook_guid=user.current_notebook['guid'])
 
-        await self.api.editMessageText(chat_id, reply['message_id'],
-                                       '✅ Image saved')
+        await self.api.editMessageText(user.telegram_chat_id,
+                                       reply['message_id'], '✅ Image saved')
 
-    async def on_voice(self, user_id, chat_id, message):
-        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+    async def on_voice(self, user, message):
+        reply = await self.api.sendMessage(user.telegram_chat_id, '🔄 Accepted')
         caption = message.get('caption', '')
         title = caption or 'Voice'
 
@@ -189,15 +143,15 @@ class EvernoteBot(TelegramBot):
                               traceback.format_exc())
             wav_filename = ogg_filename
             mime_type = 'audio/ogg'
-        access_token, guid = await self.get_evernote_access_token(user_id)
-        self.evernote.create_note(access_token, caption, title,
+        self.evernote.create_note(user.evernote_access_token, caption, title,
                                   files=[(wav_filename, mime_type)],
-                                  notebook_guid=guid)
-        await self.api.editMessageText(chat_id, reply['message_id'],
+                                  notebook_guid=user.current_notebook['guid'])
+        await self.api.editMessageText(user.telegram_chat_id,
+                                       reply['message_id'],
                                        '✅ Voice saved')
 
-    async def on_location(self, user_id, chat_id, message):
-        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+    async def on_location(self, user, message):
+        reply = await self.api.sendMessage(user.telegram_chat_id, '🔄 Accepted')
         # TODO: use google maps API for getting location image
         location = message['location']
         latitude = location['latitude']
@@ -223,22 +177,24 @@ class EvernoteBot(TelegramBot):
                 url = "https://foursquare.com/v/%s" % foursquare_id
                 text += "<br /><a href='%(url)s'>%(url)s</a>" % {'url': url}
 
-        access_token, guid = await self.get_evernote_access_token(user_id)
-        self.evernote.create_note(access_token, text, title, notebook_guid=guid)
-        await self.api.editMessageText(chat_id, reply['message_id'],
+        self.evernote.create_note(user.evernote_access_token, text, title,
+                                  notebook_guid=user.current_notebook['guid'])
+        await self.api.editMessageText(user.telegram_chat_id,
+                                       reply['message_id'],
                                        '✅ Location saved')
 
-    async def on_document(self, user_id, chat_id, message):
-        reply = await self.api.sendMessage(chat_id, '🔄 Accepted')
+    async def on_document(self, user, message):
+        reply = await self.api.sendMessage(user.telegram_chat_id, '🔄 Accepted')
         file_id = message['document']['file_id']
         short_file_name = message['document']['file_name']
         file_path = await self.api.downloadFile(file_id)
         mime_type = message['document']['mime_type']
 
-        access_token, guid = await self.get_evernote_access_token(user_id)
-        self.evernote.create_note(access_token, '', short_file_name,
+        self.evernote.create_note(user.evernote_access_token, '',
+                                  short_file_name,
                                   files=[(file_path, mime_type)],
-                                  notebook_guid=guid)
+                                  notebook_guid=user.current_notebook['guid'])
 
-        await self.api.editMessageText(chat_id, reply['message_id'],
+        await self.api.editMessageText(user.telegram_chat_id,
+                                       reply['message_id'],
                                        '✅ Document saved')

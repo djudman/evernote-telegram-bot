@@ -1,82 +1,75 @@
-import time
+import datetime
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from settings import MONGODB_URI
 
 
+class ModelNotFound(Exception):
+
+    def __init__(self, condition=None):
+        if condition:
+            message = "Condition: %s" % str(condition)
+        super(ModelNotFound, self).__init__(message)
+
+
 class MetaModel(type):
 
     def __call__(cls, *args, **kwargs):
         instance = super(MetaModel, cls).__call__(*args, **kwargs)
-        instance.db = AsyncIOMotorClient(MONGODB_URI)
+        if not hasattr(cls, '_db_client'):
+            cls._db_client = AsyncIOMotorClient(MONGODB_URI)
+            cls._db = cls._db_client.get_default_database()
+        # if not hasattr(cls, '_cache'):
+        #     cls._cache = Cache(host=MEMCACHED['host'], port=MEMCACHED['port'])
         return instance
 
 
 class Model(metaclass=MetaModel):
 
-    collection = ''
+    collection = None
 
-    async def find_one(self, condition):
-        db = self.db.evernoterobot
-        entry = await db[self.collection].find_one(condition)
+    def __init__(self, **kwargs):
+        for arg_name, arg_value in kwargs.items():
+            setattr(self, arg_name, arg_value)
+
+    @classmethod
+    async def find_one(cls, condition) -> dict:
+        entry = await cls._db[cls.collection].find_one(condition)
+        if not entry:
+            raise ModelNotFound(condition)
         return entry
+
+    @classmethod
+    async def get(cls, condition: dict) -> object:
+        data = await cls.find_one(condition)
+        return cls(**data)
+
+    @classmethod
+    async def create(cls, **kwargs):
+        model = cls(**kwargs)
+        return model.save()
+
+    async def save(self) -> object:
+        assert self.collection,\
+               "You must set 'collection' class attribute in your subclass"
+        data = {}
+        for name, v in self.__dict__.items():
+            if not name.startswith('_'):
+                data[name] = getattr(self, name)
+        self._id = await self._db[self.collection].save(data)
+        return self
 
 
 class StartSession(Model):
-
     collection = 'start_sessions'
-
-    def __init__(self, user_id=None, telegram_chat_id=None, **kwargs):
-        self.created = time.time()
-        self.user_id = user_id
-        self.telegram_chat_id = telegram_chat_id
-        if kwargs:
-            self.oauth_token = kwargs.get('oauth_token')
-            self.oauth_token_secret = kwargs.get('oauth_token_secret')
-            self.oauth_url = kwargs.get('oauth_url')
-            self.callback_key = kwargs.get('callback_key')
-
-    async def save(self):
-        data = {}
-        for k, v in self.__dict__.items():
-            data[k] = getattr(self, k)
-        data['_id'] = data['user_id']
-        del data['db']
-        db = self.db.evernoterobot
-        await db.start_sessions.save(data)
-
-    async def find(self, evernote_callback_key: str):
-        db = self.db.evernoterobot
-        session = await db.start_sessions.find_one(
-            {'callback_key': evernote_callback_key})
-        if session:
-            session['user_id'] = session['_id']
-            del session['_id']
-            return StartSession(**session)
 
 
 class User(Model):
 
     collection = 'users'
 
-    def __init__(self, user_id=None, access_token=None, notebook_guid=None,
-                 state=None):
-        self.user_id = user_id
-        self.evernote_access_token = access_token
-        self.notebook_guid = notebook_guid
-        self.state = state
-
-    async def save(self):
-        data = {}
-        for k, v in self.__dict__.items():
-            data[k] = getattr(self, k)
-        data['_id'] = data['user_id']
-        del data['db']
-        db = self.db.evernoterobot
-        await db.users.save(data)
-
-    async def get(self, id):
-        data = await self.find_one({'_id': id})
-        return User(data['_id'], data['evernote_access_token'],
-                    data['notebook_guid'], data.get('state'))
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+        if not hasattr(self, 'created'):
+            self.created = datetime.datetime.now()

@@ -39,20 +39,22 @@ class TelegramBot:
         else:
             raise TelegramBotError('Unsupported update %s' % data)
 
-    async def handle_message(self, message: dict):
-        user_id = message['from']['id']
-        chat_id = message['chat']['id']
+    async def get_user(self, message):
+        return message['from']['id']
 
-        await self.on_message_received(user_id, chat_id, message)
+    async def handle_message(self, message: dict):
+        user = await self.get_user(message)
+
+        await self.on_message_received(user, message)
 
         if 'photo' in message:
-            await self.on_photo(user_id, chat_id, message)
+            await self.on_photo(user, message)
         elif 'document' in message:
-            await self.on_document(user_id, chat_id, message)
+            await self.on_document(user, message)
         elif 'voice' in message:
-            await self.on_voice(user_id, chat_id, message)
+            await self.on_voice(user, message)
         elif 'location' in message:
-            await self.on_location(user_id, chat_id, message)
+            await self.on_location(user, message)
         else:
             commands = []
             for entity in message.get('entities', []):
@@ -66,44 +68,44 @@ class TelegramBot:
 
             if commands:
                 for cmd in commands:
-                    await self.execute_command(cmd, message)
+                    await self.execute_command(cmd, user, message)
             else:
                 text = message.get('text')
                 if text:
-                    await self.on_text(user_id, chat_id, message, text)
+                    await self.on_text(user, message, text)
 
-        await self.on_message_processed(user_id, chat_id, message)
+        await self.on_message_processed(user, message)
 
-    async def execute_command(self, cmd_name: str, message):
+    async def execute_command(self, cmd_name: str, user, message):
         CommandClass = self.commands.get(cmd_name)
         if not CommandClass:
             raise TelegramBotError('Command "%s" not found' % cmd_name)
         obj = CommandClass(self)
-        result = await obj.execute(message)
-        await self.on_command_completed(cmd_name, result)
+        result = await obj.execute(user, message)
+        await self.on_command_completed(cmd_name, user, result)
 
-    async def on_command_completed(self, cmd_name, result):
+    async def on_command_completed(self, cmd_name, user, result):
         pass
 
-    async def on_message_received(self, user_id, chat_id, message):
+    async def on_message_received(self, user, message):
         pass
 
-    async def on_message_processed(self, user_id, chat_id, message):
+    async def on_message_processed(self, user, message):
         pass
 
-    async def on_photo(self, user_id, chat_id, message):
+    async def on_photo(self, user, message):
         pass
 
-    async def on_document(self, user_id, chat_id, message):
+    async def on_document(self, user, message):
         pass
 
-    async def on_voice(self, user_id, chat_id, message):
+    async def on_voice(self, user, message):
         pass
 
-    async def on_location(self, user_id, chat_id, message):
+    async def on_location(self, user, message):
         pass
 
-    async def on_text(self, user_id, chat_id, message, text):
+    async def on_text(self, user, message, text):
         pass
 
 
@@ -117,5 +119,5 @@ class TelegramBotCommand:
             'You must define command name with "name" class attribute'
 
     @abstractmethod
-    async def execute(self, message):
+    async def execute(self, user, message):
         pass

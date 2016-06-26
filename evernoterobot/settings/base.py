@@ -16,7 +16,9 @@ SMTP = SECRET['smtp']
 TELEGRAM = SECRET['telegram']
 EVERNOTE = SECRET['evernote']
 
-MONGODB_URI = 'mongodb://localhost:27017'
+MONGODB_URI = 'mongodb://localhost:27017/evernoterobot'
 
-MEMCACHED_HOST = 'localhost'
-MEMCACHED_PORT = 11211
+MEMCACHED = {
+    'host': '127.0.0.1',
+    'port': 11211,
+}

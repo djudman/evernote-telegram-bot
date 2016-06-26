@@ -5,10 +5,9 @@ class HelpCommand(TelegramBotCommand):
 
     name = 'help'
 
-    async def execute(self, message):
+    async def execute(self, user, message):
         text = '''This is bot for evernote.
 Contacts:
     email: djudman@gmail.com
 '''
-        chat_id = message['chat']['id']
-        await self.bot.api.sendMessage(chat_id, text)
+        await self.bot.api.sendMessage(user.telegram_chat_id, text)
