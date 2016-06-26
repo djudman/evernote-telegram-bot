@@ -129,6 +129,7 @@ class EvernoteBot(TelegramBot):
 
         await self.api.editMessageText(user.telegram_chat_id,
                                        reply['message_id'], '✅ Image saved')
+        os.unlink(filename)
 
     async def on_voice(self, user, message):
         reply = await self.api.sendMessage(user.telegram_chat_id, '🔄 Accepted')
@@ -153,6 +154,8 @@ class EvernoteBot(TelegramBot):
         await self.api.editMessageText(user.telegram_chat_id,
                                        reply['message_id'],
                                        '✅ Voice saved')
+        os.unlink(ogg_filename)
+        os.unlink(wav_filename)
 
     async def on_location(self, user, message):
         reply = await self.api.sendMessage(user.telegram_chat_id, '🔄 Accepted')
@@ -202,3 +205,4 @@ class EvernoteBot(TelegramBot):
         await self.api.editMessageText(user.telegram_chat_id,
                                        reply['message_id'],
                                        '✅ Document saved')
+        os.unlink(file_path)
