@@ -21,7 +21,8 @@ async def oauth_callback(request):
             oauth_verifier = params['oauth_verifier'][0]
             # TODO: async
             access_token = bot.evernote.get_access_token(
-                session.oauth_token, session.oauth_token_secret,
+                session.oauth_data['oauth_token'],
+                session.oauth_data['oauth_token_secret'],
                 oauth_verifier)
 
             logger.info('evernote access_token = %s' % access_token)
