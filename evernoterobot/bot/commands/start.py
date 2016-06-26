@@ -8,7 +8,7 @@ class StartCommand(TelegramBotCommand):
 
     name = 'start'
 
-    async def execute(self, message):
+    async def execute(self, user, message):
         welcome_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
 Please tap on button below to link your Evernote account with bot.'''
         signin_button = {
