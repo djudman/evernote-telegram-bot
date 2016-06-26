@@ -73,3 +73,5 @@ class User(Model):
         super(User, self).__init__(**kwargs)
         if not hasattr(self, 'created'):
             self.created = datetime.datetime.now()
+
+Model()  # This is hack for initialization _db field
