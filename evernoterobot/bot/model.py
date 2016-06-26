@@ -55,7 +55,7 @@ class Model(metaclass=MetaModel):
                "You must set 'collection' class attribute in your subclass"
         data = {}
         for name, v in self.__dict__.items():
-            if not name.startswith('_'):
+            if not name.startswith('_') or name == '_id':
                 data[name] = getattr(self, name)
         self._id = await self._db[self.collection].save(data)
         return self
