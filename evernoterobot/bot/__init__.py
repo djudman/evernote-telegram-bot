@@ -94,6 +94,7 @@ class EvernoteBot(TelegramBot):
                     user.telegram_chat_id,
                     'From now your current notebook is: %s' % notebook_name,
                     reply_markup=markup)
+                break
         else:
             await self.api.sendMessage(user.telegram_chat_id,
                                        'Please, select notebook')
