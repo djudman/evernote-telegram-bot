@@ -1,8 +1,86 @@
 import hashlib
 import logging
 import traceback
+from os.path import basename
 from ext.evernote import EvernoteSdk
 import evernote.edam.type.ttypes as Types
+
+
+class NoteContent:
+
+    def __init__(self, note=None):
+        self.content_objects = []
+        self._old_content = ''
+        self._old_resources = []
+        if note is not None:
+            self._old_resources = note.resources or []
+            self._old_content = self._parse_content(note.content)
+        self._new_content = ''
+
+    def _parse_content(self, xml_content):
+        pass
+
+    def add_file(self, path, mime_type):
+        resource, hexdigest = self._make_resource(path, mime_type)
+        self.content_objects.append({
+                'type': 'file',
+                'path': path,
+                'mime_type': mime_type,
+                'resource': resource,
+                'hexdigest': hexdigest,
+            })
+
+    def add_text(self, text):
+        if text:
+            self.content_objects.append({
+                    'type': 'string',
+                    'value': text,
+                })
+
+    def _make_resource(self, filename, mime_type):
+        with open(filename, 'rb') as f:
+            data_bytes = f.read()
+            md5 = hashlib.md5()
+            md5.update(data_bytes)
+
+            data = Types.Data()
+            data.size = len(data_bytes)
+            data.bodyHash = md5.digest()
+            data.body = data_bytes
+
+            resource = Types.Resource()
+            resource.mime = mime_type
+            resource.data = data
+            short_name = basename(filename)
+            resource.attributes = Types.ResourceAttributes(fileName=short_name)
+        return resource, md5.hexdigest()
+
+    def get_resources(self):
+        resources = [r for r in self._old_resources]
+        for entry in self.content_objects:
+            if entry['type'] == 'file':
+                resources.append(entry['resource'])
+        return resources
+
+    def __str__(self):
+        new_content = ''
+        for entry in self.content_objects:
+            content_entry = ''
+            if entry['type'] == 'file':
+                content_entry = '<br /><en-media type="%(mime_type)s" hash="%(md5)s" />' % {
+                    'mime_type': entry['mime_type'],
+                    'md5': entry['hexdigest'],
+                }
+            elif entry['type'] == 'string':
+                content_entry = entry['value']
+            new_content += content_entry
+
+        return '<?xml version="1.0" encoding="UTF-8"?>' \
+'<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">' \
+'<en-note>%(old_content)s<br />%(new_content)s</en-note>' % {
+                'old_content': self._old_content,
+                'new_content': new_content,
+            }
 
 
 class EvernoteClient:
@@ -83,26 +161,28 @@ class EvernoteClient:
                 resource = Types.Resource()
                 resource.mime = mime_type
                 resource.data = data
+                resource.attributes = Types.ResourceAttributes(fileName=basename(filename))
 
                 # Now, add the new Resource to the note's list of resources
                 note.resources = [resource]
 
-            attachments.append('<en-media type="%(mime_type)s" hash="%(md5)s" />' % {
+            attachments.append('<br /><en-media type="%(mime_type)s" hash="%(md5)s" />' % {
                     'mime_type': mime_type,
                     'md5': md5.hexdigest(),
             })
 
         note.content = '<?xml version="1.0" encoding="UTF-8"?>' \
             '<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">' \
-            '<en-note>%(text)s%(attachments)s</en-note>' % {
+            '<en-note>%(text)s<br />%(attachments)s</en-note>' % {
                 'text': text,
                 'attachments': ''.join(attachments),
             }
         try:
             created_note = note_store.createNote(note)
-        except Exception:
+        except Exception as e:
+            print(e)
             logging.getLogger().error(traceback.format_exc())
-        return created_note
+        return created_note.guid
 
     def getDefaultNotebook(self, auth_token):
         sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
@@ -121,3 +201,24 @@ class EvernoteClient:
         note_store = sdk.get_note_store()
         # List all of the notebooks in the user's account
         return note_store.listNotebooks()
+
+    def get_note(self, auth_token, note_guid):
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        return note_store.getNote(note_guid, True, True, False, False)
+
+    def update_note(self, auth_token, guid, text, files=None):
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        note = note_store.getNote(guid, True, True, False, False)
+
+        content = NoteContent(note)
+        content.add_text(text)
+        if files is not None:
+            for filename, mime_type in files:
+                content.add_file(filename, mime_type)
+
+        note.resources = content.get_resources()
+        note.content = str(content)
+
+        note_store.update_note(note)
