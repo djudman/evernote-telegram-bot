@@ -99,6 +99,17 @@ class EvernoteBot(TelegramBot):
             await self.api.sendMessage(user.telegram_chat_id,
                                        'Please, select notebook')
 
+    def save_to_evernote(self, user, text, title=None, files=None):
+        notebook_guid = user.current_notebook['guid']
+        if user.mode == 'one_note':
+            note_guid = user.places[notebook_guid]
+            self.evernote.update_note(
+                user.evernote_access_token, note_guid, text, files=files)
+        else:
+            self.evernote.create_note(
+                user.evernote_access_token, text, title=title, files=files,
+                notebook_guid=notebook_guid)
+
     async def on_text(self, user, message, text):
         if user.state == 'select_notebook':
             if text.startswith('> ') and text.endswith(' <'):
@@ -107,9 +118,7 @@ class EvernoteBot(TelegramBot):
         else:
             reply = await self.api.sendMessage(user.telegram_chat_id,
                                                '🔄 Accepted')
-            access_token = user.evernote_access_token
-            guid = user.current_notebook['guid']
-            self.evernote.create_note(access_token, text, notebook_guid=guid)
+            self.save_to_evernote(user, text)
             await self.api.editMessageText(user.telegram_chat_id,
                                            reply['message_id'],
                                            '✅ Text saved')

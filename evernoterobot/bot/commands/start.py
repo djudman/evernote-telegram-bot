@@ -36,6 +36,7 @@ Please tap on button below to link your Evernote account with bot.'''
             self.bot.logger.warn("User %s already exists" % user_id)
         except ModelNotFound:
             await User.create(user_id=user_id, telegram_chat_id=chat_id,
+                              mode='one_note',
                               username=message['from'].get('username'),
                               first_name=message['from'].get('first_name'),
                               last_name=message['from'].get('last_name'))
