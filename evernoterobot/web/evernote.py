@@ -36,6 +36,14 @@ async def oauth_callback(request):
             }
             await user.save()
 
+            if user.mode == 'one_note' and not hasattr(user, 'places'):
+                note_guid = bot.evernote.create_note(
+                    access_token, text='', title='Note for Evernoterobot')
+                user.places = {
+                    user.current_notebook['guid']: note_guid
+                }
+                await user.save()
+
             text = "Evernote account is connected.\n\
 Now you can just send message and note be created.\n\
 Current notebook: %s" % notebook.name
@@ -45,13 +53,6 @@ Current notebook: %s" % notebook.name
             logger.info('User declined access. No access token =(')
             text = "We are sorry, but you declined authorization 😢"
             await bot.api.sendMessage(user.telegram_chat_id, text)
-
-        if user.mode == 'one_note' and not hasattr(user, 'places'):
-            note_guid = bot.evernote.createNote(access_token, text='')
-            user.places = {
-                user.current_notebook['guid']: note_guid
-            }
-            await user.save()
 
     except ModelNotFound as e:
         logger.error(traceback.format_exc())
