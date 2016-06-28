@@ -99,12 +99,19 @@ class EvernoteBot(TelegramBot):
             await self.api.sendMessage(user.telegram_chat_id,
                                        'Please, select notebook')
 
-    def save_to_evernote(self, user, text, title=None, files=None):
+    async def save_to_evernote(self, user, text, title=None, files=None):
         notebook_guid = user.current_notebook['guid']
         if user.mode == 'one_note':
-            note_guid = user.places[notebook_guid]
-            self.evernote.update_note(
-                user.evernote_access_token, note_guid, text, files=files)
+            note_guid = user.places.get(notebook_guid)
+            if not note_guid:
+                note_guid = self.evernote.create_note(
+                    user.evernote_access_token, text, title=title, files=files,
+                    notebook_guid=notebook_guid)
+                user.places[notebook_guid] = note_guid
+                await user.save()
+            else:
+                self.evernote.update_note(
+                    user.evernote_access_token, note_guid, text, files=files)
         else:
             self.evernote.create_note(
                 user.evernote_access_token, text, title=title, files=files,
@@ -118,7 +125,7 @@ class EvernoteBot(TelegramBot):
         else:
             reply = await self.api.sendMessage(user.telegram_chat_id,
                                                '🔄 Accepted')
-            self.save_to_evernote(user, text)
+            await self.save_to_evernote(user, text)
             await self.api.editMessageText(user.telegram_chat_id,
                                            reply['message_id'],
                                            '✅ Text saved')
