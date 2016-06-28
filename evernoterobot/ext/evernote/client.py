@@ -2,6 +2,8 @@ import hashlib
 import logging
 import traceback
 from os.path import basename
+import re
+
 from ext.evernote import EvernoteSdk
 import evernote.edam.type.ttypes as Types
 
@@ -18,7 +20,8 @@ class NoteContent:
         self._new_content = ''
 
     def _parse_content(self, xml_content):
-        pass
+        m = re.search(r'<en-note>(?P<content>.*)</en-note>', xml_content)
+        return m.group('content')
 
     def add_file(self, path, mime_type):
         resource, hexdigest = self._make_resource(path, mime_type)
@@ -221,4 +224,4 @@ class EvernoteClient:
         note.resources = content.get_resources()
         note.content = str(content)
 
-        note_store.update_note(note)
+        note_store.updateNote(note)
