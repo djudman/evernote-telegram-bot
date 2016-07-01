@@ -90,15 +90,29 @@ class EvernoteBot(TelegramBot):
             await self.api.sendMessage(user.telegram_chat_id,
                                        'Please, select notebook')
 
-    async def on_text(self, user, message, text):
-        if user.state == 'select_notebook':
-            if text.startswith('> ') and text.endswith(' <'):
-                text = text[2:-2]
-            await self.set_current_notebook(user, text)
-
-    async def on_message_received(self, user, message):
+    async def accept_request(self, user, message):
         reply = await self.api.sendMessage(user.telegram_chat_id,
                                            '🔄 Accepted')
         await TelegramUpdate.create(user_id=user.user_id,
                                     status_message_id=reply['message_id'],
                                     data=message)
+
+    async def on_text(self, user, message, text):
+        if user.state == 'select_notebook':
+            if text.startswith('> ') and text.endswith(' <'):
+                text = text[2:-2]
+            await self.set_current_notebook(user, text)
+        else:
+            await self.accept_request(user, message)
+
+    async def on_photo(self, user, message):
+        await self.accept_request(user, message)
+
+    async def on_document(self, user, message):
+        await self.accept_request(user, message)
+
+    async def on_voice(self, user, message):
+        await self.accept_request(user, message)
+
+    async def on_location(self, user, message):
+        await self.accept_request(user, message)
