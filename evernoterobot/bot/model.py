@@ -65,6 +65,10 @@ class StartSession(Model):
     collection = 'start_sessions'
 
 
+class TelegramUpdate(Model):
+    collection = 'telegram_updates'
+
+
 class User(Model):
 
     collection = 'users'
