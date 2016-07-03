@@ -2,6 +2,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import logging
 import time
+import traceback
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -58,22 +59,28 @@ class EvernoteDealer:
         self.logger = logging.getLogger()
 
     def run(self):
-        while True:
-            updates = self.loop.run_until_complete(
-                asyncio.ensure_future(self.fetch_updates()))
-            if updates:
-                self.loop.run_until_complete(
-                    asyncio.wait(self.process(updates)))
-            else:
-                time.sleep(0.5)
+        try:
+            while True:
+                updates = self.loop.run_until_complete(
+                    asyncio.ensure_future(self.fetch_updates()))
+                if updates:
+                    self.loop.run_until_complete(
+                        asyncio.wait(self.process(updates)))
+                else:
+                    time.sleep(0.5)
+        except Exception as e:
+            self.logger.fatal("{0}\n{1}".format(traceback.format_exc(), e))
 
     async def fetch_updates(self):
         updates_by_user = {}
-        for update in await TelegramUpdate.get_sorted(100):
-            user_id = update.user_id
-            if not updates_by_user.get(user_id):
-                updates_by_user[user_id] = []
-            updates_by_user[user_id].append(update)
+        try:
+            for update in await TelegramUpdate.get_sorted(100):
+                user_id = update.user_id
+                if not updates_by_user.get(user_id):
+                    updates_by_user[user_id] = []
+                updates_by_user[user_id].append(update)
+        except Exception as e:
+            self.logger.error("{0}\n{1}\nCan't load telegram updates from mongo".format(traceback.format_exc(), e))
         return updates_by_user
 
     def process(self, updates_by_user):
@@ -84,7 +91,7 @@ class EvernoteDealer:
         return futures
 
     async def process_one(self, user_id, update_list):
-        self.logger.info('Start update list processing (user_id = {0})'.format(user_id))
+        self.logger.debug('Start update list processing (user_id = {0})'.format(user_id))
         user = await User.get({'user_id': user_id})
 
         if user.mode == 'one_note':
@@ -95,8 +102,10 @@ class EvernoteDealer:
 
         for update in update_list:
             await self._telegram_api.editMessageText(
-                user.telegram_chat_id, update.status_message_id, '✅ Saved')
+                user.telegram_chat_id, update.status_message_id,
+                '✅ {0} saved'.format(update.request_type.capitalize()))
             await update.delete()
+        self.logger.debug('Finish update list processing (user_id = {0})'.format(user_id))
 
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']

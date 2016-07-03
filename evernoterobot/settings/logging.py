@@ -72,6 +72,12 @@ LOG_SETTINGS = {
             'filename': join(LOGS_DIR, '%s.log' % PROJECT_NAME),
             'formatter': 'default',
         },
+        'dealer_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join(LOGS_DIR, 'dealer.log'),
+            'formatter': 'default',
+        },
         'email': {
             'level': 'ERROR',
             'class': 'settings.logging.SslSMTPHandler',
@@ -104,6 +110,11 @@ LOG_SETTINGS = {
             'level': 'INFO',
             'handlers': ['file', 'email'],
             'propagate': False,
+        },
+        'dealer': {
+            'level': 'DEBUG',
+            'handlers': ['dealer_file', 'email'],
+            'propagate': True,
         },
         '': {
             'level': 'DEBUG',
