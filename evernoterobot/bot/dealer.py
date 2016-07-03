@@ -7,7 +7,7 @@ import traceback
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import settings
-from ext.evernote.client import NoteContent, Types, EvernoteSdk
+from ext.evernote.client import NoteContent, Types, ErrorTypes, EvernoteSdk
 from bot.model import TelegramUpdate, User
 from telegram.api import BotApi
 
@@ -30,8 +30,11 @@ class EvernoteApi:
         def fetch(note_guid):
             self.logger.info('Fetching note {0}'.format(note_guid))
             sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-            note_store = sdk.get_note_store()
-            return note_store.getNote(note_guid, True, True, False, False)
+            try:
+                note_store = sdk.get_note_store()
+                return note_store.getNote(note_guid, True, True, False, False)
+            except ErrorTypes.EDAMNotFoundException:
+                raise EvernoteApiError("Note {0} not found".format(note_guid))
 
         return await self.loop.run_in_executor(self.executor, fetch, note_guid)
 

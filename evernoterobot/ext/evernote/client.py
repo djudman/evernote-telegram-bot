@@ -6,6 +6,7 @@ import re
 
 from ext.evernote import EvernoteSdk
 import evernote.edam.type.ttypes as Types
+import evernote.edam.error.ttypes as ErrorTypes
 
 
 class NoteContent:
