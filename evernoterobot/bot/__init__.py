@@ -141,7 +141,7 @@ class EvernoteBot(TelegramBot):
             if text.startswith('> ') and text.endswith(' <'):
                 text = text[2:-2]
             await self.set_current_notebook(user, text)
-        if user.state == 'switch_mode':
+        elif user.state == 'switch_mode':
             await self.set_mode(user, text)
         else:
             await self.accept_request(user, 'text', message)
