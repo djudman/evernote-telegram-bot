@@ -52,7 +52,11 @@ class EvernoteApi:
             self.logger.info('Updating note {0}'.format(note.guid))
             sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
             note_store = sdk.get_note_store()
-            note_store.updateNote(note)
+            try:
+                note_store.updateNote(note)
+            except ErrorTypes.EDAMNotFoundException:
+                raise EvernoteApiError(
+                    "Can't update note. Note {0} not found".format(note.guid))
 
         await self.loop.run_in_executor(self.executor, update, note)
 
@@ -143,8 +147,11 @@ class EvernoteDealer:
                 await self.update_content(content, update)
             note.resources = content.get_resources()
             note.content = str(content)
-            await self._evernote_api.update_note(
-                user.evernote_access_token, note)
+            try:
+                await self._evernote_api.update_note(
+                    user.evernote_access_token, note)
+            except Exception:
+                self.logger.error("{0}\n{1}".format(traceback.format_exc(), e))
         else:
             self.logger.error(
                 "There are no default note in notebook {0}".format(
