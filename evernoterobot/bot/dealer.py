@@ -24,7 +24,7 @@ class EvernoteApi:
         self.loop = loop or asyncio.get_event_loop()
         self.executor = ThreadPoolExecutor(max_workers=10)
         self.sandbox = settings.DEBUG
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('dealer')
 
     async def get_note(self, auth_token, note_guid):
         def fetch(note_guid):
@@ -62,7 +62,7 @@ class EvernoteDealer:
         self.loop = asyncio.get_event_loop()
         self._evernote_api = EvernoteApi(self.loop)
         self._telegram_api = BotApi(settings.TELEGRAM['token'])
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('dealer')
 
     def run(self):
         try:
