@@ -1,4 +1,5 @@
 import logging
+import logging.config
 
 from bot.dealer import EvernoteDealer
 import settings

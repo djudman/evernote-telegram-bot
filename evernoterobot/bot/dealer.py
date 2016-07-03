@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import settings
 from ext.evernote.client import NoteContent, Types, EvernoteSdk
 from bot.model import TelegramUpdate, User
+from telegram.api import BotApi
 
 
 class EvernoteApi:
@@ -52,6 +53,7 @@ class EvernoteDealer:
         self._db = self._db_client.get_default_database()
         self.loop = asyncio.get_event_loop()
         self._evernote_api = EvernoteApi(self.loop)
+        self._telegram_api = BotApi(settings.TELEGRAM['token'])
         self.logger = logging.getLogger()
 
     def run(self):
@@ -88,6 +90,8 @@ class EvernoteDealer:
                 await self.create_note(user, update)
 
         for update in update_list:
+            await self._telegram_api.editMessageText(
+                user.telegram_chat_id, update.status_message_id, '✅ Saved')
             await update.delete()
 
     async def update_note(self, user, updates):
