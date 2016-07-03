@@ -51,9 +51,10 @@ class BotApi:
                                     message_id=message_id,
                                     reply_markup=reply_markup)
 
-    async def editMessageText(self, chat_id, message_id, text):
+    async def editMessageText(self, chat_id, message_id, text, reply_markup=None):
         return await self.__request('editMessageText', chat_id=chat_id,
-                                    message_id=message_id, text=text)
+                                    message_id=message_id, text=text,
+                                    reply_markup=reply_markup)
 
     async def getFile(self, file_id):
         file = await self.__request('getFile', file_id=file_id)
