@@ -1,6 +1,7 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import logging
+import time
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -59,9 +60,12 @@ class EvernoteDealer:
     def run(self):
         while True:
             updates = self.loop.run_until_complete(
-                asyncio.ensure_future(self.fetch_updates())
-            )
-            self.loop.run_until_complete(asyncio.wait(self.process(updates)))
+                asyncio.ensure_future(self.fetch_updates()))
+            if updates:
+                self.loop.run_until_complete(
+                    asyncio.wait(self.process(updates)))
+            else:
+                time.sleep(0.5)
 
     async def fetch_updates(self):
         updates_by_user = {}
