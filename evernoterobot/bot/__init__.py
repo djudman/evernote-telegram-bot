@@ -85,8 +85,7 @@ class EvernoteBot(TelegramBot):
         for notebook in all_notebooks:
             if notebook['name'] == notebook_name:
                 reply = await self.api.sendMessage(
-                    user.telegram_chat_id, 'Please wait',
-                    reply_markup=json.dumps({'hide_keyboard': True}))
+                    user.telegram_chat_id, 'Please wait')
 
                 user.current_notebook = notebook
                 user.state = None
@@ -101,7 +100,8 @@ class EvernoteBot(TelegramBot):
 
                 await self.api.editMessageText(
                     user.telegram_chat_id, reply["message_id"],
-                    'From now your current notebook is: %s' % notebook_name)
+                    'From now your current notebook is: %s' % notebook_name,
+                    reply_markup=json.dumps({'hide_keyboard': True}))
                 break
         else:
             await self.api.sendMessage(user.telegram_chat_id,
