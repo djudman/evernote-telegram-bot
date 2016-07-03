@@ -113,13 +113,16 @@ class EvernoteDealer:
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
         note_guid = user.places.get(notebook_guid)
-        note = await self._evernote_api.get_note(user.evernote_access_token, note_guid)
-        content = NoteContent(note)
-        for update in updates:
-            await self.update_content(content, update)
-        note.resources = content.get_resources()
-        note.content = str(content)
-        await self._evernote_api.update_note(user.evernote_access_token, note)
+        if note_guid:
+            note = await self._evernote_api.get_note(user.evernote_access_token, note_guid)
+            content = NoteContent(note)
+            for update in updates:
+                await self.update_content(content, update)
+            note.resources = content.get_resources()
+            note.content = str(content)
+            await self._evernote_api.update_note(user.evernote_access_token, note)
+        else:
+            self.logger.error("There are no default note in notebook {0}".format(user.current_notebook['name']))
 
     async def create_note(self, user, update, title=None):
         notebook_guid = user.current_notebook['guid']
