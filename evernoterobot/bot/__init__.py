@@ -129,7 +129,7 @@ class EvernoteBot(TelegramBot):
             user.places[user.current_notebook['guid']] = note_guid
             await user.save()
 
-            text = 'Bot switched to mode {0}. New note was created'.format(text_mode)
+            text = 'Bot switched to mode "{0}". New note was created'.format(text_mode)
             await self.api.editMessageText(
                 user.telegram_chat_id, reply["message_id"], text)
 

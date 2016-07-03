@@ -10,11 +10,10 @@ class SwitchModeCommand(TelegramBotCommand):
     async def execute(self, user, message):
         buttons = []
         for mode in ['one_note', 'multiple_notes']:
-            mode = mode.capitalize().replace('_', ' ')
             if user.mode == mode:
-                name = "> %s <" % mode
+                name = "> %s <" % mode.capitalize().replace('_', ' ')
             else:
-                name = mode
+                name = mode.capitalize().replace('_', ' ')
             buttons.append({'text': name})
 
         markup = json.dumps({
