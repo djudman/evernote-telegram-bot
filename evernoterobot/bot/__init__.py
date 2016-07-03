@@ -108,7 +108,8 @@ class EvernoteBot(TelegramBot):
     async def set_mode(self, user, mode):
         text_mode = mode
         if mode.startswith('> ') and mode.endswith(' <'):
-            mode = mode[2:-2].replace(' ', '_').lower()
+            mode = mode[2:-2]
+        mode = mode.replace(' ', '_').lower()
 
         await self.api.sendMessage(
             user.telegram_chat_id,
