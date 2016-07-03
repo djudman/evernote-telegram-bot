@@ -92,20 +92,23 @@ class EvernoteDealer:
 
     async def process_one(self, user_id, update_list):
         self.logger.debug('Start update list processing (user_id = {0})'.format(user_id))
-        user = await User.get({'user_id': user_id})
+        try:
+            user = await User.get({'user_id': user_id})
 
-        if user.mode == 'one_note':
-            await self.update_note(user, update_list)
-        else:
+            if user.mode == 'one_note':
+                await self.update_note(user, update_list)
+            else:
+                for update in update_list:
+                    await self.create_note(user, update)
+
             for update in update_list:
-                await self.create_note(user, update)
-
-        for update in update_list:
-            await self._telegram_api.editMessageText(
-                user.telegram_chat_id, update.status_message_id,
-                '✅ {0} saved'.format(update.request_type.capitalize()))
-            await update.delete()
-        self.logger.debug('Finish update list processing (user_id = {0})'.format(user_id))
+                await self._telegram_api.editMessageText(
+                    user.telegram_chat_id, update.status_message_id,
+                    '✅ {0} saved'.format(update.request_type.capitalize()))
+                await update.delete()
+            self.logger.debug('Finish update list processing (user_id = {0})'.format(user_id))
+        except Exception as e:
+            self.logger.error("{0}\nCan't process updates for user {1}".format(user_id))
 
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
