@@ -84,19 +84,51 @@ class EvernoteBot(TelegramBot):
         all_notebooks = await self.list_notebooks(user)
         for notebook in all_notebooks:
             if notebook['name'] == notebook_name:
+                reply = await self.api.sendMessage(
+                    user.telegram_chat_id, 'Please wait',
+                    reply_markup=json.dumps({'hide_keyboard': True}))
+
                 user.current_notebook = notebook
                 user.state = None
                 await user.save()
 
-                markup = json.dumps({'hide_keyboard': True})
-                await self.api.sendMessage(
-                    user.telegram_chat_id,
-                    'From now your current notebook is: %s' % notebook_name,
-                    reply_markup=markup)
+                if user.mode == 'one_note':
+                    note_guid = self.evernote.create_note(
+                        user.evernote_access_token, text='',
+                        title='Note for Evernoterobot')
+                    user.places[user.current_notebook['guid']] = note_guid
+                    await user.save()
+
+                await self.api.editMessageText(
+                    user.telegram_chat_id, reply["message_id"],
+                    'From now your current notebook is: %s' % notebook_name)
                 break
         else:
             await self.api.sendMessage(user.telegram_chat_id,
                                        'Please, select notebook')
+
+    async def set_mode(self, user, mode):
+        reply = await self.api.sendMessage(
+            user.telegram_chat_id, 'Please wait',
+            reply_markup=json.dumps({'hide_keyboard': True}))
+
+        if mode.startswith('> ') and mode.endswith(' <'):
+            mode = mode[2:-2]
+        user.mode = mode.replace(' ', '_').lower()
+        await user.save()
+        text_mode = user.mode.capitalize().replace('_', ' ')
+        if user.mode == 'one_note':
+            note_guid = self.evernote.create_note(
+                user.evernote_access_token, text='',
+                title='Note for Evernoterobot')
+            user.places[user.current_notebook['guid']] = note_guid
+            await user.save()
+            text = 'From now this bot in mode "{0}". It means that all messages you send will be saved in one (same) evernote note'.format(text_mode)
+        if user.mode == 'multiple_notes':
+            text = 'From now this bot in mode "{0}", It means that for every message you send will be created separate evernote note'.format(text_mode)
+
+        await self.api.editMessageText(
+            user.telegram_chat_id, reply["message_id"], text)
 
     async def accept_request(self, user, request_type, data):
         reply = await self.api.sendMessage(user.telegram_chat_id,
@@ -111,6 +143,8 @@ class EvernoteBot(TelegramBot):
             if text.startswith('> ') and text.endswith(' <'):
                 text = text[2:-2]
             await self.set_current_notebook(user, text)
+        if user.state == 'switch_mode':
+            await self.set_mode(user, text)
         else:
             await self.accept_request(user, 'text', message)
 
