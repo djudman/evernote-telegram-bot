@@ -12,6 +12,12 @@ from bot.model import TelegramUpdate, User
 from telegram.api import BotApi
 
 
+class EvernoteApiError(Exception):
+
+    def __init__(self, description):
+        super(EvernoteApiError, self).__init__(description)
+
+
 class EvernoteApi:
 
     def __init__(self, loop=None):
@@ -61,8 +67,8 @@ class EvernoteDealer:
     def run(self):
         try:
             while True:
-                updates = self.loop.run_until_complete(
-                    asyncio.ensure_future(self.fetch_updates()))
+                task = asyncio.ensure_future(self.fetch_updates())
+                updates = self.loop.run_until_complete(task)
                 if updates:
                     self.loop.run_until_complete(
                         asyncio.wait(self.process(updates)))
@@ -80,18 +86,21 @@ class EvernoteDealer:
                     updates_by_user[user_id] = []
                 updates_by_user[user_id].append(update)
         except Exception as e:
-            self.logger.error("{0}\n{1}\nCan't load telegram updates from mongo".format(traceback.format_exc(), e))
+            err = "%s\n%s\nCan't load telegram updates from mongo" %\
+                (traceback.format_exc(), e)
+            self.logger.error(err)
         return updates_by_user
 
     def process(self, updates_by_user):
-        futures = []
-        for user_id, update_list in updates_by_user.items():
-            futures.append(
-                asyncio.ensure_future(self.process_one(user_id, update_list)))
-        return futures
+        return [
+            asyncio.ensure_future(
+                self.process_user_updates(user_id, update_list))
+            for user_id, update_list in updates_by_user.items()
+        ]
 
-    async def process_one(self, user_id, update_list):
-        self.logger.debug('Start update list processing (user_id = {0})'.format(user_id))
+    async def process_user_updates(self, user_id, update_list):
+        self.logger.debug(
+            'Start update list processing (user_id = {0})'.format(user_id))
         try:
             user = await User.get({'user_id': user_id})
 
@@ -106,23 +115,36 @@ class EvernoteDealer:
                     user.telegram_chat_id, update.status_message_id,
                     '✅ {0} saved'.format(update.request_type.capitalize()))
                 await update.delete()
-            self.logger.debug('Finish update list processing (user_id = {0})'.format(user_id))
+
+            self.logger.debug(
+                'Finish update list processing (user_id = %s)' % user_id)
         except Exception as e:
-            self.logger.error("{0}\nCan't process updates for user {1}".format(e, user_id))
+            self.logger.error(
+                "{0}\nCan't process updates for user {1}".format(e, user_id))
 
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
         note_guid = user.places.get(notebook_guid)
         if note_guid:
-            note = await self._evernote_api.get_note(user.evernote_access_token, note_guid)
+            try:
+                note = await self._evernote_api.get_note(
+                    user.evernote_access_token, note_guid)
+            except Exception as e:
+                self.logger.error("{0}\n{1}".format(traceback.format_exc(), e))
+                note = self.create_note(user, updates[0])
+                updates = updates[1:]
+
             content = NoteContent(note)
             for update in updates:
                 await self.update_content(content, update)
             note.resources = content.get_resources()
             note.content = str(content)
-            await self._evernote_api.update_note(user.evernote_access_token, note)
+            await self._evernote_api.update_note(
+                user.evernote_access_token, note)
         else:
-            self.logger.error("There are no default note in notebook {0}".format(user.current_notebook['name']))
+            self.logger.error(
+                "There are no default note in notebook {0}".format(
+                    user.current_notebook['name']))
 
     async def create_note(self, user, update, title=None):
         notebook_guid = user.current_notebook['guid']
@@ -135,7 +157,8 @@ class EvernoteDealer:
         await self.update_content(content, update)
         note.resources = content.get_resources()
         note.content = str(content)
-        await self._evernote_api.save_note(user.evernote_access_token, note)
+        return await self._evernote_api.save_note(
+            user.evernote_access_token, note)
 
     async def update_content(self, content, telegram_update):
         request_type = telegram_update.request_type or 'text'
