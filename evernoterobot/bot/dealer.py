@@ -132,7 +132,7 @@ class EvernoteDealer:
         if notebook_guid is not None:
             note.notebookGuid = notebook_guid
         content = NoteContent(note)
-        self.update_content(content, update)
+        await self.update_content(content, update)
         note.resources = content.get_resources()
         note.content = str(content)
         await self._evernote_api.save_note(user.evernote_access_token, note)
