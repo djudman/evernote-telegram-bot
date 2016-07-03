@@ -25,6 +25,8 @@ class TelegramBot:
         self.commands[cmd_name] = handler_class
 
     async def handle_update(self, data: dict):
+        await self.on_before_handle_update(data)
+
         if 'message' in data:
             await self.handle_message(data['message'])
         elif 'inline_query' in data:
@@ -83,6 +85,9 @@ class TelegramBot:
         obj = CommandClass(self)
         result = await obj.execute(user, message)
         await self.on_command_completed(cmd_name, user, result)
+
+    async def on_before_handle_update(self, data):
+        pass
 
     async def on_command_completed(self, cmd_name, user, result):
         pass

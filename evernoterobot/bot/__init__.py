@@ -98,12 +98,13 @@ class EvernoteBot(TelegramBot):
             await self.api.sendMessage(user.telegram_chat_id,
                                        'Please, select notebook')
 
-    async def accept_request(self, user, message):
+    async def accept_request(self, user, request_type, data):
         reply = await self.api.sendMessage(user.telegram_chat_id,
                                            '🔄 Accepted')
         await TelegramUpdate.create(user_id=user.user_id,
+                                    request_type=request_type,
                                     status_message_id=reply['message_id'],
-                                    data=message)
+                                    data=data)
 
     async def on_text(self, user, message, text):
         if user.state == 'select_notebook':
@@ -111,16 +112,16 @@ class EvernoteBot(TelegramBot):
                 text = text[2:-2]
             await self.set_current_notebook(user, text)
         else:
-            await self.accept_request(user, message)
+            await self.accept_request(user, 'text', message)
 
     async def on_photo(self, user, message):
-        await self.accept_request(user, message)
+        await self.accept_request(user, 'photo', message)
 
     async def on_document(self, user, message):
-        await self.accept_request(user, message)
+        await self.accept_request(user, 'document', message)
 
     async def on_voice(self, user, message):
-        await self.accept_request(user, message)
+        await self.accept_request(user, 'voice', message)
 
     async def on_location(self, user, message):
-        await self.accept_request(user, message)
+        await self.accept_request(user, 'location', message)

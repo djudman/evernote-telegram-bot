@@ -20,8 +20,10 @@ class NoteContent:
         self._new_content = ''
 
     def _parse_content(self, xml_content):
-        m = re.search(r'<en-note>(?P<content>.*)</en-note>', xml_content)
-        return m.group('content')
+        m = re.search(r'<en-note>(?P<content>.*)</en-note>', xml_content or '')
+        if m:
+            return m.group('content')
+        return ''
 
     def add_file(self, path, mime_type):
         resource, hexdigest = self._make_resource(path, mime_type)

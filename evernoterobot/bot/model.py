@@ -47,6 +47,8 @@ class Model(metaclass=MetaModel):
 
     @classmethod
     async def create(cls, **kwargs):
+        if not kwargs.get('created'):
+            kwargs['created'] = datetime.datetime.now()
         model = cls(**kwargs)
         return await model.save()
 
@@ -60,6 +62,9 @@ class Model(metaclass=MetaModel):
         self._id = await self._db[self.collection].save(data)
         return self
 
+    async def delete(self):
+        await self._db[self.collection].remove({'_id': self._id})
+
 
 class StartSession(Model):
     collection = 'start_sessions'
@@ -67,6 +72,15 @@ class StartSession(Model):
 
 class TelegramUpdate(Model):
     collection = 'telegram_updates'
+
+    @classmethod
+    async def get_sorted(cls, num_entries=100):
+        entries = []
+        cursor = cls._db[cls.collection].find({}).sort('created').limit(num_entries)
+        while await cursor.fetch_next:
+            data = cursor.next_object()
+            entries.append(cls(**data))
+        return entries
 
 
 class User(Model):
