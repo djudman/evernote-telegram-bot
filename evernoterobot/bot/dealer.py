@@ -45,7 +45,7 @@ class EvernoteApi:
             note_store = sdk.get_note_store()
             return note_store.createNote(note)
 
-        await self.loop.run_in_executor(self.executor, save, note)
+        return await self.loop.run_in_executor(self.executor, save, note)
 
     async def update_note(self, auth_token, note):
         def update(note):
