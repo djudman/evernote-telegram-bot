@@ -126,7 +126,7 @@ class EvernoteDealer:
 
     async def create_note(self, user, update, title=None):
         notebook_guid = user.current_notebook['guid']
-        text = update['message'].get('text', '')
+        text = update.data.get('text', '')
         note = Types.Note()
         note.title = title or ('%s...' % text[:25] if len(text) > 30 else text)
         if notebook_guid is not None:
@@ -140,6 +140,6 @@ class EvernoteDealer:
     async def update_content(self, content, telegram_update):
         request_type = telegram_update.request_type or 'text'
         if request_type == 'text':
-            content.add_text(telegram_update.data['text'])
+            content.add_text(telegram_update.data.get('text', ''))
         else:
             raise Exception('Unsupported request type %s' % request_type)
