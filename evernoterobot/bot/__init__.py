@@ -91,7 +91,8 @@ class EvernoteBot(TelegramBot):
                 if user.mode == 'one_note':
                     note_guid = self.evernote.create_note(
                         user.evernote_access_token, text='',
-                        title='Note for Evernoterobot')
+                        title='Note for Evernoterobot',
+                        notebook_guid=notebook['guid'])
                     user.places[user.current_notebook['guid']] = note_guid
                     await user.save()
 
