@@ -26,9 +26,9 @@ class EvernoteDealer:
         try:
             while True:
                 task = asyncio.ensure_future(self.fetch_updates())
-                updates = self.loop.run_until_complete(task)
+                updates = self._loop.run_until_complete(task)
                 if updates:
-                    self.loop.run_until_complete(
+                    self._loop.run_until_complete(
                         asyncio.wait(self.process(updates)))
                 else:
                     time.sleep(0.5)
