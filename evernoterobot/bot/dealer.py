@@ -78,6 +78,7 @@ class EvernoteDealer:
         except Exception as e:
             self.logger.error(
                 "{0}\nCan't process updates for user {1}".format(e, user_id))
+
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
         note_guid = user.places.get(notebook_guid)
@@ -89,6 +90,8 @@ class EvernoteDealer:
                 self.logger.error(e)
                 note = await self.create_note(user, updates[0], 'Note for Evernoterobot')
                 updates = updates[1:]
+                user.places[notebook_guid] = note.guid
+                await user.save()
 
             content = NoteContent(note)
             for update in updates:
