@@ -1,5 +1,4 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import logging
 import time
 import traceback
@@ -7,58 +6,10 @@ import traceback
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import settings
-from ext.evernote.client import NoteContent, Types, ErrorTypes, EvernoteSdk
+from ext.evernote.client import NoteContent, Types
 from bot.model import TelegramUpdate, User
 from telegram.api import BotApi
-
-
-class NoteNotFound(Exception):
-
-    def __init__(self, description):
-        super(NoteNotFound, self).__init__(description)
-
-
-class EvernoteApi:
-
-    def __init__(self, loop=None):
-        self.loop = loop or asyncio.get_event_loop()
-        self.executor = ThreadPoolExecutor(max_workers=10)
-        self.sandbox = settings.DEBUG
-        self.logger = logging.getLogger('dealer')
-
-    async def get_note(self, auth_token, note_guid):
-        def fetch(note_guid):
-            self.logger.info('Fetching note {0}'.format(note_guid))
-            sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-            try:
-                note_store = sdk.get_note_store()
-                return note_store.getNote(note_guid, True, True, False, False)
-            except ErrorTypes.EDAMNotFoundException:
-                raise NoteNotFound("Note {0} not found".format(note_guid))
-
-        return await self.loop.run_in_executor(self.executor, fetch, note_guid)
-
-    async def save_note(self, auth_token, note):
-        def save(note):
-            self.logger.info('Saving note...')
-            sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-            note_store = sdk.get_note_store()
-            return note_store.createNote(note)
-
-        return await self.loop.run_in_executor(self.executor, save, note)
-
-    async def update_note(self, auth_token, note):
-        def update(note):
-            self.logger.info('Updating note {0}'.format(note.guid))
-            sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-            note_store = sdk.get_note_store()
-            try:
-                note_store.updateNote(note)
-            except ErrorTypes.EDAMNotFoundException:
-                raise NoteNotFound(
-                    "Can't update note. Note {0} not found".format(note.guid))
-
-        await self.loop.run_in_executor(self.executor, update, note)
+from ext.evernote.api import AsyncEvernoteApi, NoteNotFound
 
 
 class EvernoteDealer:
@@ -66,8 +17,8 @@ class EvernoteDealer:
     def __init__(self):
         self._db_client = AsyncIOMotorClient(settings.MONGODB_URI)
         self._db = self._db_client.get_default_database()
-        self.loop = asyncio.get_event_loop()
-        self._evernote_api = EvernoteApi(self.loop)
+        self._loop = asyncio.get_event_loop()
+        self._evernote_api = AsyncEvernoteApi(self._loop)
         self._telegram_api = BotApi(settings.TELEGRAM['token'])
         self.logger = logging.getLogger('dealer')
 
