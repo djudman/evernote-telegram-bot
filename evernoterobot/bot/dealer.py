@@ -12,10 +12,10 @@ from bot.model import TelegramUpdate, User
 from telegram.api import BotApi
 
 
-class EvernoteApiError(Exception):
+class NoteNotFound(Exception):
 
     def __init__(self, description):
-        super(EvernoteApiError, self).__init__(description)
+        super(NoteNotFound, self).__init__(description)
 
 
 class EvernoteApi:
@@ -34,7 +34,7 @@ class EvernoteApi:
                 note_store = sdk.get_note_store()
                 return note_store.getNote(note_guid, True, True, False, False)
             except ErrorTypes.EDAMNotFoundException:
-                raise EvernoteApiError("Note {0} not found".format(note_guid))
+                raise NoteNotFound("Note {0} not found".format(note_guid))
 
         return await self.loop.run_in_executor(self.executor, fetch, note_guid)
 
@@ -55,7 +55,7 @@ class EvernoteApi:
             try:
                 note_store.updateNote(note)
             except ErrorTypes.EDAMNotFoundException:
-                raise EvernoteApiError(
+                raise NoteNotFound(
                     "Can't update note. Note {0} not found".format(note.guid))
 
         await self.loop.run_in_executor(self.executor, update, note)
@@ -137,8 +137,8 @@ class EvernoteDealer:
             try:
                 note = await self._evernote_api.get_note(
                     user.evernote_access_token, note_guid)
-            except Exception as e:
-                self.logger.error("{0}\n{1}".format(traceback.format_exc(), e))
+            except NoteNotFound as e:
+                self.logger.error(e)
                 note = await self.create_note(user, updates[0], 'Note for Evernoterobot')
                 updates = updates[1:]
 
@@ -151,7 +151,8 @@ class EvernoteDealer:
                 await self._evernote_api.update_note(
                     user.evernote_access_token, note)
             except Exception:
-                self.logger.error("{0}\n{1}".format(traceback.format_exc(), e))
+                self.logger.error(e)
+                self.logger.error(traceback.format_exc())
         else:
             self.logger.error(
                 "There are no default note in notebook {0}".format(
