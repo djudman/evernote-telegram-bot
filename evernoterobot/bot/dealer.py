@@ -33,7 +33,7 @@ class EvernoteDealer:
                 else:
                     time.sleep(0.5)
         except Exception as e:
-            self.logger.fatal("{0}\n{1}".format(traceback.format_exc(), e))
+            self.logger.fatal(e)
 
     async def fetch_updates(self):
         updates_by_user = {}
@@ -44,8 +44,7 @@ class EvernoteDealer:
                     updates_by_user[user_id] = []
                 updates_by_user[user_id].append(update)
         except Exception as e:
-            err = "%s\n%s\nCan't load telegram updates from mongo" %\
-                (traceback.format_exc(), e)
+            err = "{0}\nCan't load telegram updates from mongo".format(e)
             self.logger.error(err)
         return updates_by_user
 
@@ -76,11 +75,9 @@ class EvernoteDealer:
 
             self.logger.debug(
                 'Finish update list processing (user_id = %s)' % user_id)
-        except Exception:
+        except Exception as e:
             self.logger.error(
-                "{0}\nCan't process updates for user {1}".format(
-                    traceback.format_exc(), user_id))
-
+                "{0}\nCan't process updates for user {1}".format(e, user_id))
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
         note_guid = user.places.get(notebook_guid)
@@ -103,7 +100,6 @@ class EvernoteDealer:
                     user.evernote_access_token, note)
             except Exception:
                 self.logger.error(e)
-                self.logger.error(traceback.format_exc())
         else:
             self.logger.error(
                 "There are no default note in notebook {0}".format(
