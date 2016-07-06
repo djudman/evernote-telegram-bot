@@ -1,0 +1,8 @@
+This is bot for Evernote (https://evernote.com).
+You can just send message to this bot and it creates note in your evernote notebook.
+Supported message types:
+- text
+- photo
+- file
+- voice message
+- location

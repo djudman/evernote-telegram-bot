@@ -1,0 +1,3 @@
+notebook - Switch current notebook
+switch_mode - Change bot mode
+help - About this bot
