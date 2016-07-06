@@ -8,7 +8,7 @@ import json
 import aiomcache
 
 from telegram.bot import TelegramBot, TelegramBotCommand
-from bot.model import User, ModelNotFound, TelegramUpdate
+from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask
 from ext.evernote.client import EvernoteClient
 import settings
 
@@ -153,6 +153,12 @@ class EvernoteBot(TelegramBot):
 
     async def on_photo(self, user, message):
         await self.accept_request(user, 'photo', message)
+        files = sorted(message['photo'], key=lambda x: x.get('file_size'),
+                       reverse=True)
+        await DownloadTask.create(user_id=user.user_id,
+                                  file_id=files[0]['file_id'],
+                                  file_size=files[0]['file_size'],
+                                  completed=False)
 
     async def on_document(self, user, message):
         await self.accept_request(user, 'document', message)

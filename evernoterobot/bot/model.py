@@ -46,6 +46,15 @@ class Model(metaclass=MetaModel):
         return cls(**data)
 
     @classmethod
+    async def get_sorted(cls, num_entries=100):
+        entries = []
+        cursor = cls._db[cls.collection].find({}).sort('created').limit(num_entries)
+        while await cursor.fetch_next:
+            data = cursor.next_object()
+            entries.append(cls(**data))
+        return entries
+
+    @classmethod
     async def create(cls, **kwargs):
         if not kwargs.get('created'):
             kwargs['created'] = datetime.datetime.now()
@@ -73,14 +82,14 @@ class StartSession(Model):
 class TelegramUpdate(Model):
     collection = 'telegram_updates'
 
-    @classmethod
-    async def get_sorted(cls, num_entries=100):
-        entries = []
-        cursor = cls._db[cls.collection].find({}).sort('created').limit(num_entries)
-        while await cursor.fetch_next:
-            data = cursor.next_object()
-            entries.append(cls(**data))
-        return entries
+
+class DownloadTask(Model):
+    collection = 'download_tasks'
+
+    def __init__(self, **kwargs):
+        super(Model, self).__init__(**kwargs)
+        assert self.file_id
+        assert self.completed is not None
 
 
 class User(Model):
