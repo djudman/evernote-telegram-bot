@@ -46,9 +46,9 @@ class Model(metaclass=MetaModel):
         return cls(**data)
 
     @classmethod
-    async def get_sorted(cls, num_entries=100):
+    async def get_sorted(cls, num_entries=100, *, condition=None):
         entries = []
-        cursor = cls._db[cls.collection].find({}).sort('created').limit(num_entries)
+        cursor = cls._db[cls.collection].find(condition or {}).sort('created').limit(num_entries)
         while await cursor.fetch_next:
             data = cursor.next_object()
             entries.append(cls(**data))
