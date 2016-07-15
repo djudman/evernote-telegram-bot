@@ -62,6 +62,10 @@ LOG_SETTINGS = {
     },
 
     'handlers': {
+        'stdout': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
         'accessfile': {
             'class': 'logging.FileHandler',
             'filename': join(LOGS_DIR, 'access.log')
@@ -76,6 +80,12 @@ LOG_SETTINGS = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': join(LOGS_DIR, 'dealer.log'),
+            'formatter': 'default',
+        },
+        'downloader_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join(LOGS_DIR, 'downloader.log'),
             'formatter': 'default',
         },
         'email': {
@@ -114,6 +124,11 @@ LOG_SETTINGS = {
         'dealer': {
             'level': 'DEBUG',
             'handlers': ['dealer_file', 'email'],
+            'propagate': True,
+        },
+        'downloader': {
+            'level': 'DEBUG',
+            'handlers': ['downloader_file', 'stdout'],
             'propagate': True,
         },
         '': {

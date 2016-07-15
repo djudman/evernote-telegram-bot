@@ -2,6 +2,8 @@ import asyncio
 import os
 import logging
 from concurrent.futures import ThreadPoolExecutor
+import traceback
+import functools
 
 import aiohttp
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -32,6 +34,7 @@ class TelegramDownloader:
         self._telegram_api = BotApi(settings.TELEGRAM['token'])
         self._loop = loop or asyncio.get_event_loop()
         self._executor = ThreadPoolExecutor(max_workers=10)
+        self.tasks = []
         if download_dir is None:
             download_dir = '/tmp/'
             self.logger.warn('Download directory not specified. Uses "{0}"'
@@ -42,30 +45,29 @@ class TelegramDownloader:
                                     .format(self.download_dir))
 
     def run(self):
-        asyncio.ensure_future(self.download_all(), loop=self._loop)
-        self._loop.run_forever()
+        while True:
+            self._loop.run_until_complete(asyncio.ensure_future(self.download_all(), loop=self._loop))
 
     def write_file(self, path, data):
         with open(path, 'wb') as f:
             f.write(data)
+        self.logger.debug('File {0} saved'.format(path))
 
     async def get_download_url(self, file_id):
         return await self._telegram_api.getFile(file_id)
 
     async def download_file(self, url, destination_file):
+        self.logger.debug('Start downloading {0}'.format(url))
         with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 if response.status == 200:
                     data = await response.read()
-                    asyncio.ensure_future(
-                        self._loop.run_in_executor(
-                            self._executor, self.write_file,
-                            destination_file, data),
-                        loop=self._loop
-                    )
+                    return self._loop.run_in_executor(
+                        self._executor, self.write_file,
+                        destination_file, data),
                 else:
                     response_text = await response.text()
-                    raise DownloadError(response.status, response_text)
+                    raise DownloadError(response.status, response_text, url)
 
     async def download_all(self):
         try:
@@ -73,7 +75,7 @@ class TelegramDownloader:
             for task in tasks:
                 task.in_progress = True
                 await task.save()
-                file_id = task['file_id']
+                file_id = task.file_id
                 download_url = await self.get_download_url(file_id)
                 destination_file = os.path.join(self.download_dir, file_id)
                 await self.download_file(download_url, destination_file)
@@ -83,4 +85,4 @@ class TelegramDownloader:
         except DownloadError as e:
             self.logger.error('Downloading {0} failed. HTTP status = {1}, response: {2}'.format(e.url, e.status, e.response))
         except Exception as e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
