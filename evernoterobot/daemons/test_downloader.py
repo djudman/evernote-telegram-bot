@@ -37,10 +37,10 @@ async def test_download_file():
     downloader = TelegramDownloader(download_dir)
 
     async def url(file_id):
-        asyncio.sleep(10)
         return 'http://yandex.ru/robots.txt'
 
     downloader.get_download_url = url
-    await downloader.download_all()
+    futures = await downloader.download_all()
+    await asyncio.wait(futures)
     await task.delete()
     await task2.delete()

@@ -3,7 +3,6 @@ import os
 import logging
 from concurrent.futures import ThreadPoolExecutor
 import traceback
-import functools
 
 import aiohttp
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -45,8 +44,14 @@ class TelegramDownloader:
                                     .format(self.download_dir))
 
     def run(self):
+        in_progress_tasks = []
         while True:
-            self._loop.run_until_complete(asyncio.ensure_future(self.download_all(), loop=self._loop))
+            futures = self._loop.run_until_complete(asyncio.ensure_future(self.download_all()))
+            in_progress_tasks.extend(futures)
+            for task in in_progress_tasks:
+                if task.completed:
+                    in_progress_tasks.remove(task)
+
 
     def write_file(self, path, data):
         with open(path, 'wb') as f:
@@ -69,19 +74,21 @@ class TelegramDownloader:
                     response_text = await response.text()
                     raise DownloadError(response.status, response_text, url)
 
+    async def handle_download_task(self, task):
+        task.in_progress = True
+        await task.save()
+        file_id = task.file_id
+        download_url = await self.get_download_url(file_id)
+        destination_file = os.path.join(self.download_dir, file_id)
+        await self.download_file(download_url, destination_file)
+        task.completed = True
+        task.file = destination_file
+        await task.save()
+
     async def download_all(self):
         try:
             tasks = await DownloadTask.get_sorted(100, condition={'in_progress': {'$exists': False}})
-            for task in tasks:
-                task.in_progress = True
-                await task.save()
-                file_id = task.file_id
-                download_url = await self.get_download_url(file_id)
-                destination_file = os.path.join(self.download_dir, file_id)
-                await self.download_file(download_url, destination_file)
-                task.completed = True
-                task.file = destination_file
-                await task.save()
+            return [asyncio.ensure_future(self.handle_download_task(task)) for task in tasks]
         except DownloadError as e:
             self.logger.error('Downloading {0} failed. HTTP status = {1}, response: {2}'.format(e.url, e.status, e.response))
         except Exception as e:
