@@ -5,6 +5,7 @@ import traceback
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from .daemon import Daemon
 import settings
 from ext.evernote.client import NoteContent, Types
 from bot.model import TelegramUpdate, User
@@ -12,9 +13,10 @@ from telegram.api import BotApi
 from ext.evernote.api import AsyncEvernoteApi, NoteNotFound
 
 
-class EvernoteDealer:
+class EvernoteDealer(Daemon):
 
-    def __init__(self):
+    def __init__(self, pidfile):
+        super().__init__(pidfile)
         self._db_client = AsyncIOMotorClient(settings.MONGODB_URI)
         self._db = self._db_client.get_default_database()
         self._loop = asyncio.get_event_loop()
