@@ -18,8 +18,7 @@ class EvernoteDealer:
     def __init__(self, loop=None):
         self._db_client = AsyncIOMotorClient(settings.MONGODB_URI)
         self._db = self._db_client.get_default_database()
-        self._loop = loop or asyncio.new_event_loop()
-        asyncio.set_event_loop(self._loop)
+        self._loop = loop or asyncio.get_event_loop()
         self._evernote_api = AsyncEvernoteApi(self._loop)
         self._telegram_api = BotApi(settings.TELEGRAM['token'])
         self.logger = logging.getLogger('dealer')
@@ -53,8 +52,7 @@ class EvernoteDealer:
     def process(self, updates_by_user):
         return [
             asyncio.ensure_future(
-                self.process_user_updates(user_id, update_list),
-                loop=self._loop
+                self.process_user_updates(user_id, update_list)
             )
             for user_id, update_list in updates_by_user.items()
         ]
