@@ -48,10 +48,7 @@ class TelegramDownloader:
         while True:
             futures = self._loop.run_until_complete(asyncio.ensure_future(self.download_all()))
             in_progress_tasks.extend(futures)
-            for task in in_progress_tasks:
-                if task.completed:
-                    in_progress_tasks.remove(task)
-
+            in_progress_tasks = filter(lambda t: not t.completed, in_progress_tasks)
 
     def write_file(self, path, data):
         with open(path, 'wb') as f:

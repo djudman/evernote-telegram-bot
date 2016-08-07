@@ -5,6 +5,7 @@ import traceback
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from .daemon import Daemon
 import settings
 from ext.evernote.client import NoteContent, Types
 from bot.model import TelegramUpdate, User
@@ -14,10 +15,10 @@ from ext.evernote.api import AsyncEvernoteApi, NoteNotFound
 
 class EvernoteDealer:
 
-    def __init__(self):
+    def __init__(self, loop=None):
         self._db_client = AsyncIOMotorClient(settings.MONGODB_URI)
         self._db = self._db_client.get_default_database()
-        self._loop = asyncio.get_event_loop()
+        self._loop = loop or asyncio.new_event_loop()
         self._evernote_api = AsyncEvernoteApi(self._loop)
         self._telegram_api = BotApi(settings.TELEGRAM['token'])
         self.logger = logging.getLogger('dealer')
@@ -25,17 +26,17 @@ class EvernoteDealer:
     def run(self):
         try:
             while True:
-                task = asyncio.ensure_future(self.fetch_updates())
-                updates = self._loop.run_until_complete(task)
+                updates = self._loop.run_until_complete(self.fetch_updates())
                 if updates:
-                    self._loop.run_until_complete(
-                        asyncio.wait(self.process(updates)))
+                    self.process(updates)
                 else:
                     time.sleep(0.5)
         except Exception as e:
             self.logger.fatal(e)
+            self.logger.fatal(traceback.format_exc())
 
     async def fetch_updates(self):
+        self.logger.debug('Fetching telegram updates...')
         updates_by_user = {}
         try:
             for update in await TelegramUpdate.get_sorted(100):
@@ -101,7 +102,7 @@ class EvernoteDealer:
             try:
                 await self._evernote_api.update_note(
                     user.evernote_access_token, note)
-            except Exception:
+            except Exception as e:
                 self.logger.error(e)
         else:
             self.logger.error(
@@ -128,3 +129,10 @@ class EvernoteDealer:
             content.add_text(telegram_update.data.get('text', ''))
         else:
             raise Exception('Unsupported request type %s' % request_type)
+
+
+class EvernoteDealerDaemon(Daemon):
+
+    def run(self):
+        dealer = EvernoteDealer()
+        dealer.run()

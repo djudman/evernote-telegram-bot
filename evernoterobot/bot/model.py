@@ -8,6 +8,7 @@ from settings import MONGODB_URI
 class ModelNotFound(Exception):
 
     def __init__(self, condition=None):
+        message = ''
         if condition:
             message = "Condition: %s" % str(condition)
         super(ModelNotFound, self).__init__(message)

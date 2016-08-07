@@ -3,10 +3,15 @@ from os.path import dirname, realpath
 import contextlib
 import asyncio
 import gc
+import logging.config
 
 import pytest
 
 sys.path.insert(0, realpath(dirname(__file__)))
+
+import settings
+
+logging.config.dictConfig(settings.LOG_SETTINGS)
 
 
 def setup_test_loop():
