@@ -63,8 +63,10 @@ class EvernoteDealer:
         try:
             user = await User.get({'user_id': user_id})
             if user.mode == 'one_note':
+                self.logger.debug('one_note mode. Try update note')
                 await self.update_note(user, update_list)
             else:
+                self.logger.debug('one_note mode. Try update note')
                 for update in update_list:
                     try:
                         await self.create_note(user, update)
@@ -72,6 +74,7 @@ class EvernoteDealer:
                     except Exception as e:
                         self.logger.error(e)
 
+            self.logger.debug('Cleaning up...')
             for update in filter(lambda u: hasattr(u, '__processed') and u.__processed, update_list):
                 await self._telegram_api.editMessageText(
                     user.telegram_chat_id, update.status_message_id,
@@ -80,7 +83,7 @@ class EvernoteDealer:
             self.logger.debug('Finish update list processing (user_id = %s)' % user_id)
         except Exception as e:
             self.logger.error(
-                "{0}\nCan't process updates for user {1}".format(e, user_id))
+                "{0}\nCan't process updates for user {1}".format(e, user_id), exc_info=1)
 
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
@@ -90,7 +93,7 @@ class EvernoteDealer:
                 note = await self._evernote_api.get_note(
                     user.evernote_access_token, note_guid)
             except NoteNotFound as e:
-                self.logger.error(e)
+                self.logger.error(e, exc_info=1)
                 note = await self.create_note(user, updates[0], 'Note for Evernoterobot')
                 updates = updates[1:]
                 user.places[notebook_guid] = note.guid
@@ -102,7 +105,7 @@ class EvernoteDealer:
                     await self.update_content(content, update)
                     update.__processed = True
                 except Exception as e:
-                    self.logger.error(e)
+                    self.logger.error(e, exc_info=1)
             note.resources = content.get_resources()
             note.content = str(content)
 
