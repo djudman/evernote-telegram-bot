@@ -53,7 +53,9 @@ class EvernoteDealer:
     def process(self, updates_by_user):
         return [
             asyncio.ensure_future(
-                self.process_user_updates(user_id, update_list))
+                self.process_user_updates(user_id, update_list),
+                loop=self._loop
+            )
             for user_id, update_list in updates_by_user.items()
         ]
 
