@@ -70,12 +70,12 @@ class EvernoteDealer:
                 for update in update_list:
                     try:
                         await self.create_note(user, update)
-                        update.__processed = True
+                        update._processed = True
                     except Exception as e:
                         self.logger.error(e)
 
             self.logger.debug('Cleaning up...')
-            for update in filter(lambda u: hasattr(u, '__processed') and u.__processed, update_list):
+            for update in filter(lambda u: hasattr(u, '_processed') and u._processed, update_list):
                 await self._telegram_api.editMessageText(
                     user.telegram_chat_id, update.status_message_id,
                     '✅ {0} saved'.format(update.request_type.capitalize()))
@@ -83,7 +83,7 @@ class EvernoteDealer:
             self.logger.debug('Finish update list processing (user_id = %s)' % user_id)
         except Exception as e:
             self.logger.error(
-                "{0}\nCan't process updates for user {1}".format(e, user_id), exc_info=1)
+                "{0}\nCan't process updates for user {1}".format(e, user_id))
 
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
@@ -103,7 +103,7 @@ class EvernoteDealer:
             for update in updates:
                 try:
                     await self.update_content(content, update)
-                    update.__processed = True
+                    update._processed = True
                 except Exception as e:
                     self.logger.error(e, exc_info=1)
             note.resources = content.get_resources()

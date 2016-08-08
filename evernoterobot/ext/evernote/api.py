@@ -31,8 +31,10 @@ class AsyncEvernoteApi:
                 note_store = sdk.get_note_store()
                 return note_store.getNote(note_guid, True, True, False, False)
             except ErrorTypes.EDAMNotFoundException:
+                self.logger.error("Note {0} not found".format(note_guid))
                 raise NoteNotFound("Note {0} not found".format(note_guid))
             except Exception as e:
+                self.logger.error('API error')
                 raise EvernoteApiError(str(e))
 
         return await self.loop.run_in_executor(self.executor, fetch, note_guid)
