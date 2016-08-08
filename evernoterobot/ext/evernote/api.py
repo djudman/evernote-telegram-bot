@@ -15,6 +15,9 @@ class NoteNotFound(EvernoteApiError):
     pass
 
 
+class RateLimitReached(EvernoteApiError):
+    pass
+
 class AsyncEvernoteApi:
 
     def __init__(self, loop=None):
@@ -31,8 +34,14 @@ class AsyncEvernoteApi:
                 note_store = sdk.get_note_store()
                 return note_store.getNote(note_guid, True, True, False, False)
             except ErrorTypes.EDAMNotFoundException:
-                self.logger.error("Note {0} not found".format(note_guid))
+                self.logger.error("Note {0} not found".format(note_guid), exc_info=1)
                 raise NoteNotFound("Note {0} not found".format(note_guid))
+            except ErrorTypes.EDAMSystemException as e:
+                if e.errorCode == 19 and hasattr(e, 'rateLimitDuration'):
+                    self.logger.error('rateLimitDuration == {0}'.format(e.rateLimitDuration))
+                    raise RateLimitReached('rateLimitDuration == {0}'.format(e.rateLimitDuration))
+                else:
+                    raise EvernoteApiError(str(e))
             except Exception as e:
                 self.logger.error('API error')
                 raise EvernoteApiError(str(e))
