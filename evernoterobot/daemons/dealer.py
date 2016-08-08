@@ -58,6 +58,9 @@ class EvernoteDealer:
         ]
 
     async def process_user_updates(self, user_id, update_list):
+        if not update_list:
+            self.logger.info('no updates for user {0}'.format(user_id))
+            return
         self.logger.debug(
             'Start update list processing (user_id = {0})'.format(user_id))
         try:
@@ -65,8 +68,9 @@ class EvernoteDealer:
             if user.mode == 'one_note':
                 self.logger.debug('one_note mode. Try update note')
                 await self.update_note(user, update_list)
+                self.logger.debug('Note updated.')
             else:
-                self.logger.debug('one_note mode. Try update note')
+                self.logger.debug('multiple_note mode. Try create note')
                 for update in update_list:
                     try:
                         await self.create_note(user, update)
@@ -90,25 +94,29 @@ class EvernoteDealer:
         note_guid = user.places.get(notebook_guid)
         if note_guid:
             try:
+                self.logger.debug('Getting note from evernote')
                 note = await self._evernote_api.get_note(
                     user.evernote_access_token, note_guid)
             except NoteNotFound as e:
-                self.logger.error(e, exc_info=1)
+                self.logger.error("{0}\nNote not found. Creating new note".format(e), exc_info=1)
                 note = await self.create_note(user, updates[0], 'Note for Evernoterobot')
                 updates = updates[1:]
                 user.places[notebook_guid] = note.guid
                 await user.save()
+                self.logger.info('New note created')
 
             content = NoteContent(note)
             for update in updates:
                 try:
+                    self.logger.info('Trying update content')
                     await self.update_content(content, update)
                     update._processed = True
+                    self.logger.info('Telegram update processed.')
                 except Exception as e:
                     self.logger.error(e, exc_info=1)
             note.resources = content.get_resources()
             note.content = str(content)
-
+            self.logger.info('Updating note...')
             await self._evernote_api.update_note(user.evernote_access_token, note)
         else:
             self.logger.error(
