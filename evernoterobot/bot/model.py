@@ -35,6 +35,11 @@ class Model(metaclass=MetaModel):
             setattr(self, arg_name, arg_value)
 
     @classmethod
+    def __reconnect(cls):
+        cls._db_client = AsyncIOMotorClient(MONGODB_URI)
+        cls._db = cls._db_client.get_default_database()
+
+    @classmethod
     async def find_one(cls, condition) -> dict:
         entry = await cls._db[cls.collection].find_one(condition)
         if not entry:
