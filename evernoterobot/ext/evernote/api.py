@@ -7,7 +7,7 @@ from ext.evernote.client import NoteContent, Types, ErrorTypes, EvernoteSdk
 
 
 class EvernoteApiError(Exception):
-    def __init__(self, description):
+    def __init__(self, description=''):
         super(EvernoteApiError, self).__init__(description)
 
 
@@ -18,6 +18,7 @@ class NoteNotFound(EvernoteApiError):
 class RateLimitReached(EvernoteApiError):
     pass
 
+
 class AsyncEvernoteApi:
 
     def __init__(self, loop=None):
@@ -26,39 +27,41 @@ class AsyncEvernoteApi:
         self.sandbox = settings.DEBUG
         self.logger = logging.getLogger('evernote_api')
 
+    def __call_store_method(self, method_name, auth_token, *args, **kwargs):
+        try:
+            self.logger.debug("Start call '{0}' with args: {1}, kwargs: {2}".format(method_name, args, kwargs))
+            sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+            note_store = sdk.get_note_store()
+            method = getattr(note_store, method_name)
+            result = method(*args, **kwargs)
+            self.logger.debug("Finish call '{0}'".format(method_name))
+            return result
+        except ErrorTypes.EDAMNotFoundException:
+            raise NoteNotFound()
+        except ErrorTypes.EDAMSystemException as e:
+            if e.errorCode == 19 and hasattr(e, 'rateLimitDuration'):
+                self.logger.error('rateLimitDuration == {0}'.format(e.rateLimitDuration))
+                raise RateLimitReached('rateLimitDuration == {0}'.format(e.rateLimitDuration))
+            else:
+                raise EvernoteApiError(str(e))
+        except Exception as e:
+            raise EvernoteApiError(str(e))
+
     async def get_note(self, auth_token, note_guid):
         def fetch(note_guid):
-            self.logger.debug('Fetching note {0}'.format(note_guid))
-            try:
-                sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-                note_store = sdk.get_note_store()
-                return note_store.getNote(note_guid, True, True, False, False)
-            except ErrorTypes.EDAMNotFoundException:
-                self.logger.error("Note {0} not found".format(note_guid), exc_info=1)
-                raise NoteNotFound("Note {0} not found".format(note_guid))
-            except ErrorTypes.EDAMSystemException as e:
-                if e.errorCode == 19 and hasattr(e, 'rateLimitDuration'):
-                    self.logger.error('rateLimitDuration == {0}'.format(e.rateLimitDuration))
-                    raise RateLimitReached('rateLimitDuration == {0}'.format(e.rateLimitDuration))
-                else:
-                    raise EvernoteApiError(str(e))
-            except Exception as e:
-                self.logger.error('API error')
-                raise EvernoteApiError(str(e))
+            return self.__call_store_method('getNote', auth_token, note_guid, True, True, False, False)
 
-        return await self.loop.run_in_executor(self.executor, fetch, note_guid)
+        result = await self.loop.run_in_executor(self.executor, fetch, note_guid)
+        self.logger.debug('Note fetched.')
+        return result
 
     async def save_note(self, auth_token, note):
         def save(note):
-            self.logger.debug('Saving note...')
-            try:
-                sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-                note_store = sdk.get_note_store()
-                return note_store.createNote(note)
-            except Exception as e:
-                raise EvernoteApiError(str(e))
+            return self.__call_store_method('createNote', auth_token, note)
 
-        return await self.loop.run_in_executor(self.executor, save, note)
+        result = await self.loop.run_in_executor(self.executor, save, note)
+        self.logger.debug('Note saved.')
+        return result
 
     async def new_note(self, auth_token, notebook_guid, text,
                        title=None, files=None):
@@ -73,26 +76,15 @@ class AsyncEvernoteApi:
                     content.add_file(path, mime_type)
             note.resources = content.get_resources()
             note.content = str(content)
-            try:
-                sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-                note_store = sdk.get_note_store()
-                return note_store.createNote(note)
-            except Exception as e:
-                raise EvernoteApiError(str(e))
+            return self.__call_store_method('createNote', auth_token, note)
 
-        return await self.loop.run_in_executor(self.executor, create)
+        result = await self.loop.run_in_executor(self.executor, create)
+        self.logger.debug('Note created.')
+        return result
 
     async def update_note(self, auth_token, note):
         def update(note):
-            self.logger.debug('Updating note {0}'.format(note.guid))
-            try:
-                sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-                note_store = sdk.get_note_store()
-                note_store.updateNote(note)
-            except ErrorTypes.EDAMNotFoundException:
-                raise NoteNotFound(
-                    "Can't update note. Note {0} not found".format(note.guid))
-            except Exception as e:
-                raise EvernoteApiError(str(e))
+            self.__call_store_method('updateNote', auth_token, note)
 
         await self.loop.run_in_executor(self.executor, update, note)
+        self.logger.debug('Note updated.')

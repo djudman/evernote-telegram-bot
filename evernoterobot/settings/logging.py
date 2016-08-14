@@ -76,6 +76,12 @@ LOG_SETTINGS = {
             'filename': join(LOGS_DIR, '%s.log' % PROJECT_NAME),
             'formatter': 'default',
         },
+        'evernote_api_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join(LOGS_DIR, 'evernote.log'),
+            'formatter': 'default',
+        },
         'dealer_file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
@@ -119,6 +125,11 @@ LOG_SETTINGS = {
         'gunicorn.error': {
             'level': 'INFO',
             'handlers': ['file', 'email'],
+            'propagate': False,
+        },
+        'evernote_api': {
+            'level': 'DEBUG',
+            'handlers': ['file', 'evernote_api_file', 'stdout', 'email'],
             'propagate': False,
         },
         'dealer': {
