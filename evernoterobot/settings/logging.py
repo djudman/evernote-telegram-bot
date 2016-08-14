@@ -134,7 +134,7 @@ LOG_SETTINGS = {
         },
         'dealer': {
             'level': 'DEBUG',
-            'handlers': ['dealer_file', 'stdout', 'email'],
+            'handlers': ['file', 'dealer_file', 'stdout', 'email'],
             'propagate': False,
         },
         'downloader': {
