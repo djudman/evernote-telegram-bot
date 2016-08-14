@@ -84,10 +84,11 @@ class AsyncEvernoteApi:
 
     async def update_note(self, auth_token, note):
         def update(note):
-            self.__call_store_method('updateNote', auth_token, note)
+            return self.__call_store_method('updateNote', auth_token, note)
 
-        await self.loop.run_in_executor(self.executor, update, note)
+        result = await self.loop.run_in_executor(self.executor, update, note)
         self.logger.debug('Note updated.')
+        return result
 
     async def get_default_notebook(self, auth_token):
         def get_nb():
