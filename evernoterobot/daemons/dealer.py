@@ -39,12 +39,10 @@ class EvernoteDealer:
         self.logger.debug('Fetching telegram updates...')
         updates_by_user = {}
         try:
-            updates = await TelegramUpdate.get_sorted(100, condition={'in_process': {'$exists': False}})
+            updates = await TelegramUpdate.find_and_modify(100, condition={'in_process': {'$exists': False}}, update={'in_process': True})
             self.logger.debug('Fetched {0} updates'.format(len(updates)))
             # TODO: собрать _id выбранных записей и одним запросом проставить все in_process = True
             for update in updates:
-                update.in_process = True
-                await update.save()
                 user_id = update.user_id
                 if not updates_by_user.get(user_id):
                     updates_by_user[user_id] = []

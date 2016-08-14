@@ -61,6 +61,15 @@ class Model(metaclass=MetaModel):
         return entries
 
     @classmethod
+    async def find_and_modify(cls, num_entries=100, *, condition=None, update=None):
+        entries = []
+        cursor = cls._db[cls.collection].find_and_modify(condition or {}, { '$set': update or {} }).sort('created').limit(num_entries)
+        while await cursor.fetch_next:
+            data = cursor.next_object()
+            entries.append(cls(**data))
+        return entries
+
+    @classmethod
     async def create(cls, **kwargs):
         if not kwargs.get('created'):
             kwargs['created'] = datetime.datetime.now()
