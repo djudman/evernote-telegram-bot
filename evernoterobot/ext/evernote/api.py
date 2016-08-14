@@ -37,15 +37,15 @@ class AsyncEvernoteApi:
             self.logger.debug("Finish call '{0}'".format(method_name))
             return result
         except ErrorTypes.EDAMNotFoundException:
-            raise NoteNotFound()
+            raise NoteNotFound() from None
         except ErrorTypes.EDAMSystemException as e:
             if e.errorCode == 19 and hasattr(e, 'rateLimitDuration'):
                 self.logger.error('rateLimitDuration == {0}'.format(e.rateLimitDuration))
-                raise RateLimitReached('rateLimitDuration == {0}'.format(e.rateLimitDuration))
+                raise RateLimitReached('rateLimitDuration == {0}'.format(e.rateLimitDuration)) from None
             else:
-                raise EvernoteApiError(str(e))
-        except Exception as e:
-            raise EvernoteApiError(str(e))
+                raise EvernoteApiError("{0}: {1}".format(getattr(e, 'errorCode', ''), getattr(e, 'message', ''))) from None
+        except Exception:
+            raise EvernoteApiError() from None
 
     async def get_note(self, auth_token, note_guid):
         def fetch(note_guid):
@@ -88,3 +88,9 @@ class AsyncEvernoteApi:
 
         await self.loop.run_in_executor(self.executor, update, note)
         self.logger.debug('Note updated.')
+
+    async def get_default_notebook(self, auth_token):
+        def get_nb():
+            return self.__call_store_method('getDefaultNotebook', auth_token)
+
+        return await self.loop.run_in_executor(self.executor, get_nb)
