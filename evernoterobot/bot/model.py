@@ -49,7 +49,7 @@ class Model(metaclass=MetaModel):
     @classmethod
     def get_sorted(cls, num_entries=100, *, condition=None):
         cursor = cls._db[cls.collection].find(condition or {}).sort('created').limit(num_entries)
-        return [entry for entry in cursor]
+        return [cls(**entry) for entry in cursor]
 
     @classmethod
     def find_and_modify(cls, query=None, update=None):
