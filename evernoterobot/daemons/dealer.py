@@ -3,8 +3,6 @@ import logging
 import time
 import traceback
 
-from motor.motor_asyncio import AsyncIOMotorClient
-
 from .daemon import Daemon
 import settings
 from ext.evernote.client import NoteContent, Types
@@ -16,8 +14,6 @@ from ext.evernote.api import AsyncEvernoteApi, NoteNotFound
 class EvernoteDealer:
 
     def __init__(self, loop=None):
-        self._db_client = AsyncIOMotorClient(settings.MONGODB_URI)
-        self._db = self._db_client.get_default_database()
         self._loop = loop or asyncio.get_event_loop()
         self._evernote_api = AsyncEvernoteApi(self._loop)
         self._telegram_api = BotApi(settings.TELEGRAM['token'])
@@ -40,8 +36,8 @@ class EvernoteDealer:
         updates_by_user = {}
         try:
             fetched_updates = []
-            for entry in await TelegramUpdate.get_sorted(condition={'in_process': {'$exists': False}}):
-                update = await TelegramUpdate.find_and_modify(
+            for entry in TelegramUpdate.get_sorted(condition={'in_process': {'$exists': False}}):
+                update = TelegramUpdate.find_and_modify(
                     query={'_id': entry._id, 'in_process': {'$exists': False}},
                     update={'$set': {'in_process': True}})
                 fetched_updates.append(TelegramUpdate(**update))
@@ -71,7 +67,7 @@ class EvernoteDealer:
             return
         self.logger.debug('Start update list processing (user_id = {0})'.format(user_id))
         try:
-            user = await User.get({'user_id': user_id})
+            user = User.get({'user_id': user_id})
             if user.mode == 'one_note':
                 self.logger.debug('one_note mode. Try update note')
                 await self.update_note(user, update_list)
@@ -90,7 +86,7 @@ class EvernoteDealer:
                 await self._telegram_api.editMessageText(
                     user.telegram_chat_id, update.status_message_id,
                     '✅ {0} saved'.format(update.request_type.capitalize()))
-                await update.delete()
+                update.delete()
             self.logger.debug('Finish update list processing (user_id = %s)' % user_id)
         except Exception as e:
             self.logger.error(
@@ -109,7 +105,7 @@ class EvernoteDealer:
                 note = await self.create_note(user, updates[0], 'Note for Evernoterobot')
                 updates = updates[1:]
                 user.places[notebook_guid] = note.guid
-                await user.save()
+                user.save()
                 self.logger.info('New note created')
 
             content = NoteContent(note)

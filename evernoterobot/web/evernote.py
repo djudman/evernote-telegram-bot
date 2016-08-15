@@ -14,8 +14,8 @@ async def oauth_callback(request):
         params = parse_qs(request.query_string)
         callback_key = params.get('key', [''])[0]
 
-        session = await StartSession.get({'oauth_data.callback_key': callback_key})
-        user = await User.get({'user_id': session.user_id})
+        session = StartSession.get({'oauth_data.callback_key': callback_key})
+        user = User.get({'user_id': session.user_id})
 
         if params.get('oauth_verifier'):
             oauth_verifier = params['oauth_verifier'][0]
@@ -34,7 +34,7 @@ async def oauth_callback(request):
                 'guid': notebook.guid,
                 'name': notebook.name,
             }
-            await user.save()
+            user.save()
 
             if user.mode == 'one_note' and not hasattr(user, 'places'):
                 note_guid = bot.evernote.create_note(
@@ -42,7 +42,7 @@ async def oauth_callback(request):
                 user.places = {
                     user.current_notebook['guid']: note_guid
                 }
-                await user.save()
+                user.save()
 
             text = "Evernote account is connected.\n\
 Now you can just send message and note be created.\n\

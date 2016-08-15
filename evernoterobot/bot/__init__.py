@@ -72,10 +72,10 @@ class EvernoteBot(TelegramBot):
 
     async def get_user(self, message):
         try:
-            user = await User.get({'user_id': message['from']['id']})
+            user = User.get({'user_id': message['from']['id']})
             if user.telegram_chat_id != message['chat']['id']:
                 user.telegram_chat_id = message['chat']['id']
-                await user.save()
+                user.save()
             return user
         except ModelNotFound:
             self.logger.warn("User %s not found" % message['from']['id'])
@@ -86,7 +86,7 @@ class EvernoteBot(TelegramBot):
             if notebook['name'] == notebook_name:
                 user.current_notebook = notebook
                 user.state = None
-                await user.save()
+                user.save()
 
                 if user.mode == 'one_note':
                     note_guid = self.evernote.create_note(
@@ -94,7 +94,7 @@ class EvernoteBot(TelegramBot):
                         title='Note for Evernoterobot',
                         notebook_guid=notebook['guid'])
                     user.places[user.current_notebook['guid']] = note_guid
-                    await user.save()
+                    user.save()
 
                 await self.api.sendMessage(
                     user.telegram_chat_id,
@@ -118,7 +118,7 @@ class EvernoteBot(TelegramBot):
 
         user.mode = mode
         user.state = None
-        await user.save()
+        user.save()
 
         if user.mode == 'one_note':
             reply = await self.api.sendMessage(
@@ -127,7 +127,7 @@ class EvernoteBot(TelegramBot):
                 user.evernote_access_token, text='',
                 title='Note for Evernoterobot')
             user.places[user.current_notebook['guid']] = note_guid
-            await user.save()
+            user.save()
 
             text = 'Bot switched to mode "{0}". New note was created'.format(text_mode)
             await self.api.editMessageText(
@@ -136,10 +136,10 @@ class EvernoteBot(TelegramBot):
     async def accept_request(self, user, request_type, data):
         reply = await self.api.sendMessage(user.telegram_chat_id,
                                            '🔄 Accepted')
-        await TelegramUpdate.create(user_id=user.user_id,
-                                    request_type=request_type,
-                                    status_message_id=reply['message_id'],
-                                    data=data)
+        TelegramUpdate.create(user_id=user.user_id,
+                             request_type=request_type,
+                             status_message_id=reply['message_id'],
+                             data=data)
 
     async def on_text(self, user, message, text):
         if user.state == 'select_notebook':
@@ -155,10 +155,10 @@ class EvernoteBot(TelegramBot):
         await self.accept_request(user, 'photo', message)
         files = sorted(message['photo'], key=lambda x: x.get('file_size'),
                        reverse=True)
-        await DownloadTask.create(user_id=user.user_id,
-                                  file_id=files[0]['file_id'],
-                                  file_size=files[0]['file_size'],
-                                  completed=False)
+        DownloadTask.create(user_id=user.user_id,
+                            file_id=files[0]['file_id'],
+                            file_size=files[0]['file_size'],
+                            completed=False)
 
     async def on_document(self, user, message):
         await self.accept_request(user, 'document', message)

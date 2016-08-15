@@ -1,6 +1,6 @@
 import datetime
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
 
 from settings import MONGODB_URI
 
@@ -19,7 +19,7 @@ class MetaModel(type):
     def __call__(cls, *args, **kwargs):
         instance = super(MetaModel, cls).__call__(*args, **kwargs)
         if not hasattr(cls, '_db_client'):
-            cls._db_client = AsyncIOMotorClient(MONGODB_URI)
+            cls._db_client = MongoClient(MONGODB_URI)
             cls._db = cls._db_client.get_default_database()
         # if not hasattr(cls, '_cache'):
         #     cls._cache = Cache(host=MEMCACHED['host'], port=MEMCACHED['port'])
@@ -35,58 +35,53 @@ class Model(metaclass=MetaModel):
             setattr(self, arg_name, arg_value)
 
     @classmethod
-    def __reconnect(cls):
-        cls._db_client = AsyncIOMotorClient(MONGODB_URI)
-        cls._db = cls._db_client.get_default_database()
-
-    @classmethod
-    async def find_one(cls, query) -> dict:
-        entry = await cls._db[cls.collection].find_one(query)
+    def find_one(cls, query) -> dict:
+        entry = cls._db[cls.collection].find_one(query)
         if not entry:
             raise ModelNotFound(query)
         return entry
 
     @classmethod
-    async def get(cls, condition: dict) -> object:
-        data = await cls.find_one(condition)
+    def get(cls, query: dict):
+        data = cls.find_one(query)
         return cls(**data)
 
     @classmethod
-    async def get_sorted(cls, num_entries=100, *, condition=None):
+    def get_sorted(cls, num_entries=100, *, condition=None):
         entries = []
         cursor = cls._db[cls.collection].find(condition or {}).sort('created').limit(num_entries)
-        while await cursor.fetch_next:
+        while cursor.fetch_next:
             data = cursor.next_object()
             entries.append(cls(**data))
         return entries
 
     @classmethod
-    async def find_and_modify(cls, query=None, update=None):
-        return await cls._db[cls.collection].find_and_modify(
+    def find_and_modify(cls, query=None, update=None):
+        return cls._db[cls.collection].find_and_modify(
             query=query or {},
             update=update or {},
             sort={ 'created': 1 },
         )
 
     @classmethod
-    async def create(cls, **kwargs):
+    def create(cls, **kwargs):
         if not kwargs.get('created'):
             kwargs['created'] = datetime.datetime.now()
         model = cls(**kwargs)
-        return await model.save()
+        return model.save()
 
-    async def save(self) -> object:
+    def save(self) -> object:
         assert self.collection,\
                "You must set 'collection' class attribute in your subclass"
         data = {}
         for name, v in self.__dict__.items():
             if not name.startswith('_') or name == '_id':
                 data[name] = getattr(self, name)
-        self._id = await self._db[self.collection].save(data)
+        self._id = self._db[self.collection].save(data)
         return self
 
-    async def delete(self):
-        await self._db[self.collection].remove({'_id': self._id})
+    def delete(self):
+        self._db[self.collection].remove({'_id': self._id})
 
 
 class StartSession(Model):
