@@ -54,7 +54,7 @@ class EvernoteDealer:
                 updates_by_user[user_id].append(update)
         except Exception as e:
             err = "{0}\nCan't load telegram updates from mongo".format(e)
-            self.logger.error(err)
+            self.logger.error(err, exc_info=1)
         return updates_by_user
 
     def process(self, updates_by_user):
