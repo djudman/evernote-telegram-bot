@@ -64,7 +64,7 @@ class Model(metaclass=MetaModel):
     async def find_and_modify(cls, query=None, update=None):
         return await cls._db[cls.collection].find_and_modify(
             query=query or {},
-            update={ '$set': update or {} },
+            update=update or {},
             sort={ 'created': 1 },
         )
 
