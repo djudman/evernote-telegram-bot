@@ -40,10 +40,10 @@ class Model(metaclass=MetaModel):
         cls._db = cls._db_client.get_default_database()
 
     @classmethod
-    async def find_one(cls, condition) -> dict:
-        entry = await cls._db[cls.collection].find_one(condition)
+    async def find_one(cls, query) -> dict:
+        entry = await cls._db[cls.collection].find_one(query)
         if not entry:
-            raise ModelNotFound(condition)
+            raise ModelNotFound(query)
         return entry
 
     @classmethod
@@ -61,13 +61,12 @@ class Model(metaclass=MetaModel):
         return entries
 
     @classmethod
-    async def find_and_modify(cls, num_entries=100, *, condition=None, update=None):
-        entries = []
-        cursor = cls._db[cls.collection].find_and_modify(condition or {}, { '$set': update or {} }).sort('created').limit(num_entries)
-        while await cursor.fetch_next:
-            data = cursor.next_object()
-            entries.append(cls(**data))
-        return entries
+    async def find_and_modify(cls, query=None, update=None):
+        return await cls._db[cls.collection].find_and_modify({
+            'query': query or {},
+            'update': { '$set': update or {} },
+            'sort': { 'created': 1 },
+        })
 
     @classmethod
     async def create(cls, **kwargs):
