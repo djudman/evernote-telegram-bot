@@ -1,7 +1,7 @@
 import logging
 from abc import abstractmethod
 
-from telegram.api import BotApi
+from ext.telegram.api import BotApi
 
 
 class TelegramBotError(Exception):

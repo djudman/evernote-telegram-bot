@@ -1,6 +1,6 @@
 import json
 
-from telegram.bot import TelegramBotCommand
+from ext.telegram.bot import TelegramBotCommand
 
 
 class SwitchModeCommand(TelegramBotCommand):

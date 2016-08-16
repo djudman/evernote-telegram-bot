@@ -1,6 +1,6 @@
-from telegram.bot import TelegramBotCommand
-
 import json
+
+from ext.telegram.bot import TelegramBotCommand
 
 
 class NotebookCommand(TelegramBotCommand):

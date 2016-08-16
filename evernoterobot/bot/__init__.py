@@ -1,16 +1,16 @@
-import inspect
 import importlib
+import inspect
+import json
 import os
 import sys
-from os.path import realpath, dirname, join
-import json
+from os.path import realpath, dirname, join, basename
 
 import aiomcache
 
-from telegram.bot import TelegramBot, TelegramBotCommand
+import settings
 from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask
 from ext.evernote.client import EvernoteClient
-import settings
+from ext.telegram.bot import TelegramBot, TelegramBotCommand
 
 
 def get_commands(cmd_dir=None):
@@ -19,20 +19,23 @@ def get_commands(cmd_dir=None):
         cmd_dir = join(realpath(dirname(__file__)), 'commands')
     exclude_modules = ['__init__']
     for dirpath, dirnames, filenames in os.walk(cmd_dir):
+        if basename(dirpath) == 'tests':
+            continue
         for filename in filenames:
             file_path = join(dirpath, filename)
             ext = file_path.split('.')[-1]
-            if ext in ['py']:
-                sys_path = list(sys.path)
-                sys.path.insert(0, cmd_dir)
-                module_name = inspect.getmodulename(file_path)
-                if module_name not in exclude_modules:
-                    module = importlib.import_module(module_name)
-                    sys.path = sys_path
-                    for name, klass in inspect.getmembers(module):
-                        if inspect.isclass(klass) and\
-                           issubclass(klass, TelegramBotCommand) and\
-                           klass != TelegramBotCommand:
+            if ext not in ['py']:
+                continue
+            sys_path = list(sys.path)
+            sys.path.insert(0, cmd_dir)
+            module_name = inspect.getmodulename(file_path)
+            if module_name not in exclude_modules:
+                module = importlib.import_module(module_name)
+                sys.path = sys_path
+                for name, klass in inspect.getmembers(module):
+                    if inspect.isclass(klass) and\
+                       issubclass(klass, TelegramBotCommand) and\
+                       klass != TelegramBotCommand:
                             commands.append(klass)
     return commands
 

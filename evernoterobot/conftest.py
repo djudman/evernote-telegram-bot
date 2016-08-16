@@ -4,8 +4,11 @@ import contextlib
 import asyncio
 import gc
 import logging.config
+from unittest.mock import Mock
 
 import pytest
+
+from bot import EvernoteBot
 
 sys.path.insert(0, realpath(dirname(__file__)))
 
@@ -88,3 +91,16 @@ def pytest_pycollect_makeitem(collector, name, obj):
         item = pytest.Function(name, parent=collector)
         if 'async_test' in item.keywords:
             return list(collector._genfunctions(name, obj))
+
+
+class AsyncMock(Mock):
+    async def __call__(self, *args, **kwargs):
+        return super().__call__(*args, **kwargs)
+
+
+@pytest.fixture
+def testbot():
+    bot = EvernoteBot(settings.TELEGRAM['token'], 'test_bot')
+    bot.api = AsyncMock()
+    bot.evernote = AsyncMock()
+    return bot

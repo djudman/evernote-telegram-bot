@@ -5,9 +5,8 @@ def test_model():
     class TestModel(Model):
         collection = 'test_model'
 
-    t1 = TestModel(name='test', value='test', parameter='test',
-                   dict_param={'k': 'val'})
-    t = t1.save()
+    t1 = TestModel(name='test', value='test', parameter='test', dict_param={'k': 'val'})
+    t1.save()
 
     t = TestModel.get({'_id': t1._id})
     assert t._id
@@ -19,3 +18,10 @@ def test_model():
 
     t2 = TestModel.get({'_id': t1._id})
     assert t2.name == 'wooo'
+
+    new_t = TestModel.create(name='new', value='val')
+    assert new_t.name == 'new'
+    assert new_t.value == 'val'
+
+    t = TestModel.get({ 'name': 'new' })
+    assert t.value == 'val'

@@ -1,9 +1,8 @@
 import sys
-import logging
 import logging.config
 from os.path import realpath, dirname
 
-import aiohttp
+import aiohttp.web
 
 sys.path.insert(0, realpath(dirname(dirname(__file__))))
 

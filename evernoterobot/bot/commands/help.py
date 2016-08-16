@@ -1,4 +1,4 @@
-from telegram.bot import TelegramBotCommand
+from ext.telegram.bot import TelegramBotCommand
 
 
 class HelpCommand(TelegramBotCommand):

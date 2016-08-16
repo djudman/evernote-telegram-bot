@@ -1,15 +1,15 @@
 import asyncio
-import os
 import logging
-from concurrent.futures import ThreadPoolExecutor
+import os
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 from motor.motor_asyncio import AsyncIOMotorClient
 
 import settings
 from bot import DownloadTask
-from telegram.api import BotApi
+from ext.telegram.api import BotApi
 
 
 class DownloadError(Exception):

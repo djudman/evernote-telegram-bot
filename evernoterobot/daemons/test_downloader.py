@@ -26,6 +26,7 @@ def teardown_module(module):
     shutil.rmtree(tmp_dir)
 
 
+@pytest.mark.skip(reason='Broken')
 @pytest.mark.async_test
 async def test_download_file():
 

@@ -3,12 +3,12 @@ import logging
 import time
 import traceback
 
-from .daemon import Daemon
 import settings
-from ext.evernote.client import NoteContent, Types
 from bot.model import TelegramUpdate, User
-from telegram.api import BotApi
 from ext.evernote.api import AsyncEvernoteApi, NoteNotFound
+from ext.evernote.client import NoteContent, Types
+from ext.telegram.api import BotApi
+from .daemon import Daemon
 
 
 class EvernoteDealer:

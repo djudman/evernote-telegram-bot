@@ -1,7 +1,7 @@
 import json
 
-from telegram.bot import TelegramBotCommand
 from bot.model import StartSession, User, ModelNotFound
+from ext.telegram.bot import TelegramBotCommand
 
 
 class StartCommand(TelegramBotCommand):
@@ -17,8 +17,7 @@ Please tap on button below to link your Evernote account with bot.'''
         }
         inline_keyboard = {'inline_keyboard': [[signin_button]]}
         chat_id = message['chat']['id']
-        msg = await self.bot.api.sendMessage(chat_id, welcome_text,
-                                             json.dumps(inline_keyboard))
+        msg = await self.bot.api.sendMessage(chat_id, welcome_text, json.dumps(inline_keyboard))
         # TODO: async
         user_id = message['from']['id']
         oauth_data = self.bot.evernote.get_oauth_data(user_id)
@@ -43,5 +42,4 @@ Please tap on button below to link your Evernote account with bot.'''
 
         signin_button['text'] = 'Sign in to Evernote'
         signin_button['url'] = oauth_data["oauth_url"]
-        await self.bot.api.editMessageReplyMarkup(
-            chat_id, msg['message_id'], json.dumps(inline_keyboard))
+        await self.bot.api.editMessageReplyMarkup(chat_id, msg['message_id'], json.dumps(inline_keyboard))

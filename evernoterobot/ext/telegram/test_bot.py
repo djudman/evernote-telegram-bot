@@ -1,7 +1,7 @@
+import asyncio
 from unittest.mock import Mock
 
-import asyncio
-from telegram.bot import TelegramBot, TelegramBotCommand
+from ext.telegram.bot import TelegramBot, TelegramBotCommand
 
 
 def test_create_bot_instance():

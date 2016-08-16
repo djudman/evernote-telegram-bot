@@ -1,17 +1,17 @@
-import inspect
 import importlib
+import inspect
+import json
 import os
 import sys
-from os.path import realpath, dirname, join
 import traceback
-import json
+from os.path import realpath, dirname, join
 
 import aiomcache
 
-from telegram.bot import TelegramBot, TelegramBotCommand
+import settings
 from bot.model import User, ModelNotFound
 from ext.evernote.client import EvernoteClient
-import settings
+from ext.telegram.bot import TelegramBot, TelegramBotCommand
 
 
 def get_commands(cmd_dir=None):

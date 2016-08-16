@@ -1,7 +1,5 @@
 import datetime
-
 from pymongo import MongoClient
-
 from settings import MONGODB_URI
 
 
@@ -92,6 +90,9 @@ class DownloadTask(Model):
     collection = 'download_tasks'
 
     def __init__(self, **kwargs):
+        self.file_id = None
+        self.completed = None
+
         super(DownloadTask, self).__init__(**kwargs)
         assert self.file_id
         assert self.completed is not None
