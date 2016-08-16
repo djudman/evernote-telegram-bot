@@ -102,7 +102,9 @@ class AsyncMock(Mock):
 def testbot():
     bot = EvernoteBot(settings.TELEGRAM['token'], 'test_bot')
     bot.api = AsyncMock()
+    bot.api.sendMessage = AsyncMock(return_value={'message_id': 1})
     bot.evernote = AsyncMock()
+    bot.evernote.get_oauth_data = Mock(return_value={'oauth_url': 'test_oauth_url'})
     bot.list_notebooks = AsyncMock(
         return_value=[{ 'guid': '1', 'name': 'test_notebook' }]
     )
