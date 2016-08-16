@@ -103,4 +103,8 @@ def testbot():
     bot = EvernoteBot(settings.TELEGRAM['token'], 'test_bot')
     bot.api = AsyncMock()
     bot.evernote = AsyncMock()
+    bot.list_notebooks = AsyncMock(
+        return_value=[{ 'guid': '1', 'name': 'test_notebook' }]
+    )
+    bot.update_notebooks_cache = AsyncMock()
     return bot

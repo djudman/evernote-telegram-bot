@@ -28,6 +28,6 @@ class NotebookCommand(TelegramBotCommand):
             reply_markup=markup)
 
         user.state = 'select_notebook'
-        await user.save()
+        user.save()
 
         await self.bot.update_notebooks_cache(user)
