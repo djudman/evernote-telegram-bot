@@ -22,8 +22,9 @@ class SwitchModeCommand(TelegramBotCommand):
                 'one_time_keyboard': True,
             })
         await self.bot.api.sendMessage(
-            user.telegram_chat_id, 'Please, select mode',
+            user.telegram_chat_id,
+            'Please, select mode',
             reply_markup=markup)
 
         user.state = 'switch_mode'
-        await user.save()
+        user.save()

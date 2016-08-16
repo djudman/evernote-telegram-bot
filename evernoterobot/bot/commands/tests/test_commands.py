@@ -5,6 +5,7 @@ from bot import get_commands, EvernoteBot
 from bot.commands.help import HelpCommand
 from bot.commands.notebook import NotebookCommand
 from bot.commands.start import StartCommand
+from bot.commands.switch_mode import SwitchModeCommand
 from bot.model import StartSession
 
 
@@ -74,3 +75,18 @@ async def test_start_command(testbot: EvernoteBot):
     assert args[0] == new_user.telegram_chat_id
     assert 'Welcome' in args[1]
     assert testbot.api.editMessageReplyMarkup.call_count == 1
+
+
+@pytest.mark.async_test
+async def test_switch_mode_command(testbot: EvernoteBot):
+    switch_mode_cmd = SwitchModeCommand(testbot)
+    user = User.create(user_id=1, telegram_chat_id=2, mode='one_note')
+    await switch_mode_cmd.execute(user, None)
+    assert user.state == 'switch_mode'
+    assert testbot.api.sendMessage.call_count == 1
+    args = testbot.api.sendMessage.call_args[0]
+    kwargs = testbot.api.sendMessage.call_args[1]
+    assert len(args) == 2
+    assert args[0] == user.telegram_chat_id
+    assert 'Please, select mode' == args[1]
+    assert 'reply_markup' in kwargs
