@@ -16,7 +16,12 @@ SMTP = SECRET['smtp']
 TELEGRAM = SECRET['telegram']
 EVERNOTE = SECRET['evernote']
 
-MONGODB_URI = 'mongodb://localhost:27017/evernoterobot'
+MONGODB = {
+    'host': 'localhost',
+    'port': 27017,
+    'db': 'evernoterobot',
+}
+MONGODB_URI = 'mongodb://{0}:{1}/{2}'.format(MONGODB['host'], MONGODB['port'], MONGODB['db'])
 
 MEMCACHED = {
     'host': '127.0.0.1',

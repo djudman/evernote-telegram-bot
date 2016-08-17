@@ -7,3 +7,5 @@ evernoterobot/settings/secret.json
 *.pid
 *.bak
 .idea
+htmlcov
+.coverage

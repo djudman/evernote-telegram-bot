@@ -8,5 +8,6 @@ oauthlib==1.1.2
 py==1.4.31
 pymongo==2.8
 pytest==2.9.2
+pytest-cov==2.3.1
 requests==2.10.0
 requests-oauthlib==0.6.1

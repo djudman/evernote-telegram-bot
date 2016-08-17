@@ -5,8 +5,8 @@ import asyncio
 import gc
 import logging.config
 from unittest.mock import Mock
-
 import pytest
+from pymongo import MongoClient
 
 from bot import EvernoteBot
 
@@ -63,9 +63,12 @@ def loop():
 
 
 def pytest_runtest_setup(item):
+    client = MongoClient(settings.MONGODB_URI)
+    client.drop_database(settings.MONGODB['db'])
     if 'async_test' in item.keywords and 'loop' not in item.fixturenames:
         # inject an event loop fixture for all async tests
         item.fixturenames.append('loop')
+
 
 
 @pytest.mark.tryfirst
