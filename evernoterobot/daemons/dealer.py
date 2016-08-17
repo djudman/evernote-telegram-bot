@@ -22,7 +22,7 @@ class EvernoteDealer:
     def run(self):
         try:
             while True:
-                updates = self._loop.run_until_complete(self.fetch_updates())
+                updates = self.fetch_updates()
                 if updates:
                     self.process(updates)
                 else:
@@ -31,7 +31,7 @@ class EvernoteDealer:
             self.logger.fatal(e)
             self.logger.fatal(traceback.format_exc())
 
-    async def fetch_updates(self):
+    def fetch_updates(self):
         self.logger.debug('Fetching telegram updates...')
         updates_by_user = {}
         try:
