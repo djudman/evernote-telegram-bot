@@ -140,9 +140,9 @@ class EvernoteBot(TelegramBot):
         reply = await self.api.sendMessage(user.telegram_chat_id,
                                            '🔄 Accepted')
         TelegramUpdate.create(user_id=user.user_id,
-                             request_type=request_type,
-                             status_message_id=reply['message_id'],
-                             data=data)
+                              request_type=request_type,
+                              status_message_id=reply['message_id'],
+                              data=data)
 
     async def on_text(self, user, message, text):
         if user.state == 'select_notebook':

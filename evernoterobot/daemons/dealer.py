@@ -90,7 +90,8 @@ class EvernoteDealer:
             self.logger.debug('Finish update list processing (user_id = %s)' % user_id)
         except Exception as e:
             self.logger.error(
-                "{0}\nCan't process updates for user {1}".format(e, user_id))
+                "{0}\nCan't process updates for user {1}".format(e, user_id),
+                exc_info=1)
 
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
