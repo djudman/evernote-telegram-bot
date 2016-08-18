@@ -49,7 +49,7 @@ class AsyncEvernoteApi:
 
     async def get_note(self, auth_token, note_guid):
         def fetch(note_guid):
-            return self.__call_store_method('getNote', auth_token, note_guid, True, True, False, False)
+            return self.__call_store_method('getNote', auth_token, note_guid, True, True, False, False) # TODO: по идее можно соптимизировать и не запрашивать информацию о ресурсах когда она не нужна
 
         result = await self.loop.run_in_executor(self.executor, fetch, note_guid)
         self.logger.debug('Note fetched.')

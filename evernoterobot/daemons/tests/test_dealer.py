@@ -26,15 +26,15 @@ async def test_process_text():
                               'from': {'id': 1},
                           })
     dealer = EvernoteDealer()
-    mock_evernote_api = AsyncMock()
+    mock_note_provider = AsyncMock()
     note = Types.Note()
-    mock_evernote_api.get_note = AsyncMock(return_value=note)
+    mock_note_provider.get_note = AsyncMock(return_value=note)
     mock_telegram_api = AsyncMock()
-    dealer._evernote_api = mock_evernote_api
     dealer._telegram_api = mock_telegram_api
+    dealer._note_provider = mock_note_provider
     updates = dealer.fetch_updates()
     for user_id, update_list in updates.items():
         await dealer.process_user_updates(user_id, update_list)
 
-    assert mock_evernote_api.get_note.call_count == 1
-    assert dealer._evernote_api.update_note.call_count == 1
+    assert mock_note_provider.get_note.call_count == 1
+    assert dealer._note_provider.update_note.call_count == 1

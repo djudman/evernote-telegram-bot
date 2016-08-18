@@ -3,10 +3,13 @@ import logging
 import time
 import traceback
 
+import aiomcache
+
 import settings
 from bot.model import TelegramUpdate, User
-from ext.evernote.api import AsyncEvernoteApi, NoteNotFound
+from ext.evernote.api import NoteNotFound
 from ext.evernote.client import NoteContent, Types
+from ext.evernote.provider import NoteProvider
 from ext.telegram.api import BotApi
 from .daemon import Daemon
 
@@ -15,9 +18,10 @@ class EvernoteDealer:
 
     def __init__(self, loop=None):
         self._loop = loop or asyncio.get_event_loop()
-        self._evernote_api = AsyncEvernoteApi(self._loop)
         self._telegram_api = BotApi(settings.TELEGRAM['token'])
         self.logger = logging.getLogger('dealer')
+        self.cache = aiomcache.Client("127.0.0.1", 11211)
+        self._note_provider = NoteProvider()
 
     def run(self):
         try:
@@ -99,8 +103,7 @@ class EvernoteDealer:
         if note_guid:
             try:
                 self.logger.debug('Getting note from evernote')
-                note = await self._evernote_api.get_note(
-                    user.evernote_access_token, note_guid)
+                note = await self._note_provider.get_note(user.evernote_access_token, note_guid)
             except NoteNotFound as e:
                 self.logger.error("{0}\nNote not found. Creating new note".format(e), exc_info=1)
                 note = await self.create_note(user, updates[0], 'Note for Evernoterobot')
@@ -121,7 +124,7 @@ class EvernoteDealer:
             note.resources = content.get_resources()
             note.content = str(content)
             self.logger.info('Updating note...')
-            await self._evernote_api.update_note(user.evernote_access_token, note)
+            await self._note_provider.update_note(user.evernote_access_token, note)
         else:
             self.logger.error(
                 "There are no default note in notebook {0}".format(
@@ -141,8 +144,7 @@ class EvernoteDealer:
             self.logger.error(e)
         note.resources = content.get_resources()
         note.content = str(content)
-        return await self._evernote_api.save_note(
-            user.evernote_access_token, note)
+        return await self._note_provider.save_note(user.evernote_access_token, note)
 
     async def update_content(self, content, telegram_update):
         request_type = telegram_update.request_type or 'text'

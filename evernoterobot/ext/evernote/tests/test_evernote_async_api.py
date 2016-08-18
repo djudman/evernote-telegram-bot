@@ -9,12 +9,12 @@ from settings import EVERNOTE
 async def test_get_note():
     auth_token = EVERNOTE['access_token']
     api = AsyncEvernoteApi()
-    notebook = await api.get_default_notebook(auth_token)
-    assert notebook
-    assert notebook.guid
-    note = await api.new_note(auth_token, notebook.guid, 'Note created from auto test', 'Autotest note')
-    assert note
-    assert note.guid
-    note = await api.get_note(auth_token, note.guid)
+    # notebook = await api.get_default_notebook(auth_token)
+    # assert notebook
+    # assert notebook.guid
+    # note = await api.new_note(auth_token, notebook.guid, 'Note created from auto test', 'Autotest note')
+    # assert note
+    # assert note.guid
+    note = await api.get_note(auth_token, 'e524d4d6-fb01-40b5-a2f0-19abb60ccf89')
     assert note
     assert note.guid
