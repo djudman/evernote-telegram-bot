@@ -137,7 +137,9 @@ class EvernoteDealer:
         if request_type == 'text':
             content.add_text(telegram_update.data.get('text', ''))
         elif request_type == 'photo':
-            file_path = await self.download_file(telegram_update.data.get('file_id'))
+            files = telegram_update.data.get('photo')
+            files = sorted(files, key=lambda x: x.get('file_size'), reverse=True)
+            file_path = await self.download_file(file_id = files[0]['file_id'])
         else:
             raise Exception('Unsupported request type %s' % request_type)
 
