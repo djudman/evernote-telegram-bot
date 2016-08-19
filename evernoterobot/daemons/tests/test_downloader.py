@@ -7,6 +7,7 @@ import random
 import logging
 import logging.config
 import pytest
+
 from daemons.downloader import TelegramDownloader
 from bot.model import DownloadTask
 import settings
@@ -26,22 +27,31 @@ def teardown_module(module):
     shutil.rmtree(tmp_dir)
 
 
-@pytest.mark.skip(reason='Broken')
+# @pytest.mark.skip(reason='Broken')
 @pytest.mark.async_test
 async def test_download_file():
 
     def get_file_id():
         return "".join([random.choice(string.ascii_letters) for i in range(10)])
 
-    task = await DownloadTask.create(file_id=get_file_id(), completed=False)
-    task2 = await DownloadTask.create(file_id=get_file_id(), completed=False)
+    def get_file_id1():
+        return 'robots'
+
+    def get_file_id2():
+        return 'rpm'
+
+    task = DownloadTask.create(file_id=get_file_id2(), completed=False)
+    task2 = DownloadTask.create(file_id=get_file_id1(), completed=False)
     downloader = TelegramDownloader(download_dir)
 
     async def url(file_id):
-        return 'http://yandex.ru/robots.txt'
+        if file_id == 'robots':
+            return 'http://yandex.ru/robots.txt'
+        else:
+            return 'http://mirror.yandex.ru/altlinux/4.0/Desktop/4.0.0/files/i586/GConf-2.16.1-alt1.i586.rpm'
 
     downloader.get_download_url = url
-    futures = await downloader.download_all()
+    futures = downloader.download_all()
     await asyncio.wait(futures)
-    await task.delete()
-    await task2.delete()
+    task.delete()
+    task2.delete()
