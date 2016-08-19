@@ -73,6 +73,7 @@ class EvernoteDealer:
         return updates_by_user
 
     async def process_user_updates(self, user, update_list):
+        start_ts = time.time()
         self.logger.debug('Start update list processing (user_id = {0})'.format(user.user_id))
         if user.mode == 'one_note':
             await self.update_note(user, update_list)
@@ -88,11 +89,12 @@ class EvernoteDealer:
 
         self.logger.debug('Cleaning up...')
         for update in update_list:
-            await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id,
-                                                     '✅ {0} saved'.format(update.request_type.capitalize()))
             update.delete()
+            await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id,
+                                                     '✅ {0} saved ({1} s)'.format(update.request_type.capitalize(),
+                                                                                  time.time() - start_ts))
 
-        self.logger.debug('Done. (user_id = {0})'.format(user.user_id))
+        self.logger.debug('Done. (user_id = {0}). Processing takes {1} s'.format(user.user_id, time.time() - start_ts))
 
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
