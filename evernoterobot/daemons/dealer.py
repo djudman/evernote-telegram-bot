@@ -25,6 +25,7 @@ class EvernoteDealer:
 
     def run(self):
         self._loop.run_until_complete(self.async_run())
+        self.logger.info('Dealer done.')
 
     async def async_run(self):
         try:
@@ -35,7 +36,7 @@ class EvernoteDealer:
                     continue
                 for user_id, updates in updates_by_user.items():
                     await self.process_user_updates(user_id, updates)
-        except:
+        except Exception:
             self.logger.fatal('Dealer DOWN!!!', exc_info=1)
 
 
