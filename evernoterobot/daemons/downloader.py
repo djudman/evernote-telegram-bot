@@ -75,6 +75,7 @@ class TelegramDownloader:
         with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 if response.status == 200:
+                    self.logger.info("\n".join(['{0}: {1}'.format(name, val) for name, val in response.headers.items()]))
                     data = await response.read()
                     return await self._loop.run_in_executor(self._executor, self.write_file, destination_file, data),
                 else:
@@ -92,6 +93,8 @@ class TelegramDownloader:
             task.save()
         except DownloadError as e:
             self.logger.error(e)
+        except Exception as e:
+            self.logger.error(e, exc_info=1)
 
     def download_all(self):
         futures = []
