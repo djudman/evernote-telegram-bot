@@ -24,16 +24,19 @@ class EvernoteDealer:
         self._note_provider = NoteProvider()
 
     def run(self):
+        self._loop.run_until_complete(self.async_run())
+
+    async def async_run(self):
         try:
             while True:
-                updates = self.fetch_updates()
-                if updates:
-                    self._loop.run_until_complete(asyncio.wait(self.process(updates)))
-                else:
-                    time.sleep(0.5)
-        except Exception as e:
-            self.logger.fatal(e)
-            self.logger.fatal(traceback.format_exc())
+                updates_by_user = self.fetch_updates()
+                if not updates_by_user:
+                    await asyncio.sleep(1)
+                for user_id, updates in updates_by_user.items():
+                    await self.process_user_updates(user_id, updates)
+        except:
+            self.logger.fatal('Dealer DOWN!!!', exc_info=1)
+
 
     def fetch_updates(self):
         self.logger.debug('Fetching telegram updates...')
