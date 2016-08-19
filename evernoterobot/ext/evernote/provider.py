@@ -28,8 +28,8 @@ class NoteProvider:
     async def get_note(self, access_token, guid):
         cache_key = self.get_cache_key(guid)
         cached_data = await self.cache.get(cache_key)
-        note_data = json.loads(cached_data.decode())
-        if note_data:
+        if cached_data:
+            note_data = json.loads(cached_data.decode())
             note = Types.Note()
             note.title = note_data.get('title')
             note.notebookGuid = note_data.get('notebookGuid')
