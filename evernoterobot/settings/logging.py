@@ -83,7 +83,7 @@ LOG_SETTINGS = {
             'formatter': 'default',
         },
         'dealer_file': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
             'filename': join(LOGS_DIR, 'dealer.log'),
             'formatter': 'default',
