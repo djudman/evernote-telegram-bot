@@ -76,9 +76,9 @@ class TelegramDownloader:
         with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 if response.status == 200:
-                    self.logger.info("\n".join(['{0}: {1}'.format(name, val) for name, val in response.headers.items()]))
                     data = await response.read()
-                    return await self._loop.run_in_executor(self._executor, self.write_file, destination_file, data),
+                    await self._loop.run_in_executor(self._executor, self.write_file, destination_file, data)
+                    return response
                 else:
                     response_text = await response.text()
                     raise DownloadError(response.status, response_text, url)
@@ -88,7 +88,8 @@ class TelegramDownloader:
             file_id = task.file_id
             download_url = await self.get_download_url(file_id)
             destination_file = os.path.join(self.download_dir, file_id)
-            await self.download_file(download_url, destination_file)
+            response = await self.download_file(download_url, destination_file)
+            task.mime_type = response.headers.get('CONTENT-TYPE', 'application/octet-stream')
             task.completed = True
             task.file = destination_file
             task.save()
