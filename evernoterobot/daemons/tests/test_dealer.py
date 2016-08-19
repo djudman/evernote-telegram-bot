@@ -34,7 +34,8 @@ async def test_process_text():
     dealer._note_provider = mock_note_provider
     updates = dealer.fetch_updates()
     for user_id, update_list in updates.items():
-        await dealer.process_user_updates(user_id, update_list)
+        user = User.get({'user_id': user_id})
+        await dealer.process_user_updates(user, update_list)
 
     assert mock_note_provider.get_note.call_count == 1
     assert dealer._note_provider.update_note.call_count == 1
