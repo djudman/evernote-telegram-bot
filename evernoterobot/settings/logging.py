@@ -143,7 +143,7 @@ LOG_SETTINGS = {
             'propagate': True,
         },
         '': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['file'],
             'propagate': True,
         },
