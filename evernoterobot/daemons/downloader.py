@@ -99,7 +99,7 @@ class TelegramDownloader:
 
     def download_all(self):
         futures = []
-        tasks = DownloadTask.get_sorted(100, condition={'in_progress': {'$exists': False}})
+        tasks = DownloadTask.get_sorted(100, condition={'in_progress': {'$exists': False}, 'completed': False})
         for task in tasks:
             entry = DownloadTask.find_and_modify(
                 query={'_id': task._id, 'in_progress': {'$exists': False}},
