@@ -122,8 +122,10 @@ class EvernoteDealer:
 
     async def create_note(self, user, update, title=None):
         notebook_guid = user.current_notebook['guid']
-        text = update.data.get('text', '')
+        text = update.data.get('text') or update.data.get('caption') or ''
         note = Types.Note()
+        if title is None:
+            title = update.request_type
         note.title = title or ('%s...' % text[:25] if len(text) > 30 else text)
         note.notebookGuid = notebook_guid
         content = NoteContent(note)
