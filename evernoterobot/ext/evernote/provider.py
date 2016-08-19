@@ -8,8 +8,8 @@ from ext.evernote.client import Types
 
 class NoteProvider:
 
-    def __init__(self):
-        self._loop = asyncio.get_event_loop()
+    def __init__(self, loop=None):
+        self._loop = loop or asyncio.get_event_loop()
         self.cache = aiomcache.Client("127.0.0.1", 11211)
         self._api = AsyncEvernoteApi(self._loop)
 

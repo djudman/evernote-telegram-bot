@@ -21,7 +21,7 @@ class EvernoteDealer:
         self._telegram_api = BotApi(settings.TELEGRAM['token'])
         self.logger = logging.getLogger('dealer')
         self.cache = aiomcache.Client("127.0.0.1", 11211)
-        self._note_provider = NoteProvider()
+        self._note_provider = NoteProvider(self._loop)
 
     def run(self):
         self._loop.run_until_complete(self.async_run())
@@ -32,7 +32,6 @@ class EvernoteDealer:
             while True:
                 updates_by_user = self.fetch_updates()
                 if not updates_by_user:
-                    await asyncio.sleep(1)
                     continue
                 for user_id, updates in updates_by_user.items():
                     await self.process_user_updates(user_id, updates)
