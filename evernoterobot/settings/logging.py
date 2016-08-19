@@ -71,7 +71,7 @@ LOG_SETTINGS = {
             'filename': join(LOGS_DIR, 'access.log')
         },
         'file': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
             'filename': join(LOGS_DIR, '%s.log' % PROJECT_NAME),
             'formatter': 'default',
