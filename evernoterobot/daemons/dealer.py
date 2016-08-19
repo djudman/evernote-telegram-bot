@@ -37,7 +37,7 @@ class EvernoteDealer:
             while True:
                 updates_by_user = self.fetch_updates()
                 if not updates_by_user:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(0.1)
                     continue
                 for user_id, updates in updates_by_user.items():
                     try:
