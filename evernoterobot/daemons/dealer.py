@@ -6,7 +6,8 @@ import traceback
 import aiomcache
 
 import settings
-from bot.model import TelegramUpdate, User
+from bot.model import TelegramUpdate, User, DownloadTask
+from daemons.downloader import TelegramDownloader
 from ext.evernote.api import NoteNotFound
 from ext.evernote.client import NoteContent, Types
 from ext.evernote.provider import NoteProvider
@@ -22,6 +23,7 @@ class EvernoteDealer:
         self.logger = logging.getLogger('dealer')
         self.cache = aiomcache.Client("127.0.0.1", 11211)
         self._note_provider = NoteProvider(self._loop)
+        self.downloader = TelegramDownloader('/tmp/')
 
     def run(self):
         try:
@@ -134,8 +136,17 @@ class EvernoteDealer:
         request_type = telegram_update.request_type or 'text'
         if request_type == 'text':
             content.add_text(telegram_update.data.get('text', ''))
+        elif request_type == 'photo':
+            file_path = await self.download_file(telegram_update.data.get('file_id'))
         else:
             raise Exception('Unsupported request type %s' % request_type)
+
+    async def download_file(self, file_id):
+        task = DownloadTask.create(file_id=file_id)
+        while not task.completed:
+            await asyncio.sleep(1)
+            task = DownloadTask.get({'_id': task._id})
+        return task.file
 
 
 class EvernoteDealerDaemon(Daemon):
