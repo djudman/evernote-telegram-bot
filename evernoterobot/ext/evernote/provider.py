@@ -14,7 +14,7 @@ class NoteProvider:
         self._api = AsyncEvernoteApi(self._loop)
 
     def get_cache_key(self, guid):
-        return 'evernote_note_{0}'.format(guid)
+        return 'evernote_note_{0}'.format(guid).encode()
 
     async def __cache_note(self, note):
         cache_key = self.get_cache_key(note.guid)
