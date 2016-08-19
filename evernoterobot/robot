@@ -8,6 +8,7 @@ from os.path import dirname, realpath, join
 sys.path.insert(0, realpath(dirname(__file__)))
 
 from daemons.dealer import EvernoteDealerDaemon
+from daemons.downloader import TelegramDownloaderDaemon
 import settings
 
 logging.config.dictConfig(settings.LOG_SETTINGS)
@@ -16,15 +17,22 @@ logging.config.dictConfig(settings.LOG_SETTINGS)
 def dealer_pidfile():
     return join(realpath(dirname(__file__)), 'dealer.pid')
 
+def downloader_pidfile():
+    return join(realpath(dirname(__file__)), 'downloader.pid')
+
 
 def dealer_start():
     print('Starting dealer...')
     EvernoteDealerDaemon(dealer_pidfile()).start()
+    print('Starting downloader...')
+    TelegramDownloaderDaemon(downloader_pidfile()).start()
 
 
 def dealer_stop():
     print('Stopping dealer...')
     EvernoteDealerDaemon(dealer_pidfile()).stop()
+    print('Stopping downloader')
+    TelegramDownloaderDaemon(downloader_pidfile()).stop()
 
 
 def start():
