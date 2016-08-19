@@ -56,7 +56,7 @@ class TelegramDownloader:
             try:
                 tasks = self.download_all()
                 if not tasks:
-                    asyncio.sleep(1)
+                    await asyncio.sleep(1)
             except Exception as e:
                 self.logger.error(e, exc_info=1)
 

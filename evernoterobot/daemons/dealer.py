@@ -139,12 +139,12 @@ class EvernoteDealer:
         elif request_type == 'photo':
             files = telegram_update.data.get('photo')
             files = sorted(files, key=lambda x: x.get('file_size'), reverse=True)
-            file_path = await self.download_file(file_id = files[0]['file_id'])
+            file_path = await self.get_downloaded_file(file_id=files[0]['file_id'])
         else:
             raise Exception('Unsupported request type %s' % request_type)
 
-    async def download_file(self, file_id):
-        task = DownloadTask.create(file_id=file_id)
+    async def get_downloaded_file(self, file_id):
+        task = DownloadTask.get({'file_id': file_id})
         while not task.completed:
             await asyncio.sleep(1)
             task = DownloadTask.get({'_id': task._id})
