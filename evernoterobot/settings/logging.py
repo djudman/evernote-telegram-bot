@@ -71,7 +71,7 @@ LOG_SETTINGS = {
             'filename': join(LOGS_DIR, 'access.log')
         },
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': join(LOGS_DIR, '%s.log' % PROJECT_NAME),
             'formatter': 'default',
@@ -80,6 +80,12 @@ LOG_SETTINGS = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': join(LOGS_DIR, 'evernote.log'),
+            'formatter': 'default',
+        },
+        'telegram_api_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': join(LOGS_DIR, 'telegram.log'),
             'formatter': 'default',
         },
         'dealer_file': {
@@ -132,6 +138,11 @@ LOG_SETTINGS = {
             'handlers': ['file', 'evernote_api_file', 'stdout', 'email'],
             'propagate': False,
         },
+        'telegram_api': {
+            'level': 'DEBUG',
+            'handlers': ['telegram_api_file', 'email'],
+            'propagate': False,
+        },
         'dealer': {
             'level': 'DEBUG',
             'handlers': ['file', 'dealer_file', 'stdout', 'email'],
@@ -143,7 +154,7 @@ LOG_SETTINGS = {
             'propagate': True,
         },
         '': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['file'],
             'propagate': True,
         },

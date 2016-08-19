@@ -13,7 +13,7 @@ class BotApi:
 
     def __init__(self, token):
         self.token = token
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('telegram_api')
 
     async def __request(self, method_name, **kwargs):
         url = "https://api.telegram.org/bot%(token)s/%(method_name)s" % {

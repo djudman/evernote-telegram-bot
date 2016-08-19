@@ -91,7 +91,7 @@ class DownloadTask(Model):
 
     def __init__(self, **kwargs):
         self.file_id = None
-        self.completed = None
+        self.completed = False
 
         super(DownloadTask, self).__init__(**kwargs)
         assert self.file_id
