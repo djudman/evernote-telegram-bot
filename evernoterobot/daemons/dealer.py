@@ -24,7 +24,8 @@ class EvernoteDealer:
         self._note_provider = NoteProvider(self._loop)
 
     def run(self):
-        self._loop.run_until_complete(self.async_run())
+        asyncio.ensure_future(self.async_run())
+        self._loop.run_forever()
         self.logger.info('Dealer done.')
 
     async def async_run(self):
@@ -32,6 +33,7 @@ class EvernoteDealer:
             while True:
                 updates_by_user = self.fetch_updates()
                 if not updates_by_user:
+                    await asyncio.sleep(1)
                     continue
                 for user_id, updates in updates_by_user.items():
                     await self.process_user_updates(user_id, updates)
