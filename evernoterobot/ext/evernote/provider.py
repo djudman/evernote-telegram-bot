@@ -19,6 +19,7 @@ class NoteProvider:
     async def __cache_note(self, note):
         cache_key = self.get_cache_key(note.guid)
         data = {
+            'guid': note.guid,
             'title': note.title,
             'notebookGuid': note.notebookGuid,
             'content': note.content,
@@ -31,6 +32,7 @@ class NoteProvider:
         if cached_data:
             note_data = json.loads(cached_data.decode())
             note = Types.Note()
+            note.guid = note_data.get('guid')
             note.title = note_data.get('title')
             note.notebookGuid = note_data.get('notebookGuid')
             note.content = note_data.get('content')

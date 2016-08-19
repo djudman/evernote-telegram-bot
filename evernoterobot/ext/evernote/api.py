@@ -52,7 +52,7 @@ class AsyncEvernoteApi:
                 self.logger.error(err)
                 raise EvernoteApiError(err) from None
         except Exception as e:
-            self.logger.error(e, exc_info=1)
+            self.logger.error(e)
             raise EvernoteApiError('Evernote API error') from None
 
     async def get_note(self, auth_token, note_guid):
