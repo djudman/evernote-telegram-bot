@@ -85,6 +85,13 @@ class EvernoteDealer:
                     self.logger.error(e, exc_info=1)
         else:
             raise Exception('Invalid user mode {0}'.format(user.mode))
+
+        self.logger.debug('Cleaning up...')
+        for update in update_list:
+            await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id,
+                                                     '✅ {0} saved'.format(update.request_type.capitalize()))
+            update.delete()
+
         self.logger.debug('Done. (user_id = {0})'.format(user.user_id))
 
     async def update_note(self, user, updates):
