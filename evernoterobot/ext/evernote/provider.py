@@ -42,9 +42,9 @@ class NoteProvider:
         return note
 
     async def update_note(self, access_token, note):
-        await self._api.update_note(access_token, note)
         await self.__cache_note(note)
+        await self._api.update_note(access_token, note)
 
     async def save_note(self, access_token, note):
-        await self._api.save_note(access_token, note)
         await self.__cache_note(note)
+        await self._api.save_note(access_token, note)
