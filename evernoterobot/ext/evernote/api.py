@@ -39,6 +39,10 @@ class AsyncEvernoteApi:
         except ErrorTypes.EDAMNotFoundException:
             self.logger.error('Note not found')
             raise NoteNotFound() from None
+        except ErrorTypes.EDAMUserException as e:
+            err = 'Error code = {0}, parameter = {1}'.format(e.errorCode, e.parameter)
+            self.logger.error(err)
+            raise EvernoteApiError(err) from None
         except ErrorTypes.EDAMSystemException as e:
             if e.errorCode == 19 and hasattr(e, 'rateLimitDuration'):
                 self.logger.error('rateLimitDuration == {0}'.format(e.rateLimitDuration))
