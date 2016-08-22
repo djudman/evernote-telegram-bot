@@ -115,7 +115,12 @@ class EvernoteDealer:
 
         content = NoteContent(note)
         for update in updates:
-            await self.update_content(content, update)
+            if update.request_type in ['photo']:
+                new_note = await self.create_note(user, update, 'Photo')
+                note_link = await self._note_provider.get_note_link(user.evernote_access_token, new_note)
+                content.add_text('File: {0}'.format(note_link))
+            else:
+                await self.update_content(content, update)
         note.resources = content.get_resources()
         note.content = str(content)
         await self._note_provider.update_note(user.evernote_access_token, note)

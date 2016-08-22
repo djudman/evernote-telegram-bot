@@ -55,6 +55,19 @@ class AsyncEvernoteApi:
             self.logger.error(e)
             raise EvernoteApiError('Evernote API error') from None
 
+    async def get_user(self, auth_token):
+        def get_info(auth_token):
+            sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+            user_store = sdk.get_user_store()
+            user = user_store.getUser(auth_token)
+            return user
+
+        return await self.loop.run_in_executor(self.executor, get_info, auth_token)
+
+    async def get_service_host(self, auth_token):
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        return sdk.serviceHost
+
     async def get_note(self, auth_token, note_guid):
         def fetch(note_guid):
             return self.__call_store_method('getNote', auth_token, note_guid, True, True, False, False) # TODO: по идее можно соптимизировать и не запрашивать информацию о ресурсах когда она не нужна
