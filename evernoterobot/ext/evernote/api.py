@@ -66,7 +66,7 @@ class AsyncEvernoteApi:
 
     async def get_service_host(self, auth_token):
         sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
-        return sdk.serviceHost
+        return sdk.service_host
 
     async def get_note(self, auth_token, note_guid):
         def fetch(note_guid):
