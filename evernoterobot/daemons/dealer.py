@@ -115,10 +115,10 @@ class EvernoteDealer:
 
         content = NoteContent(note)
         for update in updates:
-            if update.request_type in ['photo']:
-                new_note = await self.create_note(user, update, 'Photo')
+            if update.request_type in ['photo', 'document']:
+                new_note = await self.create_note(user, update, update.request_type.capitalize())
                 note_link = await self._note_provider.get_note_link(user.evernote_access_token, new_note)
-                content.add_text('File: {0}'.format(note_link))
+                content.add_text('{0}: {1}'.format(update.request_type.capitalize(), note_link))
             else:
                 await self.update_content(content, update)
         note.resources = content.get_resources()
@@ -147,6 +147,10 @@ class EvernoteDealer:
             files = telegram_update.data.get('photo')
             files = sorted(files, key=lambda x: x.get('file_size'), reverse=True)
             file_path, mime_type = await self.get_downloaded_file(file_id=files[0]['file_id'])
+            content.add_file(file_path, mime_type)
+        elif request_type == 'document':
+            file_id = telegram_update.data['document']['file_id']
+            file_path, mime_type = await self.get_downloaded_file(file_id=file_id)
             content.add_file(file_path, mime_type)
         else:
             raise Exception('Unsupported request type %s' % request_type)
