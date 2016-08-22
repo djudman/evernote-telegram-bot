@@ -119,7 +119,7 @@ class EvernoteDealer:
             if update.request_type in ['photo', 'document', 'voice']:
                 new_note = await self.create_note(user, update, update.request_type.capitalize())
                 note_link = await self._note_provider.get_note_link(user.evernote_access_token, new_note)
-                content.add_text('{0}: {1}'.format(update.request_type.capitalize(), note_link))
+                content.add_text('{0}: <a href="{1}">{1}</a>'.format(update.request_type.capitalize(), note_link))
             else:
                 await self.update_content(content, update)
         note.resources = content.get_resources()

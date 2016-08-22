@@ -51,7 +51,7 @@ class NoteProvider:
 
     async def get_note_link(self, access_token, note):
         user = await self._api.get_user(access_token)
-        link = "https://%(service)s/shard/%(shard)s/nl/%(user_id)s/%(note_guid)s/ " % {
+        link = "https://%(service)s/shard/%(shard)s/nl/%(user_id)s/%(note_guid)s/" % {
             'service': await self._api.get_service_host(access_token),
             'shard': user.shardId,
             'user_id': user.id,
