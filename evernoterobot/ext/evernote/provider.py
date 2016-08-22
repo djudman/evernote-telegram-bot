@@ -47,7 +47,7 @@ class NoteProvider:
 
     async def save_note(self, access_token, note):
         await self.__cache_note(note)
-        await self._api.save_note(access_token, note)
+        return await self._api.save_note(access_token, note)
 
     async def get_note_link(self, access_token, note):
         user = await self._api.get_user(access_token)
