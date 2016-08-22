@@ -2,6 +2,7 @@ import asyncio
 import logging
 import time
 import traceback
+import os
 
 import aiomcache
 
@@ -152,6 +153,22 @@ class EvernoteDealer:
             file_id = telegram_update.data['document']['file_id']
             file_path, mime_type = await self.get_downloaded_file(file_id=file_id)
             content.add_file(file_path, mime_type)
+        elif request_type == 'voice':
+            file_id = telegram_update.data['voice']['file_id']
+            ogg_file_path, mime_type = await self.get_downloaded_file(file_id=file_id)
+
+            mime_type = 'audio/wav'
+            wav_filename = "{0}.wav".format(ogg_file_path)
+            try:
+                # convert to wav
+                os.system('opusdec %s %s' % (ogg_file_path, wav_filename))
+            except Exception:
+                self.logger.error("Can't convert ogg to wav, %s" %
+                                  traceback.format_exc())
+                wav_filename = ogg_file_path
+                mime_type = 'audio/ogg'
+
+            content.add_file(wav_filename, mime_type)
         else:
             raise Exception('Unsupported request type %s' % request_type)
 
