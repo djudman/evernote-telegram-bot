@@ -116,7 +116,7 @@ class EvernoteDealer:
 
         content = NoteContent(note)
         for update in updates:
-            if update.request_type in ['photo', 'document', 'voice']:
+            if update.request_type in ['photo', 'document', 'voice', 'video']:
                 new_note = await self.create_note(user, update, update.request_type.capitalize())
                 note_link = await self._note_provider.get_note_link(user.evernote_access_token, new_note)
                 content.add_text('{0}: <a href="{1}">{1}</a>'.format(update.request_type.capitalize(), note_link))
@@ -151,6 +151,10 @@ class EvernoteDealer:
             content.add_file(file_path, mime_type)
         elif request_type == 'document':
             file_id = telegram_update.data['document']['file_id']
+            file_path, mime_type = await self.get_downloaded_file(file_id=file_id)
+            content.add_file(file_path, mime_type)
+        elif request_type == 'video':
+            file_id = telegram_update.data['video']['file_id']
             file_path, mime_type = await self.get_downloaded_file(file_id=file_id)
             content.add_file(file_path, mime_type)
         elif request_type == 'voice':

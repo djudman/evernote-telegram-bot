@@ -51,6 +51,8 @@ class TelegramBot:
 
         if 'photo' in message:
             await self.on_photo(user, message)
+        if 'video' in message:
+            await self.on_video(user, message)
         elif 'document' in message:
             await self.on_document(user, message)
         elif 'voice' in message:
@@ -99,6 +101,9 @@ class TelegramBot:
         pass
 
     async def on_photo(self, user, message):
+        pass
+
+    async def on_video(self, user, message):
         pass
 
     async def on_document(self, user, message):

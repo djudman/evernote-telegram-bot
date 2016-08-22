@@ -163,6 +163,14 @@ class EvernoteBot(TelegramBot):
                             file_size=files[0]['file_size'],
                             completed=False)
 
+    async def on_video(self, user, message):
+        await self.accept_request(user, 'video', message)
+        video = message['video']
+        DownloadTask.create(user_id=user.user_id,
+                            file_id=video['file_id'],
+                            file_size=video['file_size'],
+                            completed=False)
+
     async def on_document(self, user, message):
         await self.accept_request(user, 'document', message)
         document = message['document']
