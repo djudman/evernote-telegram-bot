@@ -169,6 +169,32 @@ class EvernoteDealer:
                 mime_type = 'audio/ogg'
 
             content.add_file(wav_filename, mime_type)
+        elif request_type == 'location':
+            location = telegram_update.data['location']
+            latitude = location['latitude']
+            longitude = location['longitude']
+            maps_url = "https://maps.google.com/maps?q=%(lat)f,%(lng)f" % {
+                'lat': latitude,
+                'lng': longitude,
+            }
+            title = 'Location'
+            text = "<a href='%(url)s'>%(url)s</a>" % {'url': maps_url}
+
+            venue = telegram_update.data.get('venue')
+            if venue:
+                address = venue.get('address', '')
+                title = venue.get('title', '')
+                text = "%(title)s<br />%(address)s<br />\
+                    <a href='%(url)s'>%(url)s</a>" % {
+                    'title': title,
+                    'address': address,
+                    'url': maps_url
+                }
+                foursquare_id = venue.get('foursquare_id')
+                if foursquare_id:
+                    url = "https://foursquare.com/v/%s" % foursquare_id
+                    text += "<br /><a href='%(url)s'>%(url)s</a>" % {'url': url}
+            content.add_text(text)
         else:
             raise Exception('Unsupported request type %s' % request_type)
 
