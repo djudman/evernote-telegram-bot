@@ -111,6 +111,10 @@ class TelegramDownloader:
 
 class TelegramDownloaderDaemon(Daemon):
 
+    def __init__(self, pidfile, download_dir=None):
+        super().__init__(pidfile)
+        self.download_dir = download_dir
+
     def run(self):
-        downloader = TelegramDownloader()
+        downloader = TelegramDownloader(self.download_dir)
         downloader.run()

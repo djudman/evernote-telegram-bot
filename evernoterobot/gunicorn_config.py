@@ -1,14 +1,11 @@
 import sys
 import multiprocessing
-import os
 from os.path import join, dirname, realpath
 
 sys.path.insert(0, realpath(dirname(__file__)))
 
 import settings
 
-
-os.makedirs(settings.LOGS_DIR, mode=0o700, exist_ok=True)
 
 bind = '127.0.0.1:9001'
 backlog = 128

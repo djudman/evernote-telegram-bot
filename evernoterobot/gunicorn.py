@@ -8,6 +8,7 @@ import os
 import time
 import signal
 import gunicorn_config as config
+import settings
 
 
 def green(s):
@@ -34,6 +35,9 @@ def check_pidfile(pidfile):
 
 
 def start():
+    os.makedirs(settings.LOGS_DIR, mode=0o700, exist_ok=True)
+    os.makedirs(settings.DOWNLOADS_DIR, mode=0o700, exist_ok=True)
+
     if not os.path.exists(config.pidfile):
         print('Starting... ', end="")
         os.system('gunicorn --config gunicorn_config.py %s' % config.app_name)

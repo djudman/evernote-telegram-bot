@@ -25,7 +25,7 @@ def dealer_start():
     print('Starting dealer...')
     EvernoteDealerDaemon(dealer_pidfile()).start()
     print('Starting downloader...')
-    TelegramDownloaderDaemon(downloader_pidfile()).start()
+    TelegramDownloaderDaemon(downloader_pidfile(), settings.DOWNLOADS_DIR).start()
 
 
 def dealer_stop():

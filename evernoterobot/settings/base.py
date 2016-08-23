@@ -8,6 +8,7 @@ PROJECT_DIR = realpath(dirname(dirname(__file__)))
 ROOT_DIR = realpath(dirname(PROJECT_DIR))
 PROJECT_NAME = basename(PROJECT_DIR.lower())
 LOGS_DIR = join(realpath(ROOT_DIR), 'logs')
+DOWNLOADS_DIR = join(realpath(ROOT_DIR), 'downloads')
 
 with open(join(PROJECT_DIR, 'settings/secret.json')) as f:
     SECRET = json.load(f)
