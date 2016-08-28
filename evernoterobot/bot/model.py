@@ -37,7 +37,8 @@ class Model:
 
     def __init__(self, **kwargs):
         self.id = None
-        self.save_fields = []
+        if not hasattr(self, 'save_fields'):
+            self.save_fields = []
         for arg_name, arg_value in kwargs.items():
             setattr(self, arg_name, arg_value)
 
@@ -87,7 +88,11 @@ class Model:
 
     def save_data(self) -> dict:
         data = {}
+        if 'id' not in self.save_fields:
+            self.save_fields.append('id')
         for field in self.save_fields:
+            if not hasattr(self, field):
+                continue
             val = getattr(self, field)
             if isinstance(val, Model):
                 data[field] = val.save_data()
