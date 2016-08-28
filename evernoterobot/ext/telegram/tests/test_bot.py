@@ -31,7 +31,7 @@ def test_execute_bot_command():
     class TestHelpCommand(TelegramBotCommand):
         name = 'help'
 
-        async def execute(self, user, message):
+        async def execute(self, message):
             mock()
 
     bot = TelegramBot('token', 'bot_name')
@@ -73,7 +73,7 @@ def test_on_text_callback():
     mock = Mock()
 
     class MyBot(TelegramBot):
-        async def on_text(self, user, message, text):
+        async def on_text(self, message):
             mock()
 
     bot = MyBot('token', 'test_bot')

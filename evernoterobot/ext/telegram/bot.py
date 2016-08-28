@@ -37,23 +37,23 @@ class TelegramBot:
         # TODO: process inline result
         # TODO: process callback query
 
-    async def get_user(self, message):
-        return message['from']['id']
+    # async def get_user(self, message):
+    #     return message['from']['id']
 
     async def handle_message(self, message: Message):
         user = message.user
 
         await self.on_message_received(message)
 
-        if message.photos:
+        if hasattr(message, 'photos') and message.photos:
             await self.on_photo(message)
-        if message.video:
+        if hasattr(message, 'video') and message.video:
             await self.on_video(message)
-        if message.document:
+        if hasattr(message, 'document') and message.document:
             await self.on_document(message)
-        if message.voice:
+        if hasattr(message, 'voice') and message.voice:
             await self.on_voice(message)
-        if message.location:
+        if hasattr(message, 'location') and message.location:
             await self.on_location(message)
 
         commands = [cmd.replace('/', '') for cmd in message.bot_commands or []]

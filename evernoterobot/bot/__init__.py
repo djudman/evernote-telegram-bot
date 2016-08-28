@@ -74,15 +74,15 @@ class EvernoteBot(TelegramBot):
                      self.evernote.list_notebooks(access_token)]
         await self.cache.set(key, json.dumps(notebooks).encode())
 
-    async def get_user(self, message):
-        try:
-            user = User.get({'user_id': message['from']['id']})
-            if user.telegram_chat_id != message['chat']['id']:
-                user.telegram_chat_id = message['chat']['id']
-                user.save()
-            return user
-        except ModelNotFound:
-            self.logger.warn("User %s not found" % message['from']['id'])
+    # async def get_user(self, message):
+    #     try:
+    #         user = User.get({'user_id': message['from']['id']})
+    #         if user.telegram_chat_id != message['chat']['id']:
+    #             user.telegram_chat_id = message['chat']['id']
+    #             user.save()
+    #         return user
+    #     except ModelNotFound:
+    #         self.logger.warn("User %s not found" % message['from']['id'])
 
     async def set_current_notebook(self, user, notebook_name):
         all_notebooks = await self.list_notebooks(user)
