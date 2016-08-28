@@ -17,6 +17,13 @@ SMTP = SECRET['smtp']
 TELEGRAM = SECRET['telegram']
 EVERNOTE = SECRET['evernote']
 
+STORAGE = {
+    'class': 'bot.storage.MongoStorage',
+    'host': 'localhost',
+    'port': 27017,
+    'db': 'evernoterobot',
+}
+
 MONGODB = {
     'host': 'localhost',
     'port': 27017,
