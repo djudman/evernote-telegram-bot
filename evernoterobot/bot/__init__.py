@@ -137,14 +137,14 @@ class EvernoteBot(TelegramBot):
             await self.api.editMessageText(
                 user.telegram_chat_id, reply["message_id"], text)
 
-    async def accept_request(self, user: User, request_type: str, data):
+    async def accept_request(self, user: User, request_type: str, message: Message):
         # TODO: get user_id instead of user
         reply = await self.api.sendMessage(user.telegram_chat_id,
                                            '🔄 Accepted')
         TelegramUpdate.create(user_id=user.id,
                               request_type=request_type,
                               status_message_id=reply['message_id'],
-                              data=data)
+                              data=message.raw)
 
     async def on_text(self, message: Message):
         user = User.get({'id': message.user.id})

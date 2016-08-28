@@ -100,12 +100,13 @@ class TelegramDownloader:
 
     def download_all(self):
         futures = []
-        tasks = DownloadTask.get_sorted(100, condition={'in_progress': {'$exists': False}, 'completed': False})
+        tasks = DownloadTask.find({'in_progress': {'$exists': False}, 'completed': False})
         for task in tasks:
-            entry = DownloadTask.find_and_modify(
-                query={'_id': task._id, 'in_progress': {'$exists': False}},
-                update={'$set': {'in_progress': True}})
-            futures.append(asyncio.ensure_future(self.handle_download_task(DownloadTask(**entry))))
+            entry = task.update(
+                {'in_progress': {'$exists': False}},
+                {'in_progress': True}
+            )
+            futures.append(asyncio.ensure_future(self.handle_download_task(entry)))
         return futures
 
 

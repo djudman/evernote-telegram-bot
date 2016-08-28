@@ -65,6 +65,7 @@ class Entity:
 
 class Message:
     def __init__(self, data: dict):
+        self.raw = data
         self.id = data['message_id']
         self.date = data['date']
         self.user = TelegramUser(data['from'])

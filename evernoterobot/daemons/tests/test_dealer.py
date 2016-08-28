@@ -44,7 +44,7 @@ async def test_process_text():
 
 @pytest.mark.async_test
 async def test_process_photo_in_one_note_mode():
-    User.create(user_id=1,
+    User.create(id=1,
                 telegram_chat_id=2,
                 mode='one_note',
                 evernote_access_token='token',
@@ -84,5 +84,5 @@ async def test_process_photo_in_one_note_mode():
 
     updates = dealer.fetch_updates()
     for user_id, update_list in updates.items():
-        user = User.get({'user_id': user_id})
+        user = User.get({'id': user_id})
         await dealer.process_user_updates(user, update_list)

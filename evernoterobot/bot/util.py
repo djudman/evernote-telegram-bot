@@ -4,7 +4,7 @@ from typing import List
 def dict_get(dict_obj: dict, path: List[str]):
     pointer = dict_obj
     for step in path:
-        if isinstance(pointer, dict) and pointer.get(step):
+        if isinstance(pointer, dict) and pointer.get(step) is not None:
             pointer = pointer[step]
         else:
             return

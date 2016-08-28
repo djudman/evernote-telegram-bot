@@ -178,14 +178,18 @@ class DownloadTask(Model):
         'file_size',
         'completed',
         'user_id',
+        'mime_type',
+        'file',
     ]
 
     def __init__(self, **kwargs):
         self.id = kwargs.get('id')
         self.file_id = kwargs['file_id']
-        self.file_size = kwargs['file_size']
+        self.file_size = kwargs.get('file_size')
         self.user_id = kwargs.get('user_id')
         self.completed = kwargs.get('completed', False)
+        self.mime_type = kwargs.get('mime_type')
+        self.file = kwargs.get('file')
 
 
 class User(Model):
