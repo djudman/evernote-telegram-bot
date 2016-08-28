@@ -1,6 +1,7 @@
 import uuid
 from abc import abstractmethod
 from numbers import Number
+from typing import List, Tuple
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -44,7 +45,7 @@ class Storage:
         pass
 
     @abstractmethod
-    def find(self, query: dict):
+    def find(self, query: dict, sort: List[Tuple]):
         pass
 
 
@@ -58,7 +59,7 @@ class MemoryStorage(Storage):
         matched = True
         for k, query_value in query.items():
             if k[0] == '$':
-                pass  # TODO: check_operator
+                matched = self._check_operator(k, query_value, entry)
             else:
                 key_path = k.split('.')
                 key_value = dict_get(entry, key_path)
@@ -72,16 +73,22 @@ class MemoryStorage(Storage):
                 return False
         return matched
 
+    def _check_operator(self, operator, query_value, entry):
+        if operator == '$exists':
+            return (entry is not None) == query_value
+        raise Exception('Unsupported operator {0}'.format(operator))
+
     def get(self, query: dict):
         for k, obj in self._items.get(self.collection, {}).items():
             if self._check_query(obj, query):
                 return obj
 
-    def find(self, query: dict):
+    def find(self, query: dict, sort: List[Tuple]):
         objects = []
         for k, obj in self._items.get(self.collection, {}).items():
             if self._check_query(obj, query):
                 objects.append(obj)
+        sorted(objects, key=lambda x: (x[k] for k, direction in sort))
         return objects
 
     def save(self, model: Model):
@@ -93,11 +100,12 @@ class MemoryStorage(Storage):
         self._items[classname][model.id] = model.save_data()
 
     def update(self, query: dict, new_values: dict):
-        for obj in self._items.get(self.collection, []):
+        for k, obj in self._items.get(self.collection, {}).items():
             if self._check_query(obj, query):
                 for k, v in new_values.items():
                     path = k.split('.')
                     dict_set(obj, v, path)
+                    return obj
 
     def delete(self, model: Model):
         classname = self.collection
@@ -135,9 +143,9 @@ class MongoStorage(Storage):
         collection = self.__get_collection()
         return collection.find_one(self.__prepare_query(query))
 
-    def find(self, query: dict):
+    def find(self, query: dict, sort: List[Tuple]):
         collection = self.__get_collection()
-        cursor = collection.find(self.__prepare_query(query))
+        cursor = collection.find(self.__prepare_query(query), sort=sort)
         return cursor
 
     def save(self, model: Model):
@@ -150,7 +158,7 @@ class MongoStorage(Storage):
 
     def update(self, query: dict, new_values: dict):
         collection = self.__get_collection()
-        collection.find_and_modify(self.__prepare_query(query), {'$set': new_values})
+        return collection.find_and_modify(self.__prepare_query(query), {'$set': new_values})
 
     def delete(self, model: Model):
         collection = self.__get_collection()

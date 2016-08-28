@@ -73,15 +73,20 @@ class Model:
         return cls(**document)
 
     @classmethod
-    def find(cls, query: dict={}):
-        return [cls(**doc) for doc in cls.__get_storage().find(query)]
+    def find(cls, query: dict=None, sort=None):
+        query = query or {}
+        sort = sort or []
+        return [cls(**doc) for doc in cls.__get_storage().find(query, sort)]
 
     def save(self):
         self.__get_storage().save(self)
 
     def update(self, query: dict, new_values: dict):
         query['id'] = self.id
-        self.__get_storage().update(query, new_values)
+        document = self.__get_storage().update(query, new_values)
+        if not document:
+            raise ModelNotFound()
+        return self.__class__(**document)
 
     def delete(self):
         self.__get_storage().delete(self)
@@ -141,7 +146,8 @@ class StartSession(Model):
         'oauth_data',
     ]
 
-    def __init__(self, user_id, oauth_data: dict):
+    def __init__(self, user_id, oauth_data: dict, **kwargs):
+        self.id = kwargs.get('id')
         self.user_id = user_id
         self.oauth_data = oauth_data
 
@@ -152,14 +158,17 @@ class TelegramUpdate(Model):
         'user_id',
         'request_type',
         'status_message_id',
+        'created',
         'data'
     ]
 
-    def __init__(self, user_id, request_type, status_message_id, data: dict):
+    def __init__(self, user_id, request_type, status_message_id, data: dict, **kwargs):
+        self.id = kwargs.get('id')
         self.user_id = user_id
         self.request_type = request_type
         self.status_message_id = status_message_id
         self.data = data
+        self.created = kwargs.get('created', datetime.datetime.now())
 
 
 class DownloadTask(Model):
@@ -172,6 +181,7 @@ class DownloadTask(Model):
     ]
 
     def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
         self.file_id = kwargs['file_id']
         self.file_size = kwargs['file_size']
         self.user_id = kwargs.get('user_id')
@@ -187,6 +197,7 @@ class User(Model):
         'mode',
         'evernote_access_token',
         'current_notebook',
+        'places',
     ]
 
     def __init__(self, **kwargs):
@@ -194,5 +205,6 @@ class User(Model):
         self.telegram_chat_id = kwargs['telegram_chat_id']
         self.state = kwargs.get('state')
         self.mode = kwargs.get('mode')
+        self.places = kwargs.get('places')
         self.evernote_access_token = kwargs.get('evernote_access_token')
         self.current_notebook = kwargs.get('current_notebook')

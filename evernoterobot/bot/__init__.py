@@ -68,7 +68,7 @@ class EvernoteBot(TelegramBot):
         return notebooks
 
     async def update_notebooks_cache(self, user):
-        key = "list_notebooks_{0}".format(user.user_id).encode()
+        key = "list_notebooks_{0}".format(user.id).encode()
         access_token = user.evernote_access_token
         notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in
                      self.evernote.list_notebooks(access_token)]

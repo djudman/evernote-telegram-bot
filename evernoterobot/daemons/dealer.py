@@ -58,11 +58,12 @@ class EvernoteDealer:
         updates_by_user = {}
         try:
             fetched_updates = []
-            for entry in TelegramUpdate.get_sorted(condition={'in_process': {'$exists': False}}):
-                update = TelegramUpdate.find_and_modify(
-                    query={'_id': entry._id, 'in_process': {'$exists': False}},
-                    update={'$set': {'in_process': True}})
-                fetched_updates.append(TelegramUpdate(**update))
+            for entry in TelegramUpdate.find({'in_process': {'$exists': False}}):
+                update = entry.update(
+                    {'in_process': {'$exists': False}},
+                    {'in_process': True}
+                )
+                fetched_updates.append(update)
             self.logger.debug('Fetched {0} updates'.format(len(fetched_updates)))
 
             for update in fetched_updates:
@@ -77,7 +78,7 @@ class EvernoteDealer:
 
     async def process_user_updates(self, user, update_list):
         start_ts = time.time()
-        self.logger.debug('Start update list processing (user_id = {0})'.format(user.user_id))
+        self.logger.debug('Start update list processing (user_id = {0})'.format(user.id))
         if user.mode == 'one_note':
             await self.update_note(user, update_list)
         elif user.mode == 'multiple_notes':
@@ -97,7 +98,7 @@ class EvernoteDealer:
                                                      '✅ {0} saved ({1} s)'.format(update.request_type.capitalize(),
                                                                                   time.time() - start_ts))
 
-        self.logger.debug('Done. (user_id = {0}). Processing takes {1} s'.format(user.user_id, time.time() - start_ts))
+        self.logger.debug('Done. (user_id = {0}). Processing takes {1} s'.format(user.id, time.time() - start_ts))
 
     async def update_note(self, user, updates):
         notebook_guid = user.current_notebook['guid']
@@ -206,7 +207,7 @@ class EvernoteDealer:
         task = DownloadTask.get({'file_id': file_id})
         while not task.completed:
             await asyncio.sleep(1)
-            task = DownloadTask.get({'_id': task._id})
+            task = DownloadTask.get({'id': task.id})
         return task.file, task.mime_type
 
 
