@@ -2,6 +2,7 @@ import logging
 from abc import abstractmethod
 
 from ext.telegram.api import BotApi
+from ext.telegram.models import TelegramUpdate, Message
 
 
 class TelegramBotError(Exception):
@@ -11,111 +12,92 @@ class TelegramBotError(Exception):
 
 class TelegramBot:
 
-    def __init__(self, token, bot_name):
+    def __init__(self, token, bot_name, **kwargs):
         self.api = BotApi(token)
         self.name = bot_name
         self.url = 'https://telegram.me/%s' % bot_name
         self.logger = logging.getLogger()
         self.commands = {}
+        if kwargs:
+            map(lambda name, value: setattr(self, name, value), kwargs.items())
 
-    def add_command(self, handler_class, force=False):
-        cmd_name = handler_class.name
+    def add_command(self, command_class, force=False):
+        cmd_name = command_class.name
         if cmd_name in self.commands and not force:
             raise TelegramBotError('Command "%s" already exists' % cmd_name)
-        self.commands[cmd_name] = handler_class
+        self.commands[cmd_name] = command_class
 
     async def handle_update(self, data: dict):
-        await self.on_before_handle_update(data)
+        update = TelegramUpdate(data)
+        await self.on_before_handle_update(update)
 
-        if 'message' in data:
-            await self.handle_message(data['message'])
-        elif 'inline_query' in data:
-            self.logger.info('Inline query: %s' % data)
-            # TODO: process inline query
-        elif 'chosen_inline_result' in data:
-            self.logger.info('Chosen inline result: %s' % data)
-            # TODO: process inline result
-        elif 'callback_query' in data:
-            self.logger.info('Callback query: %s' % data)
-            # TODO: process callback query
-        else:
-            raise TelegramBotError('Unsupported update %s' % data)
+        if update.message:
+            await self.handle_message(update.message)
+        # TODO: process inline query
+        # TODO: process inline result
+        # TODO: process callback query
 
     async def get_user(self, message):
         return message['from']['id']
 
-    async def handle_message(self, message: dict):
-        user = await self.get_user(message)
+    async def handle_message(self, message: Message):
+        user = message.user
 
-        await self.on_message_received(user, message)
+        await self.on_message_received(message)
 
-        if 'photo' in message:
-            await self.on_photo(user, message)
-        if 'video' in message:
-            await self.on_video(user, message)
-        elif 'document' in message:
-            await self.on_document(user, message)
-        elif 'voice' in message:
-            await self.on_voice(user, message)
-        elif 'location' in message:
-            await self.on_location(user, message)
+        if message.photos:
+            await self.on_photo(message)
+        if message.video:
+            await self.on_video(message)
+        if message.document:
+            await self.on_document(message)
+        if message.voice:
+            await self.on_voice(message)
+        if message.location:
+            await self.on_location(message)
+
+        commands = [cmd.replace('/', '') for cmd in message.bot_commands or []]
+        for cmd in commands:
+            await self.execute_command(cmd, message)
         else:
-            commands = []
-            for entity in message.get('entities', []):
-                if entity['type'] == 'bot_command':
-                    offset = entity['offset']
-                    length = entity['length']
-                    cmd = message.get('text', '')[offset:length]
-                    if cmd.startswith('/'):
-                        cmd = cmd.replace('/', '')
-                    commands.append(cmd)
+            text = message.text
+            if text:
+                await self.on_text(message)
 
-            if commands:
-                for cmd in commands:
-                    await self.execute_command(cmd, user, message)
-            else:
-                text = message.get('text')
-                if text:
-                    await self.on_text(user, message, text)
+        await self.on_message_processed(message)
 
-        await self.on_message_processed(user, message)
-
-    async def execute_command(self, cmd_name: str, user, message):
+    async def execute_command(self, cmd_name: str, message: Message):
         CommandClass = self.commands.get(cmd_name)
         if not CommandClass:
             raise TelegramBotError('Command "%s" not found' % cmd_name)
         obj = CommandClass(self)
-        result = await obj.execute(user, message)
-        await self.on_command_completed(cmd_name, user, result)
+        await obj.execute(message)
 
-    async def on_before_handle_update(self, data):
+    async def on_before_handle_update(self, update: TelegramUpdate):
         pass
 
-    async def on_command_completed(self, cmd_name, user, result):
+    async def on_message_received(self, message: Message):
         pass
 
-    async def on_message_received(self, user, message):
+    async def on_message_processed(self, message: Message):
         pass
 
-    async def on_message_processed(self, user, message):
+    async def on_photo(self, message: Message):
         pass
 
-    async def on_photo(self, user, message):
+    async def on_video(self, message: Message):
         pass
 
-    async def on_video(self, user, message):
+    async def on_document(self, message: Message):
         pass
 
-    async def on_document(self, user, message):
+    async def on_voice(self, message: Message):
         pass
 
-    async def on_voice(self, user, message):
+    async def on_location(self, message: Message):
         pass
 
-    async def on_location(self, user, message):
-        pass
-
-    async def on_text(self, user, message, text):
+    async def on_text(self, message: Message):
         pass
 
 
@@ -129,5 +111,5 @@ class TelegramBotCommand:
             'You must define command name with "name" class attribute'
 
     @abstractmethod
-    async def execute(self, user, message):
+    async def execute(self, message: Message):
         pass

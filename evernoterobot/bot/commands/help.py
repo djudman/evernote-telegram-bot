@@ -1,19 +1,20 @@
 from ext.telegram.bot import TelegramBotCommand
+from ext.telegram.models import Message
 
 
 class HelpCommand(TelegramBotCommand):
 
     name = 'help'
 
-    async def execute(self, user, message):
+    async def execute(self, message: Message):
         text = '''This is bot for Evernote (https://evernote.com).
 
 Just send message to bot and it creates note in your Evernote notebook. You can send to bot:
 
 * text
-* photo (size < 12 Mb)
-* file (size < 12 Mb)
-* voice message (size < 12 Mb)
+* photo (size < 12 Mb) - Telegram restriction
+* file (size < 12 Mb) - Telegram restriction
+* voice message (size < 12 Mb) - Telegram restriction
 * location
 
 Bot can works in two modes
@@ -30,10 +31,8 @@ Note that every time you select "One note" mode, new note will be created and se
 Also, you can switch your current notebook with command /notebook
 Note that every time you switch notebook in mode "One note", new note will be created in selected notebook.
 
+We are sorry for low speed, but Evernote API are slow (about 1-2 sec per request).
 
-This bot is open source: https://github.com/djudman/evernote-telegram-bot
-
-Authors:
-    Dorofeev Dmitrii, djudman@gmail.com
+Contacts: djudman@gmail.com
 '''
-        await self.bot.api.sendMessage(user.telegram_chat_id, text)
+        await self.bot.api.sendMessage(message.chat.id, text)

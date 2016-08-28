@@ -51,3 +51,10 @@ def test_document(document_update: str):
     assert update.message.document.file_id
     assert update.message.document.file_name
     assert update.message.document.mime_type
+
+
+def test_command(command_update: str):
+    update = TelegramUpdate(json.loads(command_update))
+    assert update.message.bot_commands
+    assert len(update.message.bot_commands) == 1
+    assert update.message.bot_commands[0] == '/help'

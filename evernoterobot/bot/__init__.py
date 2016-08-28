@@ -11,6 +11,7 @@ import settings
 from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask
 from ext.evernote.client import EvernoteClient
 from ext.telegram.bot import TelegramBot, TelegramBotCommand
+from ext.telegram.models import Message
 
 
 def get_commands(cmd_dir=None):
@@ -54,8 +55,8 @@ class EvernoteBot(TelegramBot):
         for cmd_class in get_commands():
             self.add_command(cmd_class)
 
-    async def list_notebooks(self, user):
-        key = "list_notebooks_{0}".format(user.user_id).encode()
+    async def list_notebooks(self, user: User):
+        key = "list_notebooks_{0}".format(user.id).encode()
         data = await self.cache.get(key)
         if not data:
             access_token = user.evernote_access_token
@@ -136,15 +137,18 @@ class EvernoteBot(TelegramBot):
             await self.api.editMessageText(
                 user.telegram_chat_id, reply["message_id"], text)
 
-    async def accept_request(self, user, request_type, data):
+    async def accept_request(self, user: User, request_type: str, data):
+        # TODO: get user_id instead of user
         reply = await self.api.sendMessage(user.telegram_chat_id,
                                            '🔄 Accepted')
-        TelegramUpdate.create(user_id=user.user_id,
+        TelegramUpdate.create(user_id=user.id,
                               request_type=request_type,
                               status_message_id=reply['message_id'],
                               data=data)
 
-    async def on_text(self, user, message, text):
+    async def on_text(self, message: Message):
+        user = User.get({'id': message.user.id})
+        text = message.text
         if user.state == 'select_notebook':
             if text.startswith('> ') and text.endswith(' <'):
                 text = text[2:-2]
@@ -154,38 +158,43 @@ class EvernoteBot(TelegramBot):
         else:
             await self.accept_request(user, 'text', message)
 
-    async def on_photo(self, user, message):
+    async def on_photo(self, message: Message):
+        user = User.get({'id': message.user.id})
         await self.accept_request(user, 'photo', message)
         files = sorted(message['photo'], key=lambda x: x.get('file_size'),
                        reverse=True)
-        DownloadTask.create(user_id=user.user_id,
+        DownloadTask.create(user_id=user.id,
                             file_id=files[0]['file_id'],
                             file_size=files[0]['file_size'],
                             completed=False)
 
-    async def on_video(self, user, message):
+    async def on_video(self, message: Message):
+        user = User.get({'id': message.user.id})
         await self.accept_request(user, 'video', message)
         video = message['video']
-        DownloadTask.create(user_id=user.user_id,
+        DownloadTask.create(user_id=user.id,
                             file_id=video['file_id'],
                             file_size=video['file_size'],
                             completed=False)
 
-    async def on_document(self, user, message):
+    async def on_document(self, message: Message):
+        user = User.get({'id': message.user.id})
         await self.accept_request(user, 'document', message)
         document = message['document']
-        DownloadTask.create(user_id=user.user_id,
+        DownloadTask.create(user_id=user.id,
                             file_id=document['file_id'],
                             file_size=document['file_size'],
                             completed=False)
 
-    async def on_voice(self, user, message):
+    async def on_voice(self, message: Message):
+        user = User.get({'id': message.user.id})
         await self.accept_request(user, 'voice', message)
         voice = message['voice']
-        DownloadTask.create(user_id=user.user_id,
+        DownloadTask.create(user_id=user.id,
                             file_id=voice['file_id'],
                             file_size=voice['file_size'],
                             completed=False)
 
-    async def on_location(self, user, message):
+    async def on_location(self, message: Message):
+        user = User.get({'id': message.user.id})
         await self.accept_request(user, 'location', message)

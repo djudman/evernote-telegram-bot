@@ -12,9 +12,9 @@ class Chat:
         self.id = data['id']
         self.type = data['type']
 
-class User:
+class TelegramUser:
     def __init__(self, data: dict):
-        self.user_id = data['id']
+        self.id = data['id']
         self.last_name = data.get('last_name')
         self.first_name = data.get('first_name')
         self.username = data.get('username')
@@ -65,9 +65,9 @@ class Entity:
 
 class Message:
     def __init__(self, data: dict):
-        self.message_id = data['message_id']
+        self.id = data['message_id']
         self.date = data['date']
-        self.user = User(data['from'])
+        self.user = TelegramUser(data['from'])
         self.caption = data.get('caption')
         self.chat = Chat(data['chat'])
         self.text = data.get('text')
