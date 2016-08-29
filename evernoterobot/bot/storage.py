@@ -120,12 +120,12 @@ class MongoStorage(Storage):
         super().__init__(config, **kwargs)
 
     def __get_collection(self) -> Collection:
-        if not self.__collection:
+        if not hasattr(self, '__collection'):
             uri = 'mongodb://{0}:{1}/{2}'.format(self.config['host'],
                                                  self.config['port'],
                                                  self.config['db'])
             client = MongoClient(uri)
-            self.__collection = client[self.collection]
+            self.__collection = client.get_default_database()[self.collection]
         return self.__collection
 
     def __prepare_query(self, query: dict):
@@ -141,12 +141,19 @@ class MongoStorage(Storage):
 
     def get(self, query: dict):
         collection = self.__get_collection()
-        return collection.find_one(self.__prepare_query(query))
+        document = collection.find_one(self.__prepare_query(query))
+        if document:
+            document['id'] = document['_id']
+            del document['_id']
+            return document
 
     def find(self, query: dict, sort: List[Tuple]):
         collection = self.__get_collection()
         cursor = collection.find(self.__prepare_query(query), sort=sort)
-        return cursor
+        for document in cursor:
+            document['id'] = document['_id']
+            del document['_id']
+            yield document
 
     def save(self, model: Model):
         data = model.save_data()

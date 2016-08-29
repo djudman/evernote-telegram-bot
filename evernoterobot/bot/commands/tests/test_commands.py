@@ -17,7 +17,7 @@ from ext.telegram.conftest import text_update
 async def test_help_command(testbot: EvernoteBot, text_update: str):
     update = TelegramUpdate(json.loads(text_update))
     help_cmd = HelpCommand(testbot)
-    user = User.create(user_id=1, telegram_chat_id=update.message.chat.id)
+    user = User.create(id=1, telegram_chat_id=update.message.chat.id)
     await help_cmd.execute(update.message)
 
     assert testbot.api.sendMessage.call_count == 1
