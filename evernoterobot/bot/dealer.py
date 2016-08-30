@@ -4,11 +4,10 @@ import time
 from typing import List
 
 import settings
-from bot.model import TelegramUpdate, User
-from daemons.message_handlers import TextHandler, PhotoHandler, VideoHandler, \
+from bot.message_handlers import TextHandler, PhotoHandler, VideoHandler, \
     DocumentHandler, VoiceHandler, LocationHandler
+from bot.model import TelegramUpdate, User
 from ext.telegram.api import BotApi
-from .daemon import Daemon
 
 
 class EvernoteDealer:
@@ -100,10 +99,3 @@ class EvernoteDealer:
         if not self.__handlers.get(request_type):
             self.__handlers[request_type] = []
         self.__handlers[request_type].append(handler_class())
-
-
-class EvernoteDealerDaemon(Daemon):
-
-    def run(self):
-        dealer = EvernoteDealer()
-        dealer.run()

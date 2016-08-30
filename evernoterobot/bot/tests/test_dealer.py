@@ -1,15 +1,15 @@
 import json
-
-import pytest
 import os
 from os.path import exists
 
+import evernote.edam.type.ttypes as Types
+import pytest
+
 from bot import TelegramUpdate
 from bot import User
+from bot.dealer import EvernoteDealer
 from conftest import AsyncMock
 from ext.telegram.conftest import text_update
-from daemons.dealer import EvernoteDealer
-import evernote.edam.type.ttypes as Types
 
 
 @pytest.mark.async_test

@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
 import argparse
-import sys
 import logging.config
+import sys
 from os.path import dirname, realpath, join
 
 sys.path.insert(0, realpath(dirname(__file__)))
 
-from daemons.dealer import EvernoteDealerDaemon
-from daemons.downloader import TelegramDownloaderDaemon
+from daemons import EvernoteDealerDaemon, TelegramDownloaderDaemon
 import settings
 
 logging.config.dictConfig(settings.LOG_SETTINGS)

@@ -7,7 +7,6 @@ import aiohttp
 
 import settings
 from bot import DownloadTask
-from daemons.daemon import Daemon
 from ext.telegram.api import BotApi
 
 
@@ -108,14 +107,3 @@ class TelegramDownloader:
             )
             futures.append(asyncio.ensure_future(self.handle_download_task(entry)))
         return futures
-
-
-class TelegramDownloaderDaemon(Daemon):
-
-    def __init__(self, pidfile, download_dir=None):
-        super().__init__(pidfile)
-        self.download_dir = download_dir
-
-    def run(self):
-        downloader = TelegramDownloader(self.download_dir)
-        downloader.run()

@@ -1,17 +1,17 @@
 import asyncio
-import os
-from os.path import dirname, join, realpath, exists
-import shutil
-import string
-import random
 import logging
 import logging.config
+import os
+import random
+import shutil
+import string
+from os.path import dirname, join, realpath, exists
+
 import pytest
 
-from daemons.downloader import TelegramDownloader
-from bot.model import DownloadTask
 import settings
-
+from bot.downloader import TelegramDownloader
+from bot.model import DownloadTask
 
 tmp_dir = join(realpath(dirname(__file__)), 'tmp')
 download_dir = join(tmp_dir, "".join([random.choice(string.ascii_letters) for i in range(10)]))
