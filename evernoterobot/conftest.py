@@ -9,6 +9,7 @@ import pytest
 from pymongo import MongoClient
 
 from bot import EvernoteBot
+from bot.model import Model
 
 sys.path.insert(0, realpath(dirname(__file__)))
 
@@ -108,8 +109,10 @@ def testbot():
     bot.api.sendMessage = AsyncMock(return_value={'message_id': 1})
     bot.evernote = AsyncMock()
     bot.evernote.get_oauth_data = Mock(return_value={'oauth_url': 'test_oauth_url'})
-    bot.list_notebooks = AsyncMock(
-        return_value=[{ 'guid': '1', 'name': 'test_notebook' }]
+    bot.evernote.list_notebooks = Mock(
+        return_value=[Model(guid='1', name='test_notebook')]
     )
+    bot.cache.get = AsyncMock(return_value=None)
+    bot.cache.set = AsyncMock()
     bot.update_notebooks_cache = AsyncMock()
     return bot

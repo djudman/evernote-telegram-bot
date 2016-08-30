@@ -144,7 +144,7 @@ class EvernoteBot(TelegramBot):
         TelegramUpdate.create(user_id=user.id,
                               request_type=request_type,
                               status_message_id=reply['message_id'],
-                              data=message.raw)
+                              message=message.raw)
 
     async def on_text(self, message: Message):
         user = User.get({'id': message.user.id})

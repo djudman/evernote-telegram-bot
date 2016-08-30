@@ -159,16 +159,19 @@ class TelegramUpdate(Model):
         'request_type',
         'status_message_id',
         'created',
-        'data'
+        'message',
     ]
 
-    def __init__(self, user_id, request_type, status_message_id, data: dict, **kwargs):
+    def __init__(self, user_id, request_type, status_message_id, message: dict, **kwargs):
         self.id = kwargs.get('id')
         self.user_id = user_id
         self.request_type = request_type
         self.status_message_id = status_message_id
-        self.data = data
+        self.message = message
         self.created = kwargs.get('created', datetime.datetime.now())
+
+    def has_file(self):
+        return self.request_type.lower() in ['photo', 'document', 'voice', 'video']
 
 
 class DownloadTask(Model):

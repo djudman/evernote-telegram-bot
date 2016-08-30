@@ -1,17 +1,12 @@
 import asyncio
 import logging
 import time
-import traceback
-import os
-
-import aiomcache
+from typing import List
 
 import settings
-from bot.model import TelegramUpdate, User, DownloadTask
-from daemons.downloader import TelegramDownloader
-from ext.evernote.api import NoteNotFound
-from ext.evernote.client import NoteContent, Types
-from ext.evernote.provider import NoteProvider
+from bot.model import TelegramUpdate, User
+from daemons.message_handlers import TextHandler, PhotoHandler, VideoHandler, \
+    DocumentHandler, VoiceHandler, LocationHandler
 from ext.telegram.api import BotApi
 from .daemon import Daemon
 
@@ -19,17 +14,22 @@ from .daemon import Daemon
 class EvernoteDealer:
 
     def __init__(self, loop=None):
-        self._loop = loop or asyncio.get_event_loop()
-        self._telegram_api = BotApi(settings.TELEGRAM['token'])
         self.logger = logging.getLogger('dealer')
-        self.cache = aiomcache.Client("127.0.0.1", 11211)
-        self._note_provider = NoteProvider(self._loop)
-        self.downloader = TelegramDownloader('/tmp/')
+        self._telegram_api = BotApi(settings.TELEGRAM['token'])
+        self.__loop = loop or asyncio.get_event_loop()
+        self.__handlers = {}
+
+        self.register_handler('text', TextHandler)
+        self.register_handler('photo', PhotoHandler)
+        self.register_handler('video', VideoHandler)
+        self.register_handler('document', DocumentHandler)
+        self.register_handler('voice', VoiceHandler)
+        self.register_handler('location', LocationHandler)
 
     def run(self):
         try:
             asyncio.ensure_future(self.async_run())
-            self._loop.run_forever()
+            self.__loop.run_forever()
             self.logger.info('Dealer done.')
         except Exception as e:
             self.logger.fatal('Dealer fail')
@@ -76,139 +76,30 @@ class EvernoteDealer:
             self.logger.error(err, exc_info=1)
         return updates_by_user
 
-    async def process_user_updates(self, user, update_list):
+    async def process_user_updates(self, user, update_list: List[TelegramUpdate]):
         start_ts = time.time()
         self.logger.debug('Start update list processing (user_id = {0})'.format(user.id))
-        if user.mode == 'one_note':
-            await self.update_note(user, update_list)
-        elif user.mode == 'multiple_notes':
-            for update in update_list:
-                try:
-                    await self.create_note(user, update)
-                except Exception as e:
-                    # TODO: put failed update data to special collection
-                    self.logger.error(e, exc_info=1)
-        else:
-            raise Exception('Invalid user mode {0}'.format(user.mode))
+        for update in update_list:
+            try:
+                for handler in self.__handlers[update.request_type]:
+                    await handler.execute(user, update)
+
+                text = '✅ {0} saved ({1} s)'.format(update.request_type.capitalize(), time.time() - start_ts)
+                await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id, text)
+            except Exception as e:
+                self.logger.error(e, exc_info=1)
+                # TODO: add update to failed updates collection
 
         self.logger.debug('Cleaning up...')
         for update in update_list:
             update.delete()
-            await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id,
-                                                     '✅ {0} saved ({1} s)'.format(update.request_type.capitalize(),
-                                                                                  time.time() - start_ts))
 
         self.logger.debug('Done. (user_id = {0}). Processing takes {1} s'.format(user.id, time.time() - start_ts))
 
-    async def update_note(self, user, updates):
-        notebook_guid = user.current_notebook['guid']
-        note_guid = user.places.get(notebook_guid)
-        if not note_guid:
-            raise Exception('There are no default note in notebook {0}'.format(user.current_notebook['name']))
-
-        try:
-            note = await self._note_provider.get_note(user.evernote_access_token, note_guid)
-        except NoteNotFound:
-            self.logger.warning("Note {0} not found. Creating new note".format(note_guid))
-            note = await self.create_note(user, updates[0], 'Note for Evernoterobot')
-            updates = updates[1:]
-            user.places[notebook_guid] = note.guid
-            user.save()
-
-        content = NoteContent(note)
-        for update in updates:
-            if update.request_type in ['photo', 'document', 'voice', 'video']:
-                new_note = await self.create_note(user, update, update.request_type.capitalize())
-                note_link = await self._note_provider.get_note_link(user.evernote_access_token, new_note)
-                content.add_text('{0}: <a href="{1}">{1}</a>'.format(update.request_type.capitalize(), note_link))
-            else:
-                await self.update_content(content, update)
-        note.resources = content.get_resources()
-        note.content = str(content)
-        await self._note_provider.update_note(user.evernote_access_token, note)
-
-    async def create_note(self, user, update, title=None):
-        notebook_guid = user.current_notebook['guid']
-        text = update.data.get('text') or update.data.get('caption') or ''
-        note = Types.Note()
-        if title is None:
-            title = update.request_type
-        note.title = title or ('%s...' % text[:25] if len(text) > 30 else text)
-        note.notebookGuid = notebook_guid
-        content = NoteContent(note)
-        await self.update_content(content, update)
-        note.resources = content.get_resources()
-        note.content = str(content)
-        return await self._note_provider.save_note(user.evernote_access_token, note)
-
-    async def update_content(self, content, telegram_update):
-        request_type = telegram_update.request_type or 'text'
-        if request_type == 'text':
-            content.add_text(telegram_update.data.get('text', ''))
-        elif request_type == 'photo':
-            files = telegram_update.data.get('photo')
-            files = sorted(files, key=lambda x: x.get('file_size'), reverse=True)
-            file_path, mime_type = await self.get_downloaded_file(file_id=files[0]['file_id'])
-            content.add_file(file_path, mime_type)
-        elif request_type == 'document':
-            file_id = telegram_update.data['document']['file_id']
-            file_path, mime_type = await self.get_downloaded_file(file_id=file_id)
-            content.add_file(file_path, mime_type)
-        elif request_type == 'video':
-            file_id = telegram_update.data['video']['file_id']
-            file_path, mime_type = await self.get_downloaded_file(file_id=file_id)
-            content.add_file(file_path, mime_type)
-        elif request_type == 'voice':
-            file_id = telegram_update.data['voice']['file_id']
-            ogg_file_path, mime_type = await self.get_downloaded_file(file_id=file_id)
-
-            mime_type = 'audio/wav'
-            wav_filename = "{0}.wav".format(ogg_file_path)
-            try:
-                # convert to wav
-                os.system('opusdec %s %s' % (ogg_file_path, wav_filename))
-            except Exception:
-                self.logger.error("Can't convert ogg to wav, %s" %
-                                  traceback.format_exc())
-                wav_filename = ogg_file_path
-                mime_type = 'audio/ogg'
-
-            content.add_file(wav_filename, mime_type)
-        elif request_type == 'location':
-            location = telegram_update.data['location']
-            latitude = location['latitude']
-            longitude = location['longitude']
-            maps_url = "https://maps.google.com/maps?q=%(lat)f,%(lng)f" % {
-                'lat': latitude,
-                'lng': longitude,
-            }
-            title = 'Location'
-            text = "<a href='%(url)s'>%(url)s</a>" % {'url': maps_url}
-
-            venue = telegram_update.data.get('venue')
-            if venue:
-                address = venue.get('address', '')
-                title = venue.get('title', '')
-                text = "%(title)s<br />%(address)s<br />\
-                    <a href='%(url)s'>%(url)s</a>" % {
-                    'title': title,
-                    'address': address,
-                    'url': maps_url
-                }
-                foursquare_id = venue.get('foursquare_id')
-                if foursquare_id:
-                    url = "https://foursquare.com/v/%s" % foursquare_id
-                    text += "<br /><a href='%(url)s'>%(url)s</a>" % {'url': url}
-            content.add_text(text)
-        else:
-            raise Exception('Unsupported request type %s' % request_type)
-
-    async def get_downloaded_file(self, file_id):
-        task = DownloadTask.get({'file_id': file_id})
-        while not task.completed:
-            await asyncio.sleep(1)
-            task = DownloadTask.get({'id': task.id})
-        return task.file, task.mime_type
+    def register_handler(self, request_type, handler_class):
+        if not self.__handlers.get(request_type):
+            self.__handlers[request_type] = []
+        self.__handlers[request_type].append(handler_class())
 
 
 class EvernoteDealerDaemon(Daemon):
