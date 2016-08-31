@@ -6,7 +6,7 @@ from typing import List
 import settings
 from bot.message_handlers import TextHandler, PhotoHandler, VideoHandler, \
     DocumentHandler, VoiceHandler, LocationHandler
-from bot.model import TelegramUpdate, User
+from bot.model import TelegramUpdate, User, FailedUpdate
 from ext.telegram.api import BotApi
 
 
@@ -87,7 +87,7 @@ class EvernoteDealer:
                 await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id, text)
             except Exception as e:
                 self.logger.error(e, exc_info=1)
-                # TODO: add update to failed updates collection
+                FailedUpdate.create(**update.save_data())
 
         self.logger.debug('Cleaning up...')
         for update in update_list:

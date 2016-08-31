@@ -51,9 +51,10 @@ class Storage:
 
 class MemoryStorage(Storage):
 
+    _items = {}
+
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
-        self._items = {}
 
     def _check_query(self, entry: dict, query: dict):
         matched = True

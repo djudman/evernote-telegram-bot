@@ -35,6 +35,8 @@ class ModelNotFound(Exception):
 
 class Model:
 
+    storage = None
+
     def __init__(self, **kwargs):
         self.id = None
         if not hasattr(self, 'save_fields'):
@@ -44,7 +46,7 @@ class Model:
 
     @classmethod
     def __get_storage(cls):
-        if hasattr(cls, 'storage'):
+        if cls.storage:
             return cls.storage
         path = STORAGE['class'].split('.')
         classname = str(path[-1:][0])
@@ -52,7 +54,7 @@ class Model:
         module = importlib.import_module(module_name)
         for name, klass in inspect.getmembers(module):
             if name == classname:
-                cls.storage = klass(STORAGE, collection=classname.lower())
+                cls.storage = klass(STORAGE, collection=cls.__name__.lower())
                 return cls.storage
         raise Exception('Class {0} not found'.format(STORAGE['class']))
 
@@ -172,6 +174,29 @@ class TelegramUpdate(Model):
 
     def has_file(self):
         return self.request_type.lower() in ['photo', 'document', 'voice', 'video']
+
+
+class FailedUpdate(TelegramUpdate):
+
+    save_fields = [
+        'user_id',
+        'request_type',
+        'status_message_id',
+        'message',
+        'failed_at',
+        'error',
+    ]
+
+    def __init__(self, user_id, request_type, status_message_id, message, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = user_id
+        self.request_type = request_type
+        self.status_message_id = status_message_id
+        self.message = message
+        self.failed_at = kwargs.get('failed_at', datetime.datetime.now())
+        self.error = kwargs.get('error')
+        if 'error' not in self.save_fields:
+            self.save_fields.append('error')
 
 
 class DownloadTask(Model):
