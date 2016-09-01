@@ -158,17 +158,20 @@ class MongoStorage(Storage):
 
     def save(self, model: Model):
         data = model.save_data()
-        if 'id' in data:
+        if 'id' in data and data['id']:
             data['_id'] = data['id']
             del data['id']
         if '_id' in data and not data['_id']:
             del(data['_id'])
         collection = self.__get_collection()
-        collection.save(data)
+        return collection.save(data)
 
     def update(self, query: dict, new_values: dict):
         collection = self.__get_collection()
-        return collection.find_and_modify(self.__prepare_query(query), {'$set': new_values})
+        document = collection.find_and_modify(self.__prepare_query(query), {'$set': new_values})
+        document['id'] = document['_id']
+        del document['_id']
+        return document
 
     def delete(self, model: Model):
         collection = self.__get_collection()
