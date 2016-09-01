@@ -110,9 +110,9 @@ class EvernoteBot(TelegramBot):
                                        'Please, select notebook')
 
     async def set_mode(self, user, mode):
-        text_mode = mode
         if mode.startswith('> ') and mode.endswith(' <'):
             mode = mode[2:-2]
+        text_mode = '{0}'.format(mode)
         mode = mode.replace(' ', '_').lower()
 
         await self.api.sendMessage(

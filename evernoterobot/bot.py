@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import logging.config
 import sys
@@ -103,16 +105,19 @@ def reload():
     print(green('OK'))
 
 
-def process_failed():
+def process_failed_updates():
+    # TODO:
     pass
 
 
 if __name__ == "__main__":
     command_handlers = {
         'start': start,
+        'restart': restart,
         'stop': stop,
         'reload': reload,
         'status': status,
+        # 'fix-failed': process_failed_updates(),
     }
 
     parser = argparse.ArgumentParser()
