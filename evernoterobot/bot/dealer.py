@@ -83,7 +83,7 @@ class EvernoteDealer:
                 for handler in self.__handlers[update.request_type]:
                     await handler.execute(user, update)
 
-                text = '✅ {0} saved ({1} s)'.format(update.request_type.capitalize(), time.time() - start_ts)
+                text = '✅ {0} saved ({1:.2} s)'.format(update.request_type.capitalize(), time.time() - start_ts)
                 await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id, text)
             except Exception as e:
                 self.logger.error(e, exc_info=1)

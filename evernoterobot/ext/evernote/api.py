@@ -1,4 +1,5 @@
 import asyncio
+import time
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
@@ -36,12 +37,13 @@ class AsyncEvernoteApi:
 
     def __call_store_method(self, method_name, auth_token, *args, **kwargs):
         try:
-            self.logger.debug("Start call '{0}' with args: {1}, kwargs: {2}".format(method_name, args, kwargs))
+            start_time = time.time()
+            self.logger.debug("Start call '{0}'".format(method_name))
             sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
             note_store = sdk.get_note_store()
             method = getattr(note_store, method_name)
             result = method(*args, **kwargs)
-            self.logger.debug("Finish call '{0}'".format(method_name))
+            self.logger.debug("Finish call '{0}' in {1} sec".format(method_name, time.time() - start_time))
             return result
         except ErrorTypes.EDAMNotFoundException:
             exc_info = ExceptionInfo(NoteNotFound, 'Note not found')
