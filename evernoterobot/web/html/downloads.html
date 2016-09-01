@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<table>
+    <tr>
+        <td>File ID</td>
+        <td>File size</td>
+        <td>Completed</td>
+        <td>User ID</td>
+        <td>Mime type</td>
+        <td>File</td>
+    </tr>
+    {% for task in list_downloads %}
+    <tr>
+        <td>{{ task.file_id }}</td>
+        <td>{{ task.file_size }}</td>
+        <td>{{ task.completed }}</td>
+        <td>{{ task.user_id }}</td>
+        <td>{{ task.mime_type }}</td>
+        <td>{{ task.file }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

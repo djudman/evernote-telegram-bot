@@ -1,4 +1,5 @@
 aiohttp==0.21.5
+aiohttp-jinja2==0.8.0
 aiomcache==0.3.0
 chardet==2.3.0
 greenlet==0.4.10
@@ -11,3 +12,4 @@ pytest==2.9.2
 pytest-cov==2.3.1
 requests==2.10.0
 requests-oauthlib==0.6.1
+Jinja2==2.8

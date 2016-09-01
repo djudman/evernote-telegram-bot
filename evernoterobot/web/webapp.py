@@ -1,8 +1,12 @@
 import sys
 import logging.config
-from os.path import realpath, dirname
+from os.path import realpath, dirname, join
 
 import aiohttp.web
+import aiohttp_jinja2
+import jinja2
+
+from web.dashboard import list_downloads, list_failed_updates
 
 sys.path.insert(0, realpath(dirname(dirname(__file__))))
 
@@ -20,8 +24,18 @@ bot = EvernoteBot(settings.TELEGRAM['token'], 'evernoterobot')
 app = aiohttp.web.Application()
 app.logger = logging.getLogger()
 
+aiohttp_jinja2.setup(app,
+    loader=jinja2.FileSystemLoader(
+        join(dirname(__file__), 'html')
+    )
+)
+
+secret_key = settings.SECRET['secret_key']
+
 app.router.add_route('POST', '/%s' % settings.TELEGRAM['token'], handle_update)
 app.router.add_route('GET', '/evernote/oauth', oauth_callback)
+app.router.add_route('GET', '/downloads/%s' % secret_key, list_downloads)
+app.router.add_route('GET', '/failed_updates/%s' % secret_key, list_failed_updates)
 
 if settings.DEBUG:
     app.router.add_route('GET', '/', handle_update)

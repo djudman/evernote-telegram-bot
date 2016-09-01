@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<table>
+    <tr>
+        <td>Failed at</td>
+        <td>Request type</td>
+        <td>Message</td>
+        <td>Error</td>
+    </tr>
+    {% for update in failed_updates %}
+    <tr>
+        <td>{{ update.failed_at }}</td>
+        <td>{{ update.request_type }}</td>
+        <td>{{ update.message }}</td>
+        <td>{{ update.error }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
