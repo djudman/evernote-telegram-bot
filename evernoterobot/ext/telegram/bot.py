@@ -57,8 +57,9 @@ class TelegramBot:
             await self.on_location(message)
 
         commands = [cmd.replace('/', '') for cmd in message.bot_commands or []]
-        for cmd in commands:
-            await self.execute_command(cmd, message)
+        if commands:
+            for cmd in commands:
+                await self.execute_command(cmd, message)
         else:
             text = message.text
             if text:
