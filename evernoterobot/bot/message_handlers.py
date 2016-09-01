@@ -97,6 +97,9 @@ class FileHandler(BaseHandler):
             assert task.completed
             assert task.file
             os.unlink(task.file)
+            wav_file = "{0}.wav".format(task.file)
+            if os.path.exists(wav_file):
+                os.unlink(wav_file)
             task.delete()
         except Exception as e:
             self.logger.fatal('{0} cleanup failed: {1}'.format(self.__class__.__name__, e), exc_info=1)
