@@ -188,12 +188,12 @@ class EvernoteBot(TelegramBot):
 
     async def on_voice(self, message: Message):
         user = User.get({'id': message.user.id})
-        await self.accept_request(user, 'voice', message)
         voice = message['voice']
         DownloadTask.create(user_id=user.id,
                             file_id=voice['file_id'],
                             file_size=voice['file_size'],
                             completed=False)
+        await self.accept_request(user, 'voice', message)
 
     async def on_location(self, message: Message):
         user = User.get({'id': message.user.id})
