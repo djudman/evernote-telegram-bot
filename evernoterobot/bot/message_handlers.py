@@ -128,8 +128,11 @@ class VideoHandler(FileHandler):
 
 class VoiceHandler(FileHandler):
 
+    def get_file_id(self, message: Message):
+        return message.voice.file_id
+
     async def update_content(self, content: NoteContent, message: Message):
-        file_id = message.voice.file_id
+        file_id = self.get_file_id(message)
         ogg_file_path, mime_type = await self.get_downloaded_file(file_id)
 
         mime_type = 'audio/wav'
