@@ -92,7 +92,7 @@ class FileHandler(BaseHandler):
 
     async def cleanup(self, user: User, update: TelegramUpdate):
         try:
-            file_id = self.get_file_id(update.message)
+            file_id = self.get_file_id(Message(update.message))
             task = DownloadTask.get({'file_id': file_id})
             assert task.completed
             assert task.file
