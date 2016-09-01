@@ -144,15 +144,15 @@ class LocationHandler(BaseHandler):
 
         if hasattr(message, 'venue'):
             venue = message.venue
-            address = venue.get('address', '')
-            title = venue.get('title', '')
+            address = venue.address
+            title = venue.title
             text = "%(title)s<br />%(address)s<br />\
                 <a href='%(url)s'>%(url)s</a>" % {
                 'title': title,
                 'address': address,
                 'url': maps_url
             }
-            foursquare_id = venue.get('foursquare_id')
+            foursquare_id = venue.foursquare_id
             if foursquare_id:
                 url = "https://foursquare.com/v/%s" % foursquare_id
                 text += "<br /><a href='%(url)s'>%(url)s</a>" % {'url': url}
