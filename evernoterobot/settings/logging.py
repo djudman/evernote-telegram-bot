@@ -150,12 +150,12 @@ LOG_SETTINGS = {
         },
         'downloader': {
             'level': 'DEBUG',
-            'handlers': ['downloader_file', 'stdout'],
+            'handlers': ['downloader_file', 'stdout', 'email'],
             'propagate': True,
         },
         '': {
             'level': 'DEBUG',
-            'handlers': ['file'],
+            'handlers': ['file', 'email'],
             'propagate': True,
         },
     },
