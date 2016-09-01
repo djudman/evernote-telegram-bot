@@ -37,7 +37,7 @@ Please tap on button below to link your Evernote account with bot.'''
         except ModelNotFound:
             User.create(id=user_id,
                         telegram_chat_id=chat_id,
-                        mode='one_note',
+                        mode='multiple_notes',
                         username=message.user.username,
                         first_name=message.user.first_name,
                         last_name=message.user.last_name)
