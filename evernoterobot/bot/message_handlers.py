@@ -69,6 +69,9 @@ class BaseHandler:
     async def update_content(self, content: NoteContent, message: Message):
         content.add_text(message.text)
 
+    async def cleanup(self, user: User, update: TelegramUpdate):
+        update.delete()
+
 
 class FileHandler(BaseHandler):
 
@@ -86,6 +89,18 @@ class FileHandler(BaseHandler):
             await asyncio.sleep(1)
             task = DownloadTask.get({'id': task.id})
         return task.file, task.mime_type
+
+    async def cleanup(self, user: User, update: TelegramUpdate):
+        try:
+            file_id = self.get_file_id(update.message)
+            task = DownloadTask.get({'file_id': file_id})
+            assert task.completed
+            assert task.file
+            os.unlink(task.file)
+            task.delete()
+        except Exception as e:
+            self.logger.fatal('{0} cleanup failed: {1}'.format(self.__class__.__name__, e), exc_info=1)
+        super().cleanup(user, update)
 
 
 class TextHandler(BaseHandler):

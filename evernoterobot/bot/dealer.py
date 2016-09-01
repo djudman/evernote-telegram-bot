@@ -91,7 +91,8 @@ class EvernoteDealer:
 
         self.logger.debug('Cleaning up...')
         for update in update_list:
-            update.delete()
+            for handler in self.__handlers[update.request_type]:
+                await handler.cleanup(user, update)
 
         self.logger.debug('Done. (user_id = {0}). Processing takes {1} s'.format(user.id, time.time() - start_ts))
 

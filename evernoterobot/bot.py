@@ -54,9 +54,8 @@ def start():
     os.makedirs(settings.DOWNLOADS_DIR, mode=0o700, exist_ok=True)
     logging.config.dictConfig(settings.LOG_SETTINGS)
 
-    print('Starting gunicorn...')
     if not os.path.exists(gunicorn_pidfile):
-        print('Starting... ', end="")
+        print('Starting gunicorn...', end="")
         os.system('gunicorn --config gunicorn_config.py %s' % gunicorn_config.app_name)
         time.sleep(1)
         if check_process(gunicorn_pidfile):

@@ -93,7 +93,7 @@ class TelegramDownloader:
             task.file = destination_file
             task.save()
         except DownloadError as e:
-            self.logger.error(e)
+            self.logger.error(e, exc_info=1)
         except Exception as e:
             self.logger.error(e, exc_info=1)
 
