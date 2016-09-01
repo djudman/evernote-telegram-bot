@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import traceback
 from typing import List
 
 import settings
@@ -86,7 +87,7 @@ class EvernoteDealer:
                 await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id, text)
             except Exception as e:
                 self.logger.error(e, exc_info=1)
-                FailedUpdate.create(**update.save_data())
+                FailedUpdate.create(error=traceback.format_exc(), **update.save_data())
 
         self.logger.debug('Cleaning up...')
         for update in update_list:

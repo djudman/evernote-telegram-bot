@@ -161,7 +161,7 @@ class EvernoteBot(TelegramBot):
     async def on_photo(self, message: Message):
         user = User.get({'id': message.user.id})
         await self.accept_request(user, 'photo', message)
-        files = sorted(message['photo'], key=lambda x: x.file_size,
+        files = sorted(message.photos, key=lambda x: x.file_size,
                        reverse=True)
         DownloadTask.create(user_id=user.id,
                             file_id=files[0].file_id,
