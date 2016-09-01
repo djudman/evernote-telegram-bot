@@ -161,37 +161,37 @@ class EvernoteBot(TelegramBot):
     async def on_photo(self, message: Message):
         user = User.get({'id': message.user.id})
         await self.accept_request(user, 'photo', message)
-        files = sorted(message['photo'], key=lambda x: x.get('file_size'),
+        files = sorted(message['photo'], key=lambda x: x.file_size,
                        reverse=True)
         DownloadTask.create(user_id=user.id,
-                            file_id=files[0]['file_id'],
-                            file_size=files[0]['file_size'],
+                            file_id=files[0].file_id,
+                            file_size=files[0].file_size,
                             completed=False)
 
     async def on_video(self, message: Message):
         user = User.get({'id': message.user.id})
         await self.accept_request(user, 'video', message)
-        video = message['video']
+        video = message.video
         DownloadTask.create(user_id=user.id,
-                            file_id=video['file_id'],
-                            file_size=video['file_size'],
+                            file_id=video.file_id,
+                            file_size=video.file_size,
                             completed=False)
 
     async def on_document(self, message: Message):
         user = User.get({'id': message.user.id})
         await self.accept_request(user, 'document', message)
-        document = message['document']
+        document = message.document
         DownloadTask.create(user_id=user.id,
-                            file_id=document['file_id'],
-                            file_size=document['file_size'],
+                            file_id=document.file_id,
+                            file_size=document.file_size,
                             completed=False)
 
     async def on_voice(self, message: Message):
         user = User.get({'id': message.user.id})
-        voice = message['voice']
+        voice = message.voice
         DownloadTask.create(user_id=user.id,
-                            file_id=voice['file_id'],
-                            file_size=voice['file_size'],
+                            file_id=voice.file_id,
+                            file_size=voice.file_size,
                             completed=False)
         await self.accept_request(user, 'voice', message)
 
