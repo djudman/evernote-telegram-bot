@@ -43,11 +43,10 @@ class EvernoteDealer:
                     continue
                 for user_id, updates in updates_by_user.items():
                     try:
-                        user = User.get({'user_id': user_id})
+                        user = User.get({'id': user_id})
                         asyncio.ensure_future(self.process_user_updates(user, updates))
                     except Exception as e:
-                        # TODO: put updates data to special collection ('failed_updates')
-                        self.logger.error("Can't process updates for user {0}\n{1}".format(user_id, e))
+                        self.logger.error("Can't process updates for user {0}\n{1}".format(user_id, e), exc_info=1)
         except Exception:
             self.logger.fatal('Dealer DOWN!!!', exc_info=1)
 
