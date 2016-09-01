@@ -15,7 +15,7 @@ async def oauth_callback(request):
         callback_key = params.get('key', [''])[0]
 
         session = StartSession.get({'oauth_data.callback_key': callback_key})
-        user = User.get({'user_id': session.user_id})
+        user = User.get({'id': session.user_id})
 
         if params.get('oauth_verifier'):
             oauth_verifier = params['oauth_verifier'][0]
