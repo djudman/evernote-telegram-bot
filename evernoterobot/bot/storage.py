@@ -161,6 +161,8 @@ class MongoStorage(Storage):
         if 'id' in data:
             data['_id'] = data['id']
             del data['id']
+        if '_id' in data and not data['_id']:
+            del(data['_id'])
         collection = self.__get_collection()
         collection.save(data)
 
