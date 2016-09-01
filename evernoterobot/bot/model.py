@@ -46,7 +46,8 @@ class Model:
 
     @classmethod
     def __get_storage(cls):
-        if cls.storage:
+        collection = cls.__name__.lower()
+        if cls.storage and cls.storage.collection == collection:
             return cls.storage
         path = STORAGE['class'].split('.')
         classname = str(path[-1:][0])
@@ -54,7 +55,7 @@ class Model:
         module = importlib.import_module(module_name)
         for name, klass in inspect.getmembers(module):
             if name == classname:
-                cls.storage = klass(STORAGE, collection=cls.__name__.lower())
+                cls.storage = klass(STORAGE, collection=collection)
                 return cls.storage
         raise Exception('Class {0} not found'.format(STORAGE['class']))
 
