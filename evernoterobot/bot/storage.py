@@ -175,4 +175,4 @@ class MongoStorage(Storage):
 
     def delete(self, model: Model):
         collection = self.__get_collection()
-        collection.remove(model.id)
+        collection.remove({'_id': model.id})
