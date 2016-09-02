@@ -3,13 +3,14 @@ import json
 from bot.model import StartSession, User, ModelNotFound
 from ext.telegram.bot import TelegramBotCommand
 from ext.telegram.models import Message
-
+from ext.botan_async import track
 
 class StartCommand(TelegramBotCommand):
 
     name = 'start'
 
     async def execute(self, message: Message):
+        await track(message.user.id, message.raw)
         welcome_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
 Please tap on button below to link your Evernote account with bot.'''
         signin_button = {
