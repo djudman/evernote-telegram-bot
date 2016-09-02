@@ -117,7 +117,7 @@ class EvernoteBot(TelegramBot):
 
         await self.api.sendMessage(
             user.telegram_chat_id,
-            'From now this bot in mode "{0}"'.format(mode),
+            'From now this bot in mode "{0}"'.format(text_mode),
             reply_markup=json.dumps({'hide_keyboard': True}))
 
         user.mode = mode
