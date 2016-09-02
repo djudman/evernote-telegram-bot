@@ -37,9 +37,6 @@ class TelegramBot:
         # TODO: process inline result
         # TODO: process callback query
 
-    # async def get_user(self, message):
-    #     return message['from']['id']
-
     async def handle_message(self, message: Message):
         user = message.user
 
