@@ -155,6 +155,7 @@ class EvernoteBot(TelegramBot):
                     user.telegram_chat_id,
                     'You should authorize first. Please, send /start command.'
                 )
+                raise TelegramBotError()
         except ModelNotFound:
             await self.api.sendMessage(message.chat.id,
                                        'Who are you, stranger? Please, send /start command.')
