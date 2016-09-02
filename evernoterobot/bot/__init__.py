@@ -10,7 +10,7 @@ import aiomcache
 import settings
 from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask
 from ext.evernote.client import EvernoteClient
-from ext.telegram.bot import TelegramBot, TelegramBotCommand
+from ext.telegram.bot import TelegramBot, TelegramBotCommand, TelegramBotError
 from ext.telegram.models import Message
 
 
@@ -138,17 +138,25 @@ class EvernoteBot(TelegramBot):
                 user.telegram_chat_id, reply["message_id"], text)
 
     async def accept_request(self, user: User, request_type: str, message: Message):
-        # TODO: get user_id instead of user
-        if not hasattr(user, 'evernote_access_token'):
-            await self.api.sendMessage(user.telegram_chat_id,
-                                       'You should authorize first. Please, send /start command.')
-        else:
             reply = await self.api.sendMessage(user.telegram_chat_id,
                                                '🔄 Accepted')
             TelegramUpdate.create(user_id=user.id,
                                   request_type=request_type,
                                   status_message_id=reply['message_id'],
                                   message=message.raw)
+
+    async def on_message_received(self, message: Message):
+        try:
+            user = User.get({'id': message.user.id})
+            if not hasattr(user, 'evernote_access_token'):
+                await self.api.sendMessage(
+                    user.telegram_chat_id,
+                    'You should authorize first. Please, send /start command.'
+                )
+        except ModelNotFound:
+            await self.api.sendMessage(message.chat.id,
+                                       'Who are you, stranger? Please, send /start command.')
+            raise TelegramBotError()
 
     async def on_text(self, message: Message):
         user = User.get({'id': message.user.id})
