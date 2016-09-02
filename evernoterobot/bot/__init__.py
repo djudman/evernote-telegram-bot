@@ -139,12 +139,16 @@ class EvernoteBot(TelegramBot):
 
     async def accept_request(self, user: User, request_type: str, message: Message):
         # TODO: get user_id instead of user
-        reply = await self.api.sendMessage(user.telegram_chat_id,
-                                           '🔄 Accepted')
-        TelegramUpdate.create(user_id=user.id,
-                              request_type=request_type,
-                              status_message_id=reply['message_id'],
-                              message=message.raw)
+        if not hasattr(user, 'evernote_access_token'):
+            await self.api.sendMessage(user.telegram_chat_id,
+                                       'You should authorize first. Please, send /start command.')
+        else:
+            reply = await self.api.sendMessage(user.telegram_chat_id,
+                                               '🔄 Accepted')
+            TelegramUpdate.create(user_id=user.id,
+                                  request_type=request_type,
+                                  status_message_id=reply['message_id'],
+                                  message=message.raw)
 
     async def on_text(self, message: Message):
         user = User.get({'id': message.user.id})
