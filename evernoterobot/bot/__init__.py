@@ -150,7 +150,7 @@ class EvernoteBot(TelegramBot):
             return
         try:
             user = User.get({'id': message.user.id})
-            if not hasattr(user, 'evernote_access_token'):
+            if not hasattr(user, 'evernote_access_token') or not user.evernote_access_token:
                 await self.api.sendMessage(
                     user.telegram_chat_id,
                     'You should authorize first. Please, send /start command.'
