@@ -1,3 +1,4 @@
+from ext.botan_async import track
 from ext.telegram.bot import TelegramBotCommand
 from ext.telegram.models import Message
 
@@ -7,6 +8,7 @@ class HelpCommand(TelegramBotCommand):
     name = 'help'
 
     async def execute(self, message: Message):
+        await track(message.user.id, message.raw)
         text = '''This is bot for Evernote (https://evernote.com).
 
 Just send message to bot and it creates note in your Evernote notebook. You can send to bot:

@@ -1,6 +1,7 @@
 import json
 
 from bot import User
+from ext.botan_async import track
 from ext.telegram.bot import TelegramBotCommand
 from ext.telegram.models import Message
 
@@ -10,6 +11,7 @@ class NotebookCommand(TelegramBotCommand):
     name = 'notebook'
 
     async def execute(self, message: Message):
+        await track(message.user.id, message.raw)
         user = User.get({'id': message.user.id})
         notebooks = await self.bot.list_notebooks(user)
 
