@@ -103,7 +103,7 @@ class FileHandler(BaseHandler):
             task.delete()
         except Exception as e:
             self.logger.fatal('{0} cleanup failed: {1}'.format(self.__class__.__name__, e), exc_info=1)
-        super().cleanup(user, update)
+        await super().cleanup(user, update)
 
 
 class TextHandler(BaseHandler):
