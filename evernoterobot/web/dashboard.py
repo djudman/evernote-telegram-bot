@@ -23,7 +23,7 @@ async def login(request):
             password = get_hash(password)
             for user in admins:
                 if login == user['login'] and password == user['password']:
-                    return web.HTTPFound('/dashboard/{0}'.format(SECRET['secret_key']))
+                    return web.HTTPFound('/a/dashboard/{0}'.format(SECRET['secret_key']))
             return aiohttp_jinja2.render_template('login.html', request,
                                                   {'error': 'Invalid login or password'})
         return aiohttp_jinja2.render_template('login.html', request, {})
