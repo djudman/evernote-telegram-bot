@@ -134,27 +134,27 @@ LOG_SETTINGS = {
             'propagate': False,
         },
         'evernote_api': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'handlers': ['file', 'evernote_api_file', 'stdout', 'email'],
             'propagate': False,
         },
         'telegram_api': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'handlers': ['telegram_api_file', 'email'],
             'propagate': False,
         },
         'dealer': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'handlers': ['dealer_file', 'stdout', 'email'],
             'propagate': False,
         },
         'downloader': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'handlers': ['downloader_file', 'stdout', 'email'],
             'propagate': True,
         },
         '': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'handlers': ['file', 'email'],
             'propagate': True,
         },
