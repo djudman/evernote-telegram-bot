@@ -146,6 +146,8 @@ class EvernoteBot(TelegramBot):
                                   message=message.raw)
 
     async def on_message_received(self, message: Message):
+        if 'start' in message.bot_commands:
+            return
         try:
             user = User.get({'id': message.user.id})
             if not hasattr(user, 'evernote_access_token'):
