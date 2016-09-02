@@ -11,7 +11,8 @@
             <th>Message</th>
             <th>Error</th>
             <th>
-                <form action="/a/fix_failed_update/{{ secret }}">
+                <form method="post" action="/a/fix_failed_update/{{ secret }}">
+                    <input type="hidden" name="all" value="true" />
                     <button type="submit" class="btn btn-danger">Fix all</button>
                 </form>
             </th>
@@ -27,7 +28,8 @@
             <td>{{ update.message }}</td>
             <td>{{ update.error }}</td>
             <td>
-                <form action="/a/fix_failed_update/{{ secret }}">
+                <form method="post" action="/a/fix_failed_update/{{ secret }}">
+                    <input type="hidden" name="update_id" value="{{ update.id }}" />
                     <button type="submit" class="btn btn-danger">Fix</button>
                 </form>
             </td>

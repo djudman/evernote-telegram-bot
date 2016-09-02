@@ -41,7 +41,7 @@ async def dashboard(request):
                                           })
 
 
-def list_downloads(request):
+async def list_downloads(request):
     downloads = [task.save_data() for task in DownloadTask.find()]
     response = aiohttp_jinja2.render_template('downloads.html',
                                               request,
@@ -52,7 +52,7 @@ def list_downloads(request):
     return response
 
 
-def list_failed_updates(request):
+async def list_failed_updates(request):
     failed_updates = [update.save_data() for update in FailedUpdate.find()]
     response = aiohttp_jinja2.render_template('failed_updates.html',
                                               request,
@@ -63,7 +63,7 @@ def list_failed_updates(request):
     return response
 
 
-def list_updates(request):
+async def list_updates(request):
     updates = [update.save_data() for update in TelegramUpdate.find()]
     response = aiohttp_jinja2.render_template('queue.html',
                                               request,
@@ -73,3 +73,22 @@ def list_updates(request):
                                               })
     return response
 
+
+async def fix_failed_update(request):
+    await request.post()
+    update_id = request.POST.get('update_id')
+    if update_id:
+        updates = [FailedUpdate.get({'id': update_id})]
+    elif not update_id and request.POST.get('all'):
+        updates = FailedUpdate.find()
+    else:
+        updates = []
+    for failed_update in updates:
+        TelegramUpdate.create(
+            user_id=failed_update.user_id,
+            request_type=failed_update.request_type,
+            status_message_id=failed_update.status_message_id,
+            message=failed_update.message
+        )
+        failed_update.delete()
+    return await list_failed_updates(request)
