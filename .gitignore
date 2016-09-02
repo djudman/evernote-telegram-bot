@@ -10,3 +10,4 @@ evernoterobot/settings/secret.json
 htmlcov
 .coverage
 downloads
+.DS_Store
