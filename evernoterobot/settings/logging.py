@@ -42,7 +42,7 @@ class SslSMTPHandler(SMTPHandler):
         except Exception as e:
             import traceback
             logger = logging.getLogger()
-            logger.error(traceback.format_exc())
+            logger.error(e, exc_info=1)
             # self.handleError(record)
 
     def getSubject(self, record):
@@ -151,11 +151,11 @@ LOG_SETTINGS = {
         'downloader': {
             'level': 'ERROR',
             'handlers': ['downloader_file', 'stdout', 'email'],
-            'propagate': True,
+            'propagate': False,
         },
         '': {
             'level': 'ERROR',
-            'handlers': ['file', 'email'],
+            'handlers': ['file'],
             'propagate': True,
         },
     },
