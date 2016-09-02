@@ -1,15 +1,20 @@
 {% extends 'base.html' %}
 
+{% block title %}Downloads{% endblock %}
+
 {% block body %}
-<table>
-    <tr>
-        <td>File ID</td>
-        <td>File size</td>
-        <td>Completed</td>
-        <td>User ID</td>
-        <td>Mime type</td>
-        <td>File</td>
-    </tr>
+<table class="table table-hover table-bordered" style="width: 98%; margin: 15px">
+    <thead>
+        <tr>
+            <th>File ID</th>
+            <th>File size</th>
+            <th>Completed</th>
+            <th>User ID</th>
+            <th>Mime type</th>
+            <th>File</th>
+        </tr>
+    </thead>
+    <tbody>
     {% for task in list_downloads %}
     <tr>
         <td>{{ task.file_id }}</td>
@@ -20,5 +25,6 @@
         <td>{{ task.file }}</td>
     </tr>
     {% endfor %}
+    </tbody>
 </table>
 {% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Queue{% endblock %}
+
+{% block body %}
+<table class="table table-hover table-bordered" style="width: 98%; margin: 15px">
+    <thead>
+        <tr>
+            <th>Created</th>
+            <th>User ID</th>
+            <th>Request type</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for update in queue %}
+        <tr>
+            <td>{{ update.created }}</td>
+            <td>{{ update.user_id }}</td>
+            <td>{{ update.request_type }}</td>
+            <td>{{ update.message }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

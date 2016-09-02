@@ -6,7 +6,8 @@ import aiohttp.web
 import aiohttp_jinja2
 import jinja2
 
-from web.dashboard import list_downloads, list_failed_updates
+from web.dashboard import list_downloads, list_failed_updates, login, dashboard, \
+    list_updates
 
 sys.path.insert(0, realpath(dirname(dirname(__file__))))
 
@@ -34,8 +35,13 @@ secret_key = settings.SECRET['secret_key']
 
 app.router.add_route('POST', '/%s' % settings.TELEGRAM['token'], handle_update)
 app.router.add_route('GET', '/evernote/oauth', oauth_callback)
-app.router.add_route('GET', '/downloads/%s' % secret_key, list_downloads)
-app.router.add_route('GET', '/failed_updates/%s' % secret_key, list_failed_updates)
+
+# dashboard
+app.router.add_route('GET', '/a', login)
+app.router.add_route('GET', '/a/dashboard/%s' % secret_key, dashboard)
+app.router.add_route('GET', '/a/downloads/%s' % secret_key, list_downloads)
+app.router.add_route('GET', '/a/failed_updates/%s' % secret_key, list_failed_updates)
+app.router.add_route('GET', '/a/queue/%s' % secret_key, list_updates)
 
 if settings.DEBUG:
     app.router.add_route('GET', '/', handle_update)
