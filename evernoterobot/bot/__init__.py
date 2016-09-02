@@ -146,7 +146,7 @@ class EvernoteBot(TelegramBot):
                                   message=message.raw)
 
     async def on_message_received(self, message: Message):
-        if 'start' in message.bot_commands:
+        if '/start' in message.bot_commands:
             return
         try:
             user = User.get({'id': message.user.id})
