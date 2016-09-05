@@ -64,8 +64,6 @@ def loop():
 
 
 def pytest_runtest_setup(item):
-    client = MongoClient(settings.MONGODB_URI)
-    client.drop_database(settings.MONGODB['db'])
     if 'async_test' in item.keywords and 'loop' not in item.fixturenames:
         # inject an event loop fixture for all async tests
         item.fixturenames.append('loop')
@@ -78,6 +76,13 @@ def pytest_pyfunc_call(pyfuncitem):
     Run asyncio marked test functions in an event loop instead of a normal
     function call.
     """
+    if 'use_mongo' in pyfuncitem.keywords:
+        settings.STORAGE = {
+            'class': 'bot.storage.MongoStorage',
+            'host': 'localhost',
+            'port': 27017,
+            'db': 'test',
+        }
     if 'async_test' in pyfuncitem.keywords:
         funcargs = pyfuncitem.funcargs
         loop = funcargs['loop']

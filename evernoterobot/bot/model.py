@@ -3,7 +3,7 @@ import importlib
 import inspect
 import uuid
 
-from settings import STORAGE
+import settings
 
 
 class ModelNotFound(Exception):
@@ -31,15 +31,16 @@ class Model:
         collection = cls.__name__.lower()
         if cls.storage and cls.storage.collection == collection:
             return cls.storage
-        path = STORAGE['class'].split('.')
+        storage_info = settings.STORAGE
+        path = storage_info['class'].split('.')
         classname = str(path[-1:][0])
         module_name = ".".join(path[:-1])
         module = importlib.import_module(module_name)
         for name, klass in inspect.getmembers(module):
             if name == classname:
-                cls.storage = klass(STORAGE, collection=collection)
+                cls.storage = klass(storage_info, collection=collection)
                 return cls.storage
-        raise Exception('Class {0} not found'.format(STORAGE['class']))
+        raise Exception('Class {0} not found'.format(storage_info['class']))
 
     @classmethod
     def create(cls, **kwargs):

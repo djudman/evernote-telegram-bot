@@ -40,6 +40,11 @@ def test_fetch_updates():
     assert updates[2].status_message_id == 2
 
 
+@pytest.mark.use_mongo
+def test_fetch_updates_from_mongo():
+    test_fetch_updates()
+
+
 @pytest.mark.async_test
 async def test_process_text(text_update):
     update = json.loads(text_update)
