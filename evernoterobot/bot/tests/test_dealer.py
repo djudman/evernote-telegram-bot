@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 from os.path import exists
@@ -11,6 +12,32 @@ from bot.dealer import EvernoteDealer
 from bot.model import FailedUpdate
 from conftest import AsyncMock
 from ext.telegram.conftest import text_update
+
+
+def test_fetch_updates():
+    TelegramUpdate.create(user_id=1,
+                          request_type='text',
+                          status_message_id=2,
+                          message={'data': 'ok'},
+                          created=datetime.datetime(2016, 9, 1, 12, 30, 4))
+    TelegramUpdate.create(user_id=1,
+                          request_type='text',
+                          status_message_id=3,
+                          message={'data': 'woohoo'},
+                          created=datetime.datetime(2016, 9, 1, 12, 30, 1))
+    TelegramUpdate.create(user_id=1,
+                          request_type='text',
+                          status_message_id=4,
+                          message={'data': 'yeah!'},
+                          created=datetime.datetime(2016, 9, 1, 12, 30, 2))
+    dealer = EvernoteDealer()
+    user_updates = dealer.fetch_updates()
+    updates = user_updates[1]
+    assert len(updates) == 3
+    assert updates[0].created < updates[1].created < updates[2].created
+    assert updates[0].status_message_id == 3
+    assert updates[1].status_message_id == 4
+    assert updates[2].status_message_id == 2
 
 
 @pytest.mark.async_test

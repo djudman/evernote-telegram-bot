@@ -57,7 +57,7 @@ class EvernoteDealer:
         updates_by_user = {}
         try:
             fetched_updates = []
-            for entry in TelegramUpdate.find({'in_process': {'$exists': False}}):
+            for entry in TelegramUpdate.find({'in_process': {'$exists': False}}, [('created', 1)]):
                 update = entry.update(
                     {'in_process': {'$exists': False}},
                     {'in_process': True}

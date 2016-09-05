@@ -89,7 +89,7 @@ class MemoryStorage(Storage):
         for k, obj in self._items.get(self.collection, {}).items():
             if self._check_query(obj, query):
                 objects.append(obj)
-        sorted(objects, key=lambda x: [x[k] for k, direction in sort])
+        objects = sorted(objects, key=lambda x: [x[k] for k, direction in sort])
         return objects
 
     def save(self, model: Model):
