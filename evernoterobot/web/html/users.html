@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Users{% endblock %}
+
+{% block body %}
+<table class="table table-hover table-bordered" style="width: 98%; margin: 15px">
+    <thead>
+        <tr>
+            <th>User ID</th>
+            <th>State</th>
+            <th>Mode</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.state }}</td>
+            <td>{{ user.mode }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

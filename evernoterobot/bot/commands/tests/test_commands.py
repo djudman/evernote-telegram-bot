@@ -46,7 +46,6 @@ async def test_notebook_command(testbot: EvernoteBot, text_update: str):
 @pytest.mark.async_test
 async def test_start_command(testbot: EvernoteBot, text_update: str):
     update = TelegramUpdate(json.loads(text_update))
-    User.get({'id': update.message.user.id}).delete()
     start_cmd = StartCommand(testbot)
     await start_cmd.execute(update.message)
     sessions = StartSession.find()

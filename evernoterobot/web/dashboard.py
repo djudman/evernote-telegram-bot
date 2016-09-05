@@ -2,7 +2,7 @@ from aiohttp import web
 import aiohttp_jinja2
 
 from bot import DownloadTask
-from bot.model import FailedUpdate, TelegramUpdate
+from bot.model import FailedUpdate, TelegramUpdate, User
 from settings import SECRET
 import hashlib
 
@@ -92,3 +92,10 @@ async def fix_failed_update(request):
         )
         failed_update.delete()
     return await list_failed_updates(request)
+
+
+async def list_users(request):
+    page = request.GET.get('page', 0)
+    limit = 50
+    users = [x for x in User.find({}, skip=page*limit, limit=limit)]
+    return aiohttp_jinja2.render_template('users.html', request, {'users': users})

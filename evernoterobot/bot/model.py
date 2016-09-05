@@ -59,10 +59,10 @@ class Model:
         return cls(**document)
 
     @classmethod
-    def find(cls, query: dict=None, sort=None):
+    def find(cls, query: dict=None, sort=None, skip=None, limit=None):
         query = query or {}
         sort = sort or []
-        return [cls(**doc) for doc in cls.__get_storage().find(query, sort)]
+        return [cls(**doc) for doc in cls.__get_storage().find(query, sort, skip, limit)]
 
     def save(self):
         self.__get_storage().save(self)
@@ -181,10 +181,12 @@ class User(Model):
         'evernote_access_token',
         'current_notebook',
         'places',
+        'name',
     ]
 
     def __init__(self, **kwargs):
         self.id = kwargs.get('id')
+        self.name = kwargs.get('name')
         self.telegram_chat_id = kwargs['telegram_chat_id']
         self.state = kwargs.get('state')
         self.mode = kwargs.get('mode')

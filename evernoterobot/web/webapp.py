@@ -7,7 +7,7 @@ import aiohttp_jinja2
 import jinja2
 
 from web.dashboard import list_downloads, list_failed_updates, login, dashboard, \
-    list_updates, fix_failed_update
+    list_updates, fix_failed_update, list_users
 
 sys.path.insert(0, realpath(dirname(dirname(__file__))))
 
@@ -42,6 +42,7 @@ app.router.add_route('GET', '/a/dashboard/%s' % secret_key, dashboard)
 app.router.add_route('GET', '/a/downloads/%s' % secret_key, list_downloads)
 app.router.add_route('GET', '/a/failed_updates/%s' % secret_key, list_failed_updates)
 app.router.add_route('GET', '/a/queue/%s' % secret_key, list_updates)
+app.router.add_route('GET', '/a/users/%s' % secret_key, list_users)
 app.router.add_route('POST', '/a/fix_failed_update/%s' % secret_key, fix_failed_update)
 
 app.loop.run_until_complete(bot.api.setWebhook(settings.TELEGRAM['webhook_url']))

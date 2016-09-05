@@ -45,7 +45,7 @@ class Storage:
         pass
 
     @abstractmethod
-    def find(self, query: dict, sort: List[Tuple]):
+    def find(self, query: dict, sort: List[Tuple], skip=None, limit=None):
         pass
 
 
@@ -84,12 +84,16 @@ class MemoryStorage(Storage):
             if self._check_query(obj, query):
                 return obj
 
-    def find(self, query: dict, sort: List[Tuple]):
+    def find(self, query: dict, sort: List[Tuple], skip=None, limit=None):
         objects = []
         for k, obj in self._items.get(self.collection, {}).items():
             if self._check_query(obj, query):
                 objects.append(obj)
         objects = sorted(objects, key=lambda x: [x[k] for k, direction in sort])
+        if skip is not None:
+            objects = objects[skip:]
+        if limit is not None:
+            objects = objects[:limit]
         return objects
 
     def save(self, model: Model):
@@ -148,9 +152,16 @@ class MongoStorage(Storage):
             del document['_id']
             return document
 
-    def find(self, query: dict, sort: List[Tuple]):
+    def find(self, query: dict, sort: List[Tuple], skip=None, limit=None):
         collection = self.__get_collection()
-        cursor = collection.find(self.__prepare_query(query), sort=sort)
+        kwargs = {}
+        if sort is not None:
+            kwargs['sort'] = sort
+        if skip is not None:
+            kwargs['skip'] = skip
+        if limit is not None:
+            kwargs['limit'] = limit
+        cursor = collection.find(self.__prepare_query(query), **kwargs)
         for document in cursor:
             document['id'] = document['_id']
             del document['_id']

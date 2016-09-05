@@ -27,6 +27,9 @@ Please tap on button below to link your Evernote account with bot.'''
         StartSession.create(user_id=user_id, oauth_data=oauth_data)
 
         User.create(id=user_id,
+                    name="{0} {1} [{2}]".format(message.user.first_name,
+                                                message.user.last_name,
+                                                message.user.username),
                     telegram_chat_id=chat_id,
                     mode='multiple_notes',
                     places={},
