@@ -59,7 +59,7 @@ async def test_start_command(testbot: EvernoteBot, text_update: str):
     # assert new_user.username == 'testuser'
     # assert new_user.first_name == 'test_first'
     # assert new_user.last_name == 'test_last'
-    assert new_user.mode == 'one_note'
+    assert new_user.mode == 'multiple_notes'
     assert testbot.api.sendMessage.call_count == 1
     args = testbot.api.sendMessage.call_args[0]
     assert len(args) == 3

@@ -24,25 +24,15 @@ Please tap on button below to link your Evernote account with bot.'''
         user_id = message.user.id
         oauth_data = self.bot.evernote.get_oauth_data(user_id)
 
-        try:
-            session = StartSession.get({'user_id': user_id})
-            self.bot.logger.warn("Start session for user %s already exists" % user_id)
-            session.oauth_data = oauth_data
-            session.save()
-        except ModelNotFound:
-            StartSession.create(user_id=user_id, oauth_data=oauth_data)
+        StartSession.create(user_id=user_id, oauth_data=oauth_data)
 
-        try:
-            User.get({'id': user_id})
-            self.bot.logger.warn("User %s already exists" % user_id)
-        except ModelNotFound:
-            User.create(id=user_id,
-                        telegram_chat_id=chat_id,
-                        mode='multiple_notes',
-                        places={},
-                        username=message.user.username,
-                        first_name=message.user.first_name,
-                        last_name=message.user.last_name)
+        User.create(id=user_id,
+                    telegram_chat_id=chat_id,
+                    mode='multiple_notes',
+                    places={},
+                    username=message.user.username,
+                    first_name=message.user.first_name,
+                    last_name=message.user.last_name)
 
         signin_button['text'] = 'Sign in to Evernote'
         signin_button['url'] = oauth_data["oauth_url"]
