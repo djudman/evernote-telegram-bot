@@ -1,7 +1,7 @@
 from urllib.parse import parse_qs
-import traceback
 
 from aiohttp import web
+from requests_oauthlib.oauth1_session import TokenRequestDenied
 
 from bot.model import User, StartSession, ModelNotFound
 
@@ -54,11 +54,16 @@ Current notebook: %s" % notebook.name
             text = "We are sorry, but you declined authorization 😢"
             await bot.api.sendMessage(user.telegram_chat_id, text)
 
+    except TokenRequestDenied as e:
+        logger.error(e, exc_info=1)
+        text = "We are sorry, but we have some problems with Evernote connection. Please try again later"
+        await bot.api.sendMessage(user.telegram_chat_id, text)
     except ModelNotFound as e:
-        logger.error(traceback.format_exc())
-        logger.error(e)
+        logger.error(e, exc_info=1)
         return web.HTTPForbidden()
-    except Exception:
-        logger.fatal(traceback.format_exc())
+    except Exception as e:
+        logger.fatal(e, exc_info=1)
+        text = "Oops. Unknown error. Our best specialist already working to fix it"
+        await bot.api.sendMessage(user.telegram_chat_id, text)
 
     return web.HTTPFound(bot.url)
