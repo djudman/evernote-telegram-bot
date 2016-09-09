@@ -15,9 +15,9 @@ class Chat:
 class TelegramUser:
     def __init__(self, data: dict):
         self.id = data['id']
-        self.last_name = data.get('last_name')
-        self.first_name = data.get('first_name')
-        self.username = data.get('username')
+        self.last_name = data.get('last_name', '')
+        self.first_name = data.get('first_name', '')
+        self.username = data.get('username', '')
 
 class File:
     def __init__(self, data: dict):
