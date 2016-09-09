@@ -1,4 +1,3 @@
-import traceback
 from aiohttp import web
 
 
@@ -8,7 +7,7 @@ async def handle_update(request):
         request.app.logger.info(request.path_qs)
         request.app.logger.info(str(data))
         await request.app.bot.handle_update(data)
-    except Exception:
-        request.app.logger.fatal(traceback.format_exc())
+    except Exception as e:
+        request.app.logger.fatal(e, exc_info=1)
 
     return web.Response(body=b'ok')
