@@ -155,11 +155,11 @@ class EvernoteBot(TelegramBot):
                     user.telegram_chat_id,
                     'You should authorize first. Please, send /start command.'
                 )
-                raise TelegramBotError()
+                raise TelegramBotError('User {0} not authorized in Evernote'.format(user.id))
         except ModelNotFound:
             await self.api.sendMessage(message.chat.id,
                                        'Who are you, stranger? Please, send /start command.')
-            raise TelegramBotError()
+            raise TelegramBotError('Unregistered user {0}'.format(message.user.id))
 
     async def on_text(self, message: Message):
         user = User.get({'id': message.user.id})

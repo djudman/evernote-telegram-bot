@@ -47,8 +47,8 @@ class SslSMTPHandler(SMTPHandler):
 
     def getSubject(self, record):
         if record.exc_info:
-            return "Evernoterobot [%s] %s" % (record.levelname, str(record.exc_info[1])[:15])
-        return 'Evernoterobot [%s] %s' % (record.levelname, record.message[:15])
+            return "Evernoterobot [%s] %s" % (record.levelname, str(record.exc_info[1])[:30])
+        return 'Evernoterobot [%s] %s' % (record.levelname, record.message[:30])
 
 
 LOG_SETTINGS = {
