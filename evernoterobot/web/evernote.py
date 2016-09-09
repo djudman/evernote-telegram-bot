@@ -45,8 +45,11 @@ async def oauth_callback(request):
                 user.save()
 
             text = "Evernote account is connected.\n\
-Now you can just send message and note be created.\n\
-Current notebook: %s" % notebook.name
+From now you can just send message and note be created.\n\
+\n\
+Current notebook: %s\n\
+Current mode: %s" % (notebook.name, user.mode.replace('_', ' ').capitalize())
+
             await bot.api.sendMessage(user.telegram_chat_id, text)
         else:
             # User decline access
