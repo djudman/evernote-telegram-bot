@@ -153,6 +153,11 @@ LOG_SETTINGS = {
             'handlers': ['downloader_file', 'stdout', 'email'],
             'propagate': False,
         },
+        'bot': {
+            'level': 'WARNING',
+            'handlers': ['file', 'email'],
+            'propagate': False,
+        },
         '': {
             'level': 'ERROR',
             'handlers': ['file'],

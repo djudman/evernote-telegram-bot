@@ -23,7 +23,7 @@ logging.config.dictConfig(settings.LOG_SETTINGS)
 bot = EvernoteBot(settings.TELEGRAM['token'], 'evernoterobot')
 
 app = aiohttp.web.Application()
-app.logger = logging.getLogger()
+app.logger = logging.getLogger('bot')
 
 aiohttp_jinja2.setup(app,
     loader=jinja2.FileSystemLoader(
