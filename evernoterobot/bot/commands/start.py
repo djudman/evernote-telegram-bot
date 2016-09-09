@@ -1,7 +1,5 @@
 import json
 
-import datetime
-
 from bot.model import StartSession, User, ModelNotFound
 from ext.telegram.bot import TelegramBotCommand
 from ext.telegram.models import Message
@@ -26,8 +24,7 @@ Please tap on button below to link your Evernote account with bot.'''
         user_id = message.user.id
         oauth_data = self.bot.evernote.get_oauth_data(user_id)
 
-        StartSession.create(id=user_id, created=datetime.datetime.now(),
-                            user_id=user_id, oauth_data=oauth_data)
+        StartSession.create(id=user_id, user_id=user_id, oauth_data=oauth_data)
 
         User.create(id=user_id,
                     name="{0} {1} [{2}]".format(message.user.first_name,
