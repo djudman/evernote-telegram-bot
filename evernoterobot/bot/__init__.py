@@ -6,9 +6,11 @@ import sys
 from os.path import realpath, dirname, join, basename
 
 import aiomcache
+import asyncio
 
 import settings
-from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask
+from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask, \
+    StartSession
 from ext.evernote.api import AsyncEvernoteApi
 from ext.evernote.client import EvernoteClient
 from ext.telegram.bot import TelegramBot, TelegramBotCommand, TelegramBotError
@@ -46,12 +48,8 @@ class EvernoteBot(TelegramBot):
 
     def __init__(self, token, name):
         super(EvernoteBot, self).__init__(token, name)
-        self.evernote = EvernoteClient(
-            settings.EVERNOTE['basic_access']['key'],
-            settings.EVERNOTE['basic_access']['secret'],
-            settings.EVERNOTE['oauth_callback'],
-            sandbox=settings.DEBUG
-        )
+        config = settings.EVERNOTE['basic_access']
+        self.evernote = EvernoteClient(config['key'], config['secret'], config['oauth_callback'], sandbox=settings.DEBUG)
         self.evernote_api = AsyncEvernoteApi()
         self.cache = aiomcache.Client("127.0.0.1", 11211)
         for cmd_class in get_commands():
@@ -117,27 +115,43 @@ class EvernoteBot(TelegramBot):
         text_mode = '{0}'.format(mode)
         mode = mode.replace(' ', '_').lower()
 
-        await self.api.sendMessage(
-            user.telegram_chat_id,
-            'From now this bot in mode "{0}"'.format(text_mode),
-            reply_markup=json.dumps({'hide_keyboard': True}))
-
-        user.mode = mode
-        user.state = None
-        user.save()
+        asyncio.ensure_future(
+            self.api.sendMessage(user.telegram_chat_id,
+                                 'From now this bot in mode "{0}"'.format(text_mode),
+                                 reply_markup=json.dumps({'hide_keyboard': True}))
+        )
 
         if user.mode == 'one_note':
-            reply = await self.api.sendMessage(
-                user.telegram_chat_id, 'Please wait')
-            note_guid = self.evernote.create_note(
-                user.evernote_access_token, text='',
-                title='Note for Evernoterobot')
-            user.places[user.current_notebook['guid']] = note_guid
-            user.save()
+            if user.settings.get('evernote_access', 'basic') == 'full':
+                user.mode = mode
+                reply = await self.api.sendMessage(user.telegram_chat_id, 'Please wait')
+                # TODO: async
+                note_guid = self.evernote.create_note(user.evernote_access_token, text='', title='Note for Evernoterobot')
+                user.places[user.current_notebook['guid']] = note_guid
 
-            text = 'Bot switched to mode "{0}". New note was created'.format(text_mode)
-            await self.api.editMessageText(
-                user.telegram_chat_id, reply["message_id"], text)
+                text = 'Bot switched to mode "{0}". New note was created'.format(text_mode)
+                await self.api.editMessageText(user.telegram_chat_id, reply["message_id"], text)
+            else:
+                text = '''To enable "One note" mode you should allow to bot to read and update your notes.
+Please tap on button below to give access to bot.'''
+                signin_button = {
+                    'text': 'Waiting for Evernote...',
+                    'url': self.url,
+                }
+                inline_keyboard = {'inline_keyboard': [[signin_button]]}
+                message_future = asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, text, json.dumps(inline_keyboard)))
+                config = settings.EVERNOTE['full_access']
+                oauth_data = await self.evernote_api.get_oauth_data(user.id, config['key'], config['secret'], config['oauth_callback'])
+                session = StartSession.get({'user_id': user.id})
+                session.oauth_data = oauth_data
+                signin_button['text'] = 'Allow read and update notes to bot'
+                signin_button['url'] = oauth_data["oauth_url"]
+                await asyncio.wait([message_future])
+                msg = message_future.result()
+                asyncio.ensure_future(self.api.editMessageReplyMarkup(user.telegram_chat_id, msg['message_id'], json.dumps(inline_keyboard)))
+                session.save()
+        user.state = None
+        user.save()
 
     async def accept_request(self, user: User, request_type: str, message: Message):
             reply = await self.api.sendMessage(user.telegram_chat_id,

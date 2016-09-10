@@ -184,6 +184,7 @@ class User(Model):
         'current_notebook',
         'places',
         'name',
+        'settings',
     ]
 
     def __init__(self, **kwargs):
@@ -195,3 +196,4 @@ class User(Model):
         self.places = kwargs.get('places')
         self.evernote_access_token = kwargs.get('evernote_access_token')
         self.current_notebook = kwargs.get('current_notebook')
+        self.settings = kwargs.get('settings', {})

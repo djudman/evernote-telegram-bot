@@ -24,11 +24,9 @@ Please tap on button below to link your Evernote account with bot.'''
         chat_id = message.chat.id
         welcome_message_future = asyncio.ensure_future(self.bot.api.sendMessage(chat_id, welcome_text, json.dumps(inline_keyboard)))
         user_id = message.user.id
+        config = settings.EVERNOTE['basic_access']
         oauth_data = await self.bot.evernote_api.get_oauth_data(
-            user_id,
-            settings.EVERNOTE['basic_access']['key'],
-            settings.EVERNOTE['basic_access']['secret'],
-            settings.EVERNOTE['oauth_callback'])
+            user_id, config['key'], config['secret'], config['oauth_callback'])
 
         StartSession.create(id=user_id, user_id=user_id, oauth_data=oauth_data)
 
@@ -39,6 +37,7 @@ Please tap on button below to link your Evernote account with bot.'''
                     telegram_chat_id=chat_id,
                     mode='multiple_notes',
                     places={},
+                    settings={'evernote_access': 'basic'},
                     username=message.user.username,
                     first_name=message.user.first_name,
                     last_name=message.user.last_name)
