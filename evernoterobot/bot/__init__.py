@@ -149,6 +149,7 @@ Please tap on button below to give access to bot.'''
                 asyncio.ensure_future(self.api.editMessageReplyMarkup(user.telegram_chat_id, msg['message_id'], json.dumps(inline_keyboard)))
                 session.save()
         else:
+            user.mode = mode
             asyncio.ensure_future(
                 self.api.sendMessage(user.telegram_chat_id,
                                      'From now this bot in mode "{0}"'.format(text_mode),
