@@ -93,9 +93,13 @@ async def oauth_callback_full_access(request):
                 session.oauth_data['oauth_token'],
                 session.oauth_data['oauth_token_secret'],
                 oauth_verifier)
+
             user.evernote_access_token = access_token
             user.settings['evernote_access'] = 'full'
             user.mode = 'one_note'
+            # TODO: async
+            note_guid = bot.evernote.create_note(user.evernote_access_token, text='', title='Note for Evernoterobot')
+            user.places[user.current_notebook['guid']] = note_guid
             user.save()
             text = 'From now this bot in "One note" mode'
             asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text))
