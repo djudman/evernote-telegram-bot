@@ -20,6 +20,10 @@ class RateLimitReached(EvernoteApiError):
     pass
 
 
+class InvalidToken(EvernoteApiError):
+    pass
+
+
 class ExceptionInfo:
 
     def __init__(self, exc_type, message=None):
@@ -48,7 +52,10 @@ class AsyncEvernoteApi:
         except ErrorTypes.EDAMNotFoundException:
             exc_info = ExceptionInfo(NoteNotFound, 'Note not found')
         except ErrorTypes.EDAMUserException as e:
-            exc_info = ExceptionInfo(EvernoteApiError, 'Error code = {0}, parameter = {1}'.format(e.errorCode, e.parameter))
+            if e.errorCode == 3:
+                exc_info = ExceptionInfo(InvalidToken, 'It seems that token is invalid (or has no permissions)')
+            else:
+                exc_info = ExceptionInfo(EvernoteApiError, 'Error code = {0}, parameter = {1}'.format(e.errorCode, e.parameter))
         except ErrorTypes.EDAMSystemException as e:
             if e.errorCode == 19 and hasattr(e, 'rateLimitDuration'):
                 exc_info = ExceptionInfo(RateLimitReached, 'rateLimitDuration == {0}'.format(e.rateLimitDuration))
