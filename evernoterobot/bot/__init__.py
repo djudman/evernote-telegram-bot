@@ -9,6 +9,7 @@ import aiomcache
 
 import settings
 from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask
+from ext.evernote.api import AsyncEvernoteApi
 from ext.evernote.client import EvernoteClient
 from ext.telegram.bot import TelegramBot, TelegramBotCommand, TelegramBotError
 from ext.telegram.models import Message
@@ -51,6 +52,7 @@ class EvernoteBot(TelegramBot):
             settings.EVERNOTE['oauth_callback'],
             sandbox=settings.DEBUG
         )
+        self.evernote_api = AsyncEvernoteApi()
         self.cache = aiomcache.Client("127.0.0.1", 11211)
         for cmd_class in get_commands():
             self.add_command(cmd_class)

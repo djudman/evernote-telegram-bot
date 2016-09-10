@@ -2,6 +2,7 @@ import json
 
 import asyncio
 
+import settings
 from bot.model import StartSession, User, ModelNotFound
 from ext.telegram.bot import TelegramBotCommand
 from ext.telegram.models import Message
@@ -12,7 +13,7 @@ class StartCommand(TelegramBotCommand):
     name = 'start'
 
     async def execute(self, message: Message):
-        await track(message.user.id, message.raw)
+        asyncio.ensure_future(track(message.user.id, message.raw))
         welcome_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
 Please tap on button below to link your Evernote account with bot.'''
         signin_button = {
@@ -22,9 +23,12 @@ Please tap on button below to link your Evernote account with bot.'''
         inline_keyboard = {'inline_keyboard': [[signin_button]]}
         chat_id = message.chat.id
         welcome_message_future = asyncio.ensure_future(self.bot.api.sendMessage(chat_id, welcome_text, json.dumps(inline_keyboard)))
-        # TODO: async
         user_id = message.user.id
-        oauth_data = self.bot.evernote.get_oauth_data(user_id)
+        oauth_data = await self.bot.evernote_api.get_oauth_data(
+            user_id,
+            settings.EVERNOTE['basic_access']['key'],
+            settings.EVERNOTE['basic_access']['secret'],
+            settings.EVERNOTE['oauth_callback'])
 
         StartSession.create(id=user_id, user_id=user_id, oauth_data=oauth_data)
 

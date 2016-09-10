@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -128,3 +129,24 @@ class AsyncEvernoteApi:
             return self.__call_store_method('getDefaultNotebook', auth_token)
 
         return await self.loop.run_in_executor(self.executor, get_nb)
+
+    async def get_oauth_data(self, user_id, api_key, api_secret, oauth_callback):
+        def _get_oauth_data():
+            sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=self.sandbox)
+            bytes_key = ('%s%s%s' % (api_key, api_secret, user_id)).encode()
+            callback_key = hashlib.sha1(bytes_key).hexdigest()
+            callback_url = "%(callback_url)s?key=%(key)s" % {
+                'callback_url': oauth_callback,
+                'key': callback_key,
+            }
+            request_token = sdk.get_request_token(callback_url)
+            oauth_url = sdk.get_authorize_url(request_token)
+            return {
+                'oauth_url': oauth_url,
+                'oauth_token': request_token['oauth_token'],
+                'oauth_token_secret': request_token['oauth_token_secret'],
+                'callback_key': callback_key
+            }
+
+        return await self.loop.run_in_executor(self.executor, _get_oauth_data)
+
