@@ -47,8 +47,8 @@ class EvernoteBot(TelegramBot):
     def __init__(self, token, name):
         super(EvernoteBot, self).__init__(token, name)
         self.evernote = EvernoteClient(
-            settings.EVERNOTE['key'],
-            settings.EVERNOTE['secret'],
+            settings.EVERNOTE['basic_access']['key'],
+            settings.EVERNOTE['basic_access']['secret'],
             settings.EVERNOTE['oauth_callback'],
             sandbox=settings.DEBUG
         )
