@@ -115,13 +115,7 @@ class EvernoteBot(TelegramBot):
         text_mode = '{0}'.format(mode)
         mode = mode.replace(' ', '_').lower()
 
-        asyncio.ensure_future(
-            self.api.sendMessage(user.telegram_chat_id,
-                                 'From now this bot in mode "{0}"'.format(text_mode),
-                                 reply_markup=json.dumps({'hide_keyboard': True}))
-        )
-
-        if user.mode == 'one_note':
+        if mode == 'one_note':
             if user.settings.get('evernote_access', 'basic') == 'full':
                 user.mode = mode
                 reply = await self.api.sendMessage(user.telegram_chat_id, 'Please wait')
@@ -139,7 +133,12 @@ Please tap on button below to give access to bot.'''
                     'url': self.url,
                 }
                 inline_keyboard = {'inline_keyboard': [[signin_button]]}
-                message_future = asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, text, json.dumps(inline_keyboard)))
+                message_future = asyncio.ensure_future(
+                    self.api.sendMessage(user.telegram_chat_id,
+                                         text,
+                                         json.dumps(inline_keyboard),
+                                         reply_markup=json.dumps({'hide_keyboard': True}))
+                )
                 config = settings.EVERNOTE['full_access']
                 oauth_data = await self.evernote_api.get_oauth_data(user.id, config['key'], config['secret'], config['oauth_callback'])
                 session = StartSession.get({'user_id': user.id})
@@ -150,6 +149,13 @@ Please tap on button below to give access to bot.'''
                 msg = message_future.result()
                 asyncio.ensure_future(self.api.editMessageReplyMarkup(user.telegram_chat_id, msg['message_id'], json.dumps(inline_keyboard)))
                 session.save()
+        else:
+            asyncio.ensure_future(
+                self.api.sendMessage(user.telegram_chat_id,
+                                     'From now this bot in mode "{0}"'.format(text_mode),
+                                     reply_markup=json.dumps({'hide_keyboard': True}))
+            )
+
         user.state = None
         user.save()
 
