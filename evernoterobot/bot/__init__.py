@@ -132,12 +132,11 @@ Please tap on button below to give access to bot.'''
                     'text': 'Waiting for Evernote...',
                     'url': self.url,
                 }
-                inline_keyboard = {'inline_keyboard': [[signin_button]]}
+                inline_keyboard = {'inline_keyboard': [[signin_button]], 'hide_keyboard': True}
                 message_future = asyncio.ensure_future(
                     self.api.sendMessage(user.telegram_chat_id,
                                          text,
-                                         json.dumps(inline_keyboard),
-                                         reply_markup=json.dumps({'hide_keyboard': True}))
+                                         json.dumps(inline_keyboard))
                 )
                 config = settings.EVERNOTE['full_access']
                 oauth_data = await self.evernote_api.get_oauth_data(user.id, config['key'], config['secret'], config['oauth_callback'])
