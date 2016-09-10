@@ -41,5 +41,6 @@ Please tap on button below to link your Evernote account with bot.'''
 
         signin_button['text'] = 'Sign in to Evernote'
         signin_button['url'] = oauth_data["oauth_url"]
+        await asyncio.wait([welcome_message_future])
         msg = welcome_message_future.result()
         asyncio.ensure_future(self.bot.api.editMessageReplyMarkup(chat_id, msg['message_id'], json.dumps(inline_keyboard)))
