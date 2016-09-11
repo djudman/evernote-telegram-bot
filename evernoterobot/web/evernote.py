@@ -161,10 +161,11 @@ def switch_to_one_note_mode(bot, user, access_token_future):
                                   text='',
                                   title='Note for Evernoterobot')
     )
-    future.add_done_callback(functools.partial(save_default_note_guid, user))
+    future.add_done_callback(functools.partial(save_default_note_guid, user.id))
 
 
-def save_default_note_guid(user, note_guid_future):
+def save_default_note_guid(user_id, note_guid_future):
+    user = User.get({'id': user_id})
     note_guid = note_guid_future.result()
     user.places[user.current_notebook['guid']] = note_guid
     user.save()
