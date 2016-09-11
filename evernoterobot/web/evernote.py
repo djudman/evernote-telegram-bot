@@ -128,7 +128,7 @@ async def oauth_callback_full_access(request):
                     session.oauth_data['oauth_token_secret'],
                     oauth_verifier)
             )
-            future.add_done_callback(functools.partial(switch_to_one_note_mode, bot, user))
+            future.add_done_callback(functools.partial(switch_to_one_note_mode, bot, user.id))
             text = 'From now this bot in "One note" mode'
             asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text, hide_keyboard_markup))
         else:
@@ -149,7 +149,8 @@ async def oauth_callback_full_access(request):
     return web.HTTPFound(bot.url)
 
 
-def switch_to_one_note_mode(bot, user, access_token_future):
+def switch_to_one_note_mode(bot, user_id, access_token_future):
+    user = User.get({'id': user_id})
     access_token = access_token_future.result()
     user.evernote_access_token = access_token
     user.settings['evernote_access'] = 'full'
@@ -161,7 +162,7 @@ def switch_to_one_note_mode(bot, user, access_token_future):
                                   text='',
                                   title='Note for Evernoterobot')
     )
-    future.add_done_callback(functools.partial(save_default_note_guid, user.id))
+    future.add_done_callback(functools.partial(save_default_note_guid, user_id))
 
 
 def save_default_note_guid(user_id, note_guid_future):
