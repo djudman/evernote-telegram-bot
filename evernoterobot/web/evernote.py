@@ -45,32 +45,17 @@ async def oauth_callback(request):
 
     try:
         if params.get('oauth_verifier'):
-            access_token = await bot.evernote_api.get_access_token(
-                config['key'],
-                config['secret'],
-                session.oauth_data['oauth_token'],
-                session.oauth_data['oauth_token_secret'],
-                params['oauth_verifier'][0]
+            future = asyncio.ensure_future(
+                bot.evernote_api.get_access_token(
+                    config['key'],
+                    config['secret'],
+                    session.oauth_data['oauth_token'],
+                    session.oauth_data['oauth_token_secret'],
+                    params['oauth_verifier'][0]
+                )
             )
-            logger.info('evernote access_token = %s' % access_token)
-
-            notebook = await bot.evernote_api.get_default_notebook(access_token)
-            user.evernote_access_token = access_token
-            user.current_notebook = {
-                'guid': notebook.guid,
-                'name': notebook.name,
-            }
-
-            if user.mode == 'one_note':
-                note_guid = bot.evernote.create_note(access_token, text='', title='Note for Evernoterobot')
-                user.places = {user.current_notebook['guid']: note_guid}
-
-            text = "Evernote account is connected.\n\
-From now you can just send message and note be created.\n\
-\n\
-Current notebook: %s\n\
-Current mode: %s" % (notebook.name, user.mode.replace('_', ' ').capitalize())
-
+            future.add_done_callback(functools.partial(set_access_token, bot, user))
+            text = 'Evernote account is connected.\nFrom now you can just send message and note be created.'
             asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text))
             user.save()
         else:
@@ -90,6 +75,25 @@ Current mode: %s" % (notebook.name, user.mode.replace('_', ' ').capitalize())
             asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text))
 
     return web.HTTPFound(bot.url)
+
+
+def set_access_token(bot, user, future_access_token):
+    access_token = future_access_token.result()
+    user.evernote_access_token = access_token
+    user.save()
+    future = asyncio.ensure_future(bot.evernote_api.get_default_notebook(access_token))
+    future.add_done_callback(functools.partial(on_notebook_info, bot, user))
+
+
+def on_notebook_info(bot, user, future_notebook):
+    notebook = future_notebook.result()
+    user.current_notebook = {
+        'guid': notebook.guid,
+        'name': notebook.name,
+    }
+    text = 'Current notebook: %s\nCurrent mode: %s' % (notebook.name, user.mode.replace('_', ' ').capitalize())
+    asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text))
+    user.save()
 
 
 async def oauth_callback_full_access(request):
