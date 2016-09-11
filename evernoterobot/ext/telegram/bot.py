@@ -2,7 +2,7 @@ import logging
 from abc import abstractmethod
 
 from ext.telegram.api import BotApi
-from ext.telegram.models import TelegramUpdate, Message
+from ext.telegram.models import TelegramUpdate, Message, CallbackQuery
 
 
 class TelegramBotError(Exception):
@@ -32,13 +32,18 @@ class TelegramBot:
             update = TelegramUpdate(data)
             await self.on_before_handle_update(update)
 
-            if update.message:
+            if update.callback_query:
+                await self.handle_callback_query(update.callback_query)
+            elif update.message:
                 await self.handle_message(update.message)
             # TODO: process inline query
             # TODO: process inline result
             # TODO: process callback query
         except Exception as e:
             self.logger.error(e, exc_info=1)
+
+    async def handle_callback_query(self, query: CallbackQuery):
+        pass
 
     async def handle_message(self, message: Message):
         user = message.user

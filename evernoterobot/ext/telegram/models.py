@@ -4,8 +4,10 @@ from typing import List, Dict
 class TelegramUpdate:
     def __init__(self, data: dict):
         self.id = data['update_id']
+        self.message = None
         if data.get('message'):
             self.message = Message(data['message'])
+        self.callback_query = None
         if data.get('callback_query'):
             self.callback_query = CallbackQuery(data['callback_query'])
 
