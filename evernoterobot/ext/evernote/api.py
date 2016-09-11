@@ -112,9 +112,9 @@ class AsyncEvernoteApi:
             note.content = str(content)
             return self.__call_store_method('createNote', auth_token, note)
 
-        result = await self.loop.run_in_executor(self.executor, create)
+        note = await self.loop.run_in_executor(self.executor, create)
         self.logger.debug('Note created.')
-        return result
+        return note.guid
 
     async def update_note(self, auth_token, note):
         def update(note):
