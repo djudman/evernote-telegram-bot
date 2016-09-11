@@ -154,6 +154,7 @@ def switch_to_one_note_mode(bot, user, access_token_future):
     user.evernote_access_token = access_token
     user.settings['evernote_access'] = 'full'
     user.mode = 'one_note'
+    user.save()
     future = asyncio.ensure_future(
         bot.evernote_api.new_note(user.evernote_access_token,
                                   user.current_notebook['guid'],
