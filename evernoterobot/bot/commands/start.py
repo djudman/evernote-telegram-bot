@@ -28,7 +28,7 @@ Please tap on button below to link your Evernote account with bot.'''
         }
         inline_keyboard = {'inline_keyboard': [[signin_button]]}
         welcome_message_future = asyncio.ensure_future(self.bot.api.sendMessage(chat_id, welcome_text, json.dumps(inline_keyboard)))
-        session_key = "".join([random.choice(string.ascii_letters + string.digits + string.punctuation) for i in range(32)])
+        session_key = "".join([random.choice(string.ascii_letters + string.digits) for i in range(32)])
         oauth_data = await self.bot.evernote_api.get_oauth_data(
             user_id, config['key'], config['secret'], config['oauth_callback'], session_key)
 
