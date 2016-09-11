@@ -128,8 +128,9 @@ class EvernoteBot(TelegramBot):
                 text = 'New note was created in notebook "{0}"'.format(user.current_notebook['name'])
                 asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, text, json.dumps({'hide_keyboard': True})))
             else:
-                text = '''To enable "One note" mode you should allow to bot to read and update your notes.
-Please tap on button below to give access to bot.'''
+                text = 'To enable "One note" mode you should allow to bot to read and update your notes'
+                asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, text, json.dumps({'hide_keyboard': True})))
+                text = 'Please tap on button below to give access to bot.'
                 signin_button = {
                     'text': 'Waiting for Evernote...',
                     'url': self.url,
