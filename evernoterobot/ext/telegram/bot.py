@@ -28,14 +28,17 @@ class TelegramBot:
         self.commands[cmd_name] = command_class
 
     async def handle_update(self, data: dict):
-        update = TelegramUpdate(data)
-        await self.on_before_handle_update(update)
+        try:
+            update = TelegramUpdate(data)
+            await self.on_before_handle_update(update)
 
-        if update.message:
-            await self.handle_message(update.message)
-        # TODO: process inline query
-        # TODO: process inline result
-        # TODO: process callback query
+            if update.message:
+                await self.handle_message(update.message)
+            # TODO: process inline query
+            # TODO: process inline result
+            # TODO: process callback query
+        except Exception as e:
+            self.logger.error(e, exc_info=1)
 
     async def handle_message(self, message: Message):
         user = message.user
