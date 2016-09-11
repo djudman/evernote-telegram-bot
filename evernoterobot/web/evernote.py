@@ -116,24 +116,15 @@ async def oauth_callback_full_access(request):
         if params.get('oauth_verifier'):
             oauth_verifier = params['oauth_verifier'][0]
             config = settings.EVERNOTE['full_access']
-            access_token = await bot.evernote_api.get_access_token(
-                config['key'],
-                config['secret'],
-                session.oauth_data['oauth_token'],
-                session.oauth_data['oauth_token_secret'],
-                oauth_verifier)
-
-            user.evernote_access_token = access_token
-            user.settings['evernote_access'] = 'full'
-            user.mode = 'one_note'
             future = asyncio.ensure_future(
-                bot.evernote_api.new_note(user.evernote_access_token,
-                                          user.current_notebook['guid'],
-                                          text='',
-                                          title='Note for Evernoterobot')
+                bot.evernote_api.get_access_token(
+                    config['key'],
+                    config['secret'],
+                    session.oauth_data['oauth_token'],
+                    session.oauth_data['oauth_token_secret'],
+                    oauth_verifier)
             )
-            future.add_done_callback(functools.partial(save_default_note_guid, user))
-            user.save()
+            future.add_done_callback(functools.partial(switch_to_one_note_mode, bot, user))
             text = 'From now this bot in "One note" mode'
             asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text, hide_keyboard_markup))
         else:
@@ -154,7 +145,21 @@ async def oauth_callback_full_access(request):
     return web.HTTPFound(bot.url)
 
 
-def save_default_note_guid(user, future):
-    note_guid = future.result()
+def switch_to_one_note_mode(bot, user, access_token_future):
+    access_token = access_token_future.result()
+    user.evernote_access_token = access_token
+    user.settings['evernote_access'] = 'full'
+    user.mode = 'one_note'
+    future = asyncio.ensure_future(
+        bot.evernote_api.new_note(user.evernote_access_token,
+                                  user.current_notebook['guid'],
+                                  text='',
+                                  title='Note for Evernoterobot')
+    )
+    future.add_done_callback(functools.partial(save_default_note_guid, user))
+
+
+def save_default_note_guid(user, note_guid_future):
+    note_guid = note_guid_future.result()
     user.places[user.current_notebook['guid']] = note_guid
     user.save()
