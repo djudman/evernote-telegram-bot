@@ -14,7 +14,7 @@ from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask, \
 from ext.evernote.api import AsyncEvernoteApi
 from ext.evernote.client import EvernoteClient
 from ext.telegram.bot import TelegramBot, TelegramBotCommand, TelegramBotError
-from ext.telegram.models import Message
+from ext.telegram.models import Message, CallbackQuery
 
 
 def get_commands(cmd_dir=None):
@@ -74,10 +74,10 @@ class EvernoteBot(TelegramBot):
                      self.evernote.list_notebooks(access_token)]
         await self.cache.set(key, json.dumps(notebooks).encode())
 
-    async def set_current_notebook(self, user, notebook_name):
+    async def set_current_notebook(self, user, notebook_name=None, notebook_guid=None):
         all_notebooks = await self.list_notebooks(user)
         for notebook in all_notebooks:
-            if notebook['name'] == notebook_name:
+            if (notebook_guid and notebook_guid == notebook['guid']) or (notebook['name'] == notebook_name):
                 user.current_notebook = notebook
                 user.state = None
                 user.save()
@@ -164,6 +164,11 @@ class EvernoteBot(TelegramBot):
 
         future = asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, '🔄 Accepted'))
         future.add_done_callback(on_message_sent)
+
+    async def handle_callback_query(self, query: CallbackQuery):
+        data = json.loads(query.data)
+        if data['cmd'] == 'set_nb':
+            self.set_current_notebook(query.user, notebook_guid=data['nb'])
 
     async def on_message_received(self, message: Message):
         if '/start' in message.bot_commands:
