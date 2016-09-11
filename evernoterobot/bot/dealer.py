@@ -45,6 +45,9 @@ class EvernoteDealer:
                 for user_id, updates in updates_by_user.items():
                     try:
                         user = User.get({'id': user_id})
+                        if not hasattr(user, 'current_notebook'):
+                            await asyncio.sleep(0.1)
+                            continue
                         asyncio.ensure_future(self.process_user_updates(user, updates))
                     except Exception as e:
                         self.logger.error("Can't process updates for user {0}\n{1}".format(user_id, e), exc_info=1)
