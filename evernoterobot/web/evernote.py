@@ -16,7 +16,7 @@ async def oauth_callback(request):
 
     params = parse_qs(request.query_string)
     callback_key = params.get('key', [''])[0]
-    session_key = params.get('session_key')
+    session_key = params.get('session_key')[0]
 
     try:
         session = StartSession.get({'oauth_data.callback_key': callback_key})
@@ -97,7 +97,7 @@ async def oauth_callback_full_access(request):
     hide_keyboard_markup = json.dumps({'hide_keyboard': True})
     params = parse_qs(request.query_string)
     callback_key = params.get('key', [''])[0]
-    session_key = params.get('session_key')
+    session_key = params.get('session_key')[0]
 
     try:
         session = StartSession.get({'oauth_data.callback_key': callback_key})
