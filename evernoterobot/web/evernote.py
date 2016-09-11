@@ -1,3 +1,4 @@
+import functools
 import json
 from urllib.parse import parse_qs
 
@@ -125,9 +126,13 @@ async def oauth_callback_full_access(request):
             user.evernote_access_token = access_token
             user.settings['evernote_access'] = 'full'
             user.mode = 'one_note'
-            # TODO: async
-            note_guid = bot.evernote.create_note(user.evernote_access_token, text='', title='Note for Evernoterobot')
-            user.places[user.current_notebook['guid']] = note_guid
+            future = asyncio.ensure_future(
+                bot.evernote_api.new_note(user.evernote_access_token,
+                                          user.current_notebook['guid'],
+                                          text='',
+                                          title='Note for Evernoterobot')
+            )
+            future.add_done_callback(functools.partial(save_default_note_guid, user))
             user.save()
             text = 'From now this bot in "One note" mode'
             asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text, hide_keyboard_markup))
@@ -147,3 +152,9 @@ async def oauth_callback_full_access(request):
         asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text, hide_keyboard_markup))
 
     return web.HTTPFound(bot.url)
+
+
+def save_default_note_guid(user, future):
+    note_guid = future.result()
+    user.places[user.current_notebook['guid']] = note_guid
+    user.save()
