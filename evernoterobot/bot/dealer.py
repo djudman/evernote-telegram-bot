@@ -85,7 +85,7 @@ class EvernoteDealer:
                     await handler.execute(user, update)
 
                 text = '✅ {0} saved ({1:.2} s)'.format(update.request_type.capitalize(), time.time() - start_ts)
-                await self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id, text)
+                asyncio.ensure_future(self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id, text))
             except Exception as e:
                 self.logger.error(e, exc_info=1)
                 FailedUpdate.create(error=traceback.format_exc(), **update.save_data())
@@ -106,7 +106,7 @@ class EvernoteDealer:
 
     async def edit_telegram_message(self, chat_id, message_id, text):
         bot = EvernoteBot(settings.TELEGRAM['token'], 'evernoterobot')
-        await bot.api.editMessageText(chat_id, message_id, text)
+        asyncio.ensure_future(bot.api.editMessageText(chat_id, message_id, text))
 
     def register_handler(self, request_type, handler_class):
         if not self.__handlers.get(request_type):
