@@ -1,3 +1,5 @@
+import asyncio
+
 from ext.botan_async import track
 from ext.telegram.bot import TelegramBotCommand
 from ext.telegram.models import Message
@@ -8,7 +10,7 @@ class HelpCommand(TelegramBotCommand):
     name = 'help'
 
     async def execute(self, message: Message):
-        await track(message.user.id, message.raw)
+        asyncio.ensure_future(track(message.user.id, message.raw))
         text = '''This is bot for Evernote (https://evernote.com).
 
 Just send message to bot and it creates note in your Evernote notebook. You can send to bot:
@@ -37,4 +39,4 @@ We are sorry for low speed, but Evernote API are slow (about 1-2 sec per request
 
 Contacts: djudman@gmail.com
 '''
-        await self.bot.api.sendMessage(message.chat.id, text)
+        asyncio.ensure_future(self.bot.api.sendMessage(message.chat.id, text))

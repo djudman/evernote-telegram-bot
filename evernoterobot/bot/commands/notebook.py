@@ -1,6 +1,6 @@
 import json
 
-`import asyncio
+import asyncio
 
 from bot import User
 from ext.botan_async import track

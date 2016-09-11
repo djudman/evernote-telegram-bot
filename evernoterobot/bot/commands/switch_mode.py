@@ -1,5 +1,7 @@
 import json
 
+import asyncio
+
 from bot import User
 from ext.botan_async import track
 from ext.telegram.bot import TelegramBotCommand
@@ -11,7 +13,7 @@ class SwitchModeCommand(TelegramBotCommand):
     name = 'switch_mode'
 
     async def execute(self, message: Message):
-        await track(message.user.id, message.raw)
+        asyncio.ensure_future(track(message.user.id, message.raw))
         user = User.get({'id': message.user.id})
         buttons = []
         for mode in ['one_note', 'multiple_notes']:
@@ -26,9 +28,8 @@ class SwitchModeCommand(TelegramBotCommand):
                 'resize_keyboard': True,
                 'one_time_keyboard': True,
             })
-        await self.bot.api.sendMessage(user.telegram_chat_id,
-                                       'Please, select mode',
-                                       reply_markup=markup)
-
+        asyncio.ensure_future(
+            self.bot.api.sendMessage(user.telegram_chat_id, 'Please, select mode', reply_markup=markup)
+        )
         user.state = 'switch_mode'
         user.save()
