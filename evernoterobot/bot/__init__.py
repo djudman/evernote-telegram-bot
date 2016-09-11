@@ -141,8 +141,8 @@ Please tap on button below to give access to bot.'''
                                          json.dumps(inline_keyboard))
                 )
                 config = settings.EVERNOTE['full_access']
-                oauth_data = await self.evernote_api.get_oauth_data(user.id, config['key'], config['secret'], config['oauth_callback'])
-                session = StartSession.get({'user_id': user.id})
+                session = StartSession.get({'id': user.id})
+                oauth_data = await self.evernote_api.get_oauth_data(user.id, config['key'], config['secret'], config['oauth_callback'], session.key)
                 session.oauth_data = oauth_data
                 signin_button['text'] = 'Allow read and update notes to bot'
                 signin_button['url'] = oauth_data["oauth_url"]

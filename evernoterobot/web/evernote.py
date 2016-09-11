@@ -16,15 +16,15 @@ async def oauth_callback(request):
 
     params = parse_qs(request.query_string)
     callback_key = params.get('key', [''])[0]
+    session_key = params.get('session_key')
 
     try:
         session = StartSession.get({'oauth_data.callback_key': callback_key})
-
         user_data = session.data['user']
         first_name = user_data['first_name']
         last_name = user_data['last_name']
         username = user_data['username']
-        user = User(id=session.user_id,
+        user = User(id=session.id,
                     name="{0} {1} [{2}]".format(first_name, last_name, username),
                     telegram_chat_id=session.data['chat_id'],
                     mode='multiple_notes',
@@ -33,7 +33,16 @@ async def oauth_callback(request):
                     username=username,
                     first_name=first_name,
                     last_name=last_name)
+    except ModelNotFound as e:
+        logger.error(e, exc_info=1)
+        return web.HTTPForbidden()
 
+    if session.key != session_key:
+        text = "Session is expired. Please, send /start command to create new session"
+        asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text))
+        return web.HTTPFound(bot.url)
+
+    try:
         if params.get('oauth_verifier'):
             access_token = await bot.evernote_api.get_access_token(
                 config['key'],
@@ -73,9 +82,6 @@ Current mode: %s" % (notebook.name, user.mode.replace('_', ' ').capitalize())
         logger.error(e, exc_info=1)
         text = "We are sorry, but we have some problems with Evernote connection. Please try again later"
         asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text))
-    except ModelNotFound as e:
-        logger.error(e, exc_info=1)
-        return web.HTTPForbidden()
     except Exception as e:
         logger.fatal(e, exc_info=1)
         text = "Oops. Unknown error. Our best specialist already working to fix it"
@@ -89,13 +95,23 @@ async def oauth_callback_full_access(request):
     logger = request.app.logger
     bot = request.app.bot
     hide_keyboard_markup = json.dumps({'hide_keyboard': True})
+    params = parse_qs(request.query_string)
+    callback_key = params.get('key', [''])[0]
+    session_key = params.get('session_key')
+
     try:
-        params = parse_qs(request.query_string)
-        callback_key = params.get('key', [''])[0]
-
         session = StartSession.get({'oauth_data.callback_key': callback_key})
-        user = User.get({'id': session.user_id})
+        user = User.get({'id': session.id})
+    except ModelNotFound as e:
+        logger.error(e, exc_info=1)
+        return web.HTTPForbidden()
 
+    if session.key != session_key:
+        text = "Session is expired. Please, send /start command to create new session"
+        asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text))
+        return web.HTTPFound(bot.url)
+
+    try:
         if params.get('oauth_verifier'):
             oauth_verifier = params['oauth_verifier'][0]
             config = settings.EVERNOTE['full_access']
@@ -125,9 +141,6 @@ async def oauth_callback_full_access(request):
         logger.error(e, exc_info=1)
         text = "We are sorry, but we have some problems with Evernote connection. Please try again later"
         asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text, hide_keyboard_markup))
-    except ModelNotFound as e:
-        logger.error(e, exc_info=1)
-        return web.HTTPForbidden()
     except Exception as e:
         logger.fatal(e, exc_info=1)
         text = "Oops. Unknown error. Our best specialist already working to fix it"

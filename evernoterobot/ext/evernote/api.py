@@ -130,14 +130,15 @@ class AsyncEvernoteApi:
 
         return await self.loop.run_in_executor(self.executor, get_nb)
 
-    async def get_oauth_data(self, user_id, api_key, api_secret, oauth_callback):
+    async def get_oauth_data(self, user_id, api_key, api_secret, oauth_callback, session_key):
         def _get_oauth_data():
             sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=self.sandbox)
             bytes_key = ('%s%s%s' % (api_key, api_secret, user_id)).encode()
             callback_key = hashlib.sha1(bytes_key).hexdigest()
-            callback_url = "%(callback_url)s?key=%(key)s" % {
+            callback_url = "%(callback_url)s?key=%(key)s&session_key=%(session_key)s" % {
                 'callback_url': oauth_callback,
                 'key': callback_key,
+                'session_key': session_key,
             }
             request_token = sdk.get_request_token(callback_url)
             oauth_url = sdk.get_authorize_url(request_token)

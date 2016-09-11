@@ -95,15 +95,15 @@ class Model:
 class StartSession(Model):
 
     save_fields = [
-        'user_id',
+        'key',
         'data',
         'oauth_data',
         'created',
     ]
 
-    def __init__(self, user_id, data: dict, oauth_data: dict, **kwargs):
+    def __init__(self, key, data: dict, oauth_data: dict, **kwargs):
         self.id = kwargs.get('id')
-        self.user_id = user_id
+        self.key = key
         self.data = data
         self.oauth_data = oauth_data
         self.created = kwargs.get('created', datetime.datetime.now())
