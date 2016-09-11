@@ -6,6 +6,8 @@ class TelegramUpdate:
         self.id = data['update_id']
         if data.get('message'):
             self.message = Message(data['message'])
+        if data.get('callback_query'):
+            self.callback_query = CallbackQuery(data['callback_query'])
 
 class Chat:
     def __init__(self, data: dict):
@@ -95,3 +97,10 @@ class Message:
         ]
 
 
+class CallbackQuery:
+    def __init__(self, data: dict):
+        self.id = data['id']
+        self.user = TelegramUser(data['from'])
+        self.message = Message(data['message'])
+        self.inline_message_id = data.get('inline_message_id')
+        self.data = data.get('data')
