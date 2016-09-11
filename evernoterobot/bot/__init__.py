@@ -118,7 +118,7 @@ class EvernoteBot(TelegramBot):
         if mode == 'one_note':
             if user.settings.get('evernote_access', 'basic') == 'full':
                 user.mode = mode
-                reply = await self.api.sendMessage(user.telegram_chat_id, 'Please wait')
+                reply = await self.api.sendMessage(user.telegram_chat_id, 'Please wait', reply_markup=json.dumps({'hide_keyboard': True}))
                 # TODO: async
                 note_guid = self.evernote.create_note(user.evernote_access_token, text='', title='Note for Evernoterobot')
                 user.places[user.current_notebook['guid']] = note_guid
@@ -132,7 +132,7 @@ Please tap on button below to give access to bot.'''
                     'text': 'Waiting for Evernote...',
                     'url': self.url,
                 }
-                inline_keyboard = {'inline_keyboard': [[signin_button]], 'hide_keyboard': True}
+                inline_keyboard = {'inline_keyboard': [[signin_button]]}
                 message_future = asyncio.ensure_future(
                     self.api.sendMessage(user.telegram_chat_id,
                                          text,
