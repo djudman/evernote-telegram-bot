@@ -74,16 +74,6 @@ class EvernoteBot(TelegramBot):
                      self.evernote.list_notebooks(access_token)]
         await self.cache.set(key, json.dumps(notebooks).encode())
 
-    # async def get_user(self, message):
-    #     try:
-    #         user = User.get({'user_id': message['from']['id']})
-    #         if user.telegram_chat_id != message['chat']['id']:
-    #             user.telegram_chat_id = message['chat']['id']
-    #             user.save()
-    #         return user
-    #     except ModelNotFound:
-    #         self.logger.warn("User %s not found" % message['from']['id'])
-
     async def set_current_notebook(self, user, notebook_name):
         all_notebooks = await self.list_notebooks(user)
         for notebook in all_notebooks:
@@ -109,8 +99,7 @@ class EvernoteBot(TelegramBot):
                 )
                 break
         else:
-            await self.api.sendMessage(user.telegram_chat_id,
-                                       'Please, select notebook')
+            asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, 'Please, select notebook'))
 
     async def set_mode(self, user, mode):
         if mode.startswith('> ') and mode.endswith(' <'):
@@ -165,7 +154,7 @@ class EvernoteBot(TelegramBot):
         user.state = None
         user.save()
 
-    async def accept_request(self, user: User, request_type: str, message: Message):
+    def accept_request(self, user: User, request_type: str, message: Message):
         def on_message_sent(future_message):
             reply = future_message.result()
             TelegramUpdate.create(user_id=user.id,
@@ -182,10 +171,7 @@ class EvernoteBot(TelegramBot):
         try:
             user = User.get({'id': message.user.id})
             if not hasattr(user, 'evernote_access_token') or not user.evernote_access_token:
-                await self.api.sendMessage(
-                    user.telegram_chat_id,
-                    'You should authorize first. Please, send /start command.'
-                )
+                await self.api.sendMessage(user.telegram_chat_id, 'You should authorize first. Please, send /start command.')
                 raise TelegramBotError('User {0} not authorized in Evernote'.format(user.id))
         except ModelNotFound:
             asyncio.ensure_future(self.api.sendMessage(message.chat.id, 'Who are you, stranger? Please, send /start command.'))
@@ -201,11 +187,11 @@ class EvernoteBot(TelegramBot):
         elif user.state == 'switch_mode':
             await self.set_mode(user, text)
         else:
-            await self.accept_request(user, 'text', message)
+            self.accept_request(user, 'text', message)
 
     async def on_photo(self, message: Message):
         user = User.get({'id': message.user.id})
-        await self.accept_request(user, 'photo', message)
+        self.accept_request(user, 'photo', message)
         files = sorted(message.photos, key=lambda x: x.file_size,
                        reverse=True)
         DownloadTask.create(user_id=user.id,
@@ -215,7 +201,7 @@ class EvernoteBot(TelegramBot):
 
     async def on_video(self, message: Message):
         user = User.get({'id': message.user.id})
-        await self.accept_request(user, 'video', message)
+        self.accept_request(user, 'video', message)
         video = message.video
         DownloadTask.create(user_id=user.id,
                             file_id=video.file_id,
@@ -224,7 +210,7 @@ class EvernoteBot(TelegramBot):
 
     async def on_document(self, message: Message):
         user = User.get({'id': message.user.id})
-        await self.accept_request(user, 'document', message)
+        self.accept_request(user, 'document', message)
         document = message.document
         DownloadTask.create(user_id=user.id,
                             file_id=document.file_id,
@@ -238,8 +224,8 @@ class EvernoteBot(TelegramBot):
                             file_id=voice.file_id,
                             file_size=voice.file_size,
                             completed=False)
-        await self.accept_request(user, 'voice', message)
+        self.accept_request(user, 'voice', message)
 
     async def on_location(self, message: Message):
         user = User.get({'id': message.user.id})
-        await self.accept_request(user, 'location', message)
+        self.accept_request(user, 'location', message)
