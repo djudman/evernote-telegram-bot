@@ -100,10 +100,13 @@ class EvernoteBot(TelegramBot):
                     user.places[user.current_notebook['guid']] = note_guid
                     user.save()
 
-                await self.api.sendMessage(
-                    user.telegram_chat_id,
-                    'From now your current notebook is: %s' % notebook_name,
-                    reply_markup=json.dumps({'hide_keyboard': True}))
+                asyncio.ensure_future(
+                    self.api.sendMessage(
+                        user.telegram_chat_id,
+                        'From now your current notebook is: %s' % notebook_name,
+                        reply_markup=json.dumps({'hide_keyboard': True})
+                    )
+                )
                 break
         else:
             await self.api.sendMessage(user.telegram_chat_id,
@@ -163,12 +166,15 @@ class EvernoteBot(TelegramBot):
         user.save()
 
     async def accept_request(self, user: User, request_type: str, message: Message):
-            reply = await self.api.sendMessage(user.telegram_chat_id,
-                                               '🔄 Accepted')
+        def on_message_sent(future_message):
+            reply = future_message.result()
             TelegramUpdate.create(user_id=user.id,
                                   request_type=request_type,
                                   status_message_id=reply['message_id'],
                                   message=message.raw)
+
+        future = asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, '🔄 Accepted'))
+        future.add_done_callback(on_message_sent)
 
     async def on_message_received(self, message: Message):
         if '/start' in message.bot_commands:
