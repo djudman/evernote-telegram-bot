@@ -181,8 +181,7 @@ Please tap on button below to give access to bot.'''
                 )
                 raise TelegramBotError('User {0} not authorized in Evernote'.format(user.id))
         except ModelNotFound:
-            await self.api.sendMessage(message.chat.id,
-                                       'Who are you, stranger? Please, send /start command.')
+            asyncio.ensure_future(self.api.sendMessage(message.chat.id, 'Who are you, stranger? Please, send /start command.'))
             raise TelegramBotError('Unregistered user {0}'.format(message.user.id))
 
     async def on_text(self, message: Message):
