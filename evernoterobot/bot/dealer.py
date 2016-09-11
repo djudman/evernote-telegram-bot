@@ -45,7 +45,7 @@ class EvernoteDealer:
                 for user_id, updates in updates_by_user.items():
                     try:
                         user = User.get({'id': user_id})
-                        if not hasattr(user, 'current_notebook'):
+                        if not user.current_notebook:
                             await asyncio.sleep(0.1)
                             continue
                         asyncio.ensure_future(self.process_user_updates(user, updates))
