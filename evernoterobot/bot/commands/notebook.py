@@ -1,5 +1,7 @@
 import json
 
+`import asyncio
+
 from bot import User
 from ext.botan_async import track
 from ext.telegram.bot import TelegramBotCommand
@@ -11,7 +13,7 @@ class NotebookCommand(TelegramBotCommand):
     name = 'notebook'
 
     async def execute(self, message: Message):
-        await track(message.user.id, message.raw)
+        asyncio.ensure_future(track(message.user.id, message.raw))
         user = User.get({'id': message.user.id})
         notebooks = await self.bot.list_notebooks(user)
 
@@ -28,11 +30,9 @@ class NotebookCommand(TelegramBotCommand):
                 'resize_keyboard': True,
                 'one_time_keyboard': True,
             })
-        await self.bot.api.sendMessage(user.telegram_chat_id,
-                                       'Please, select notebook',
-                                       reply_markup=markup)
-
+        asyncio.ensure_future(
+            self.bot.api.sendMessage(user.telegram_chat_id, 'Please, select notebook', reply_markup=markup)
+        )
         user.state = 'select_notebook'
         user.save()
-
-        await self.bot.update_notebooks_cache(user)
+        asyncio.ensure_future(self.bot.update_notebooks_cache(user))
