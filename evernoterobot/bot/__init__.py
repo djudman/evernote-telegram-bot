@@ -118,13 +118,13 @@ class EvernoteBot(TelegramBot):
         if mode == 'one_note':
             if user.settings.get('evernote_access', 'basic') == 'full':
                 user.mode = mode
-                reply = await self.api.sendMessage(user.telegram_chat_id, 'Please wait', reply_markup=json.dumps({'hide_keyboard': True}))
+                reply = await self.api.sendMessage(user.telegram_chat_id, 'Please wait')
                 # TODO: async
                 note_guid = self.evernote.create_note(user.evernote_access_token, text='', title='Note for Evernoterobot')
                 user.places[user.current_notebook['guid']] = note_guid
 
                 text = 'Bot switched to mode "{0}". New note was created'.format(text_mode)
-                await self.api.editMessageText(user.telegram_chat_id, reply["message_id"], text)
+                await self.api.editMessageText(user.telegram_chat_id, reply["message_id"], text, reply_markup=json.dumps({'hide_keyboard': True}))
             else:
                 text = '''To enable "One note" mode you should allow to bot to read and update your notes.
 Please tap on button below to give access to bot.'''
