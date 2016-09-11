@@ -123,8 +123,10 @@ class EvernoteBot(TelegramBot):
                 note_guid = self.evernote.create_note(user.evernote_access_token, text='', title='Note for Evernoterobot')
                 user.places[user.current_notebook['guid']] = note_guid
 
-                text = 'Bot switched to mode "{0}". New note was created'.format(text_mode)
-                await self.api.editMessageText(user.telegram_chat_id, reply["message_id"], text, reply_markup=json.dumps({'hide_keyboard': True}))
+                text = 'Bot switched to mode "{0}"'.format(text_mode)
+                asyncio.ensure_future(self.api.editMessageText(user.telegram_chat_id, reply["message_id"], text))
+                text = 'New note was created in notebook "{0}"'.format(user.current_notebook['name'])
+                asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, text, json.dumps({'hide_keyboard': True})))
             else:
                 text = '''To enable "One note" mode you should allow to bot to read and update your notes.
 Please tap on button below to give access to bot.'''
