@@ -16,7 +16,7 @@ class TelegramBot:
         self.api = BotApi(token)
         self.name = bot_name
         self.url = 'https://telegram.me/%s' % bot_name
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('bot')
         self.commands = {}
         if kwargs:
             map(lambda name, value: setattr(self, name, value), kwargs.items())
