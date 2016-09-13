@@ -90,6 +90,7 @@ class EvernoteBot(TelegramBot):
                     user.places[user.current_notebook['guid']] = note_guid
                     user.save()
 
+                notebook_name = notebook_name or notebook['name']
                 asyncio.ensure_future(
                     self.api.sendMessage(
                         user.telegram_chat_id,
