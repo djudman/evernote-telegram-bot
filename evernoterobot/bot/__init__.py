@@ -168,7 +168,8 @@ class EvernoteBot(TelegramBot):
     async def handle_callback_query(self, query: CallbackQuery):
         data = json.loads(query.data)
         if data['cmd'] == 'set_nb':
-            await self.set_current_notebook(query.user, notebook_guid=data['nb'])
+            user = User.get({'id': query.user.id})
+            await self.set_current_notebook(user, notebook_guid=data['nb'])
 
     async def on_message_received(self, message: Message):
         if '/start' in message.bot_commands:
