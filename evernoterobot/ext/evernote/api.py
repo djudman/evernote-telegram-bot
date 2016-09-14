@@ -21,7 +21,11 @@ class RateLimitReached(EvernoteApiError):
     pass
 
 
-class InvalidToken(EvernoteApiError):
+class PermissionDenied(EvernoteApiError):
+    pass
+
+
+class TokenExpired(EvernoteApiError):
     pass
 
 
@@ -54,7 +58,9 @@ class AsyncEvernoteApi:
             exc_info = ExceptionInfo(NoteNotFound, 'Note not found')
         except ErrorTypes.EDAMUserException as e:
             if e.errorCode == 3:
-                exc_info = ExceptionInfo(InvalidToken, 'It seems that token is invalid (or has no permissions)')
+                exc_info = ExceptionInfo(PermissionDenied, 'It seems that token is invalid (or has no permissions)')
+            elif e.errorCode == 9:
+                exc_info = ExceptionInfo(TokenExpired, 'Evernote access token is expired')
             else:
                 exc_info = ExceptionInfo(EvernoteApiError, 'Error code = {0}, parameter = {1}'.format(e.errorCode, e.parameter))
         except ErrorTypes.EDAMSystemException as e:

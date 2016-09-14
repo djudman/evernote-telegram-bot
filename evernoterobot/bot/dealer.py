@@ -9,6 +9,7 @@ from bot import EvernoteBot
 from bot.message_handlers import TextHandler, PhotoHandler, VideoHandler, \
     DocumentHandler, VoiceHandler, LocationHandler
 from bot.model import TelegramUpdate, User, FailedUpdate
+from ext.evernote.api import TokenExpired
 from ext.telegram.api import BotApi
 
 
@@ -86,6 +87,10 @@ class EvernoteDealer:
 
                 text = '✅ {0} saved ({1:.2} s)'.format(update.request_type.capitalize(), time.time() - start_ts)
                 asyncio.ensure_future(self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id, text))
+            except TokenExpired:
+                asyncio.ensure_future(
+                    self.edit_telegram_message(user.telegram_chat_id, update.status_message_id, '❌ Evernote access token is expired. Send /start to get new token')
+                )
             except Exception as e:
                 self.logger.error(e, exc_info=1)
                 FailedUpdate.create(error=traceback.format_exc(), **update.save_data())
