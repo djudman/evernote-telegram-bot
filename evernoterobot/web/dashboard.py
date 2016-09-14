@@ -98,4 +98,4 @@ async def list_users(request):
     page = request.GET.get('page', 0)
     limit = 50
     users = [x for x in User.find({}, skip=page*limit, limit=limit)]
-    return aiohttp_jinja2.render_template('users.html', request, {'users': users})
+    return aiohttp_jinja2.render_template('users.html', request, {'secret': SECRET['secret_key'], 'users': users})
