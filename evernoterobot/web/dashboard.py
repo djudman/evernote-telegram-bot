@@ -1,5 +1,6 @@
 from aiohttp import web
 import aiohttp_jinja2
+from bson import ObjectId
 
 from bot import DownloadTask
 from bot.model import FailedUpdate, TelegramUpdate, User
@@ -78,7 +79,7 @@ async def fix_failed_update(request):
     await request.post()
     update_id = request.POST.get('update_id')
     if update_id:
-        updates = [FailedUpdate.get({'id': update_id})]
+        updates = [FailedUpdate.get({'id': ObjectId(update_id)})]
     elif not update_id and request.POST.get('all'):
         updates = FailedUpdate.find()
     else:

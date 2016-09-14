@@ -46,8 +46,6 @@ class Model:
     def create(cls, **kwargs):
         model = cls(**kwargs)
         model._created = datetime.datetime.now()
-        if not hasattr(model, 'id'):
-            model.id = str(uuid.uuid4())
         model.save()
         return model
 
