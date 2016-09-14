@@ -17,7 +17,7 @@
     {% for user in users %}
         <tr>
             <td>{{ user.id }}</td>
-            <td>{{ user.name }}</td>
+            <td>{{ user.name }} (<a href="https://telegram.me/{{ user.username }}">@{{ user.username }}</a>)</td>
             <td>{{ user.state }}</td>
             <td>{{ user.mode }}</td>
         </tr>

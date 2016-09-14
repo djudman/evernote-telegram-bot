@@ -26,14 +26,12 @@ async def oauth_callback(request):
         last_name = user_data['last_name']
         username = user_data['username']
         user = User(id=session.id,
-                    name="{0} {1} [{2}]".format(first_name, last_name, username),
+                    name="{0} {1}".format(first_name, last_name),
+                    username=username,
                     telegram_chat_id=session.data['chat_id'],
                     mode='multiple_notes',
                     places={},
-                    settings={'evernote_access': 'basic'},
-                    username=username,
-                    first_name=first_name,
-                    last_name=last_name)
+                    settings={'evernote_access': 'basic'})
     except ModelNotFound as e:
         logger.error(e, exc_info=1)
         return web.HTTPForbidden()

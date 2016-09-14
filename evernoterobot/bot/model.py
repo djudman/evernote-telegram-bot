@@ -186,12 +186,14 @@ class User(Model):
         'current_notebook',
         'places',
         'name',
+        'username',
         'settings',
     ]
 
     def __init__(self, **kwargs):
         self.id = kwargs.get('id')
         self.name = kwargs.get('name')
+        self.username = kwargs.get('username')
         self.telegram_chat_id = kwargs['telegram_chat_id']
         self.state = kwargs.get('state')
         self.mode = kwargs.get('mode')
