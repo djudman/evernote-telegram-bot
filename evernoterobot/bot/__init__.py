@@ -1,3 +1,4 @@
+import datetime
 import importlib
 import inspect
 import json
@@ -180,6 +181,8 @@ class EvernoteBot(TelegramBot):
             if not hasattr(user, 'evernote_access_token') or not user.evernote_access_token:
                 await self.api.sendMessage(user.telegram_chat_id, 'You should authorize first. Please, send /start command.')
                 raise TelegramBotError('User {0} not authorized in Evernote'.format(user.id))
+            user.last_request_time = datetime.datetime.now()
+            user.save()
         except ModelNotFound:
             asyncio.ensure_future(self.api.sendMessage(message.chat.id, 'Who are you, stranger? Please, send /start command.'))
             raise TelegramBotError('Unregistered user {0}'.format(message.user.id))
