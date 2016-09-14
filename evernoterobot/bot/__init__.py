@@ -60,8 +60,8 @@ class EvernoteBot(TelegramBot):
         data = await self.cache.get(key)
         if not data:
             access_token = user.evernote_access_token
-            notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in
-                         self.evernote.list_notebooks(access_token)]
+            list_notebooks = await self.evernote_api.list_notebooks(access_token)
+            notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in list_notebooks]
             await self.cache.set(key, json.dumps(notebooks).encode())
         else:
             notebooks = json.loads(data.decode())
@@ -70,8 +70,8 @@ class EvernoteBot(TelegramBot):
     async def update_notebooks_cache(self, user):
         key = "list_notebooks_{0}".format(user.id).encode()
         access_token = user.evernote_access_token
-        notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in
-                     self.evernote.list_notebooks(access_token)]
+        list_notebooks = await self.evernote_api.list_notebooks(access_token)
+        notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in list_notebooks]
         await self.cache.set(key, json.dumps(notebooks).encode())
 
     async def set_current_notebook(self, user, notebook_name=None, notebook_guid=None):

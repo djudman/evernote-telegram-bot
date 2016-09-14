@@ -157,3 +157,12 @@ class AsyncEvernoteApi:
             return sdk.get_access_token(oauth_token, oauth_token_secret, oauth_verifier)
 
         return await self.loop.run_in_executor(self.executor, _get_access_token)
+
+    async def list_notebooks(self, auth_token):
+        def _list_notebooks():
+            sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+            note_store = sdk.get_note_store()
+            return note_store.listNotebooks()
+
+        return await self.loop.run_in_executor(self.executor, _list_notebooks)
+
