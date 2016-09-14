@@ -58,7 +58,6 @@ async def oauth_callback(request):
             text = 'Evernote account is connected.\nFrom now you can just send message and note be created.'
             asyncio.ensure_future(bot.api.sendMessage(user.telegram_chat_id, text))
             user.save()
-            asyncio.ensure_future(bot.update_notebooks_cache(user))
         else:
             # User decline access
             logger.info('User declined access. No access token =(')
@@ -84,6 +83,7 @@ def set_access_token(bot, user, future_access_token):
     user.save()
     future = asyncio.ensure_future(bot.evernote_api.get_default_notebook(access_token))
     future.add_done_callback(functools.partial(on_notebook_info, bot, user))
+    asyncio.ensure_future(bot.update_notebooks_cache(user))
 
 
 def on_notebook_info(bot, user, future_notebook):
