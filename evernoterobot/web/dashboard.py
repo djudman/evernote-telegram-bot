@@ -85,12 +85,7 @@ async def fix_failed_update(request):
     else:
         updates = []
     for failed_update in updates:
-        TelegramUpdate.create(
-            user_id=failed_update.user_id,
-            request_type=failed_update.request_type,
-            status_message_id=failed_update.status_message_id,
-            message=failed_update.message
-        )
+        request.app.bot.handle_update({ 'update_id': failed_update.id, 'message': failed_update.message })
         failed_update.delete()
     return await list_failed_updates(request)
 
