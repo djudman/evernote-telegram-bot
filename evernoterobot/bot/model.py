@@ -189,12 +189,14 @@ class User(Model):
         'username',
         'settings',
         'last_request_time',
+        'created',
     ]
 
     def __init__(self, **kwargs):
         self.id = kwargs.get('id')
         self.name = kwargs.get('name')
         self.username = kwargs.get('username')
+        self.created = kwargs.get('created', datetime.datetime.now())
         self.last_request_time = kwargs.get('last_request_time', datetime.datetime.now())
         self.telegram_chat_id = kwargs['telegram_chat_id']
         self.state = kwargs.get('state')

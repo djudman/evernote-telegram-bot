@@ -8,6 +8,7 @@
         <tr>
             <th>User ID</th>
             <th>Name</th>
+            <th>Registration date</th>
             <th>Last seen</th>
             <th>State</th>
             <th>Mode</th>
@@ -19,6 +20,7 @@
         <tr>
             <td>{{ user.id }}</td>
             <td>{{ user.name }} (<a href="https://telegram.me/{{ user.username }}">@{{ user.username }}</a>)</td>
+            <td>{{ user.created }}</td>
             <td>{{ user.last_request_time }}</td>
             <td>{{ user.state }}</td>
             <td>{{ user.mode }}</td>
