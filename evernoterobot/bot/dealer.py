@@ -89,7 +89,7 @@ class EvernoteDealer:
                 asyncio.ensure_future(self._telegram_api.editMessageText(user.telegram_chat_id, update.status_message_id, text))
             except TokenExpired:
                 asyncio.ensure_future(
-                    self.edit_telegram_message(user.telegram_chat_id, update.status_message_id, '❌ Evernote access token is expired. Send /start to get new token')
+                    self.edit_telegram_message(user.telegram_chat_id, update.status_message_id, '⛔️ Evernote access token is expired. Send /start to get new token')
                 )
             except Exception as e:
                 self.logger.error(e, exc_info=1)
