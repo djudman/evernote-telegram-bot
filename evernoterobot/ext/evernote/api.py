@@ -89,7 +89,7 @@ class AsyncEvernoteApi:
 
     async def get_note_link(self, auth_token, note_guid, app_link=False):
         user = await self.get_user(auth_token)
-        app_link_template = 'evernote:///view/%(user_id)s/%(shard_id)s/%(note_guid)s/%(note_guid)s/'
+        app_link_template = 'evernote:///view/%(user_id)s/%(shard)s/%(note_guid)s/%(note_guid)s/'
         web_link_template = 'https://%(service)s/shard/%(shard)s/nl/%(user_id)s/%(note_guid)s/'
         params = {
             'service': await self.get_service_host(auth_token),
