@@ -40,9 +40,9 @@ def test_fetch_updates():
     assert updates[2].status_message_id == 2
 
 
-@pytest.mark.use_mongo
-def test_fetch_updates_from_mongo():
-    test_fetch_updates()
+# @pytest.mark.use_mongo
+# def test_fetch_updates_from_mongo():
+#     test_fetch_updates()
 
 
 @pytest.mark.async_test
@@ -143,11 +143,12 @@ async def test_failed_update(text_update):
     mock_note_provider = AsyncMock()
     note = Types.Note()
     mock_note_provider.get_note = AsyncMock(return_value=note)
+    mock_note_provider.get_note.side_effect = Exception('test')
     mock_telegram_api = AsyncMock()
     dealer._telegram_api = mock_telegram_api
-    # for k, handlers in dealer._EvernoteDealer__handlers.items():
-    #     for handler in handlers:
-    #         handler._note_provider = mock_note_provider
+    for k, handlers in dealer._EvernoteDealer__handlers.items():
+        for handler in handlers:
+            handler._note_provider = mock_note_provider
     updates = dealer.fetch_updates()
     for user_id, update_list in updates.items():
         user = User.get({'id': user_id})
