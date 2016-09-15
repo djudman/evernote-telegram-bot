@@ -87,6 +87,16 @@ class AsyncEvernoteApi:
         sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
         return sdk.service_host
 
+    async def get_note_link(self, auth_token, note_guid):
+        user = await self.get_user(auth_token)
+        link = "https://%(service)s/shard/%(shard)s/nl/%(user_id)s/%(note_guid)s/" % {
+            'service': await self.get_service_host(auth_token),
+            'shard': user.shardId,
+            'user_id': user.id,
+            'note_guid': note_guid,
+        }
+        return link
+
     async def get_note(self, auth_token, note_guid):
         def fetch(note_guid):
             return self.__call_store_method('getNote', auth_token, note_guid, True, True, False, False) # TODO: по идее можно соптимизировать и не запрашивать информацию о ресурсах когда она не нужна
