@@ -14,6 +14,7 @@ from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask, \
     StartSession
 from ext.evernote.api import AsyncEvernoteApi
 from ext.evernote.client import EvernoteClient
+from ext.evernote.provider import NoteProvider
 from ext.telegram.bot import TelegramBot, TelegramBotCommand, TelegramBotError
 from ext.telegram.models import Message, CallbackQuery
 
@@ -106,6 +107,7 @@ class EvernoteBot(TelegramBot):
                             parse_mode='Html'
                         )
                     )
+                    await NoteProvider().get_note(user.evernote_access_token, note_guid)
                 break
         else:
             asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, 'Please, select notebook'))
