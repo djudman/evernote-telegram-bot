@@ -85,7 +85,7 @@ async def fix_failed_update(request):
     else:
         updates = []
     for failed_update in updates:
-        request.app.bot.handle_update({ 'update_id': failed_update.id, 'message': failed_update.message })
+        await request.app.bot.handle_update({ 'update_id': failed_update.id, 'message': failed_update.message })
         failed_update.delete()
     return await list_failed_updates(request)
 
