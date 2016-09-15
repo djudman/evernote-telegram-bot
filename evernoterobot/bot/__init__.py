@@ -98,7 +98,7 @@ class EvernoteBot(TelegramBot):
                         title='Note for Evernoterobot')
                     user.places[user.current_notebook['guid']] = note_guid
                     user.save()
-                    note_link = await self.evernote_api.get_note_link(user.evernote_access_token, note_guid, app_link=True)
+                    note_link = await self.evernote_api.get_note_link(user.evernote_access_token, note_guid)
                     asyncio.ensure_future(
                         self.api.sendMessage(
                             user.telegram_chat_id,
