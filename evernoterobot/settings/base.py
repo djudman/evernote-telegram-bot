@@ -11,6 +11,9 @@ PROJECT_NAME = basename(PROJECT_DIR.lower())
 LOGS_DIR = join(realpath(ROOT_DIR), 'logs')
 DOWNLOADS_DIR = join(realpath(ROOT_DIR), 'downloads')
 
+os.makedirs(LOGS_DIR, mode=0o700, exist_ok=True)
+os.makedirs(DOWNLOADS_DIR, mode=0o700, exist_ok=True)
+
 secret_file = join(PROJECT_DIR, 'settings/secret.json')
 if not os.path.exists(secret_file):
     secret_file = join(PROJECT_DIR, 'settings/secret.json.example')
