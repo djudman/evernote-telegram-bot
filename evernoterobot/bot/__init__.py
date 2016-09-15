@@ -102,7 +102,7 @@ class EvernoteBot(TelegramBot):
                     asyncio.ensure_future(
                         self.api.sendMessage(
                             user.telegram_chat_id,
-                            'You are in "One note" mode. From now all your notes will be saved in <a href="{0}">this note</a>'.format(note_link))
+                            'You are in "One note" mode. From now all your notes will be saved in <a href="{0}">this note</a>'.format(note_link)
                         )
                     )
                 break
