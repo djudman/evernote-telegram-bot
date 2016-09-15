@@ -12,6 +12,7 @@ import asyncio
 import settings
 from bot.model import User, ModelNotFound, TelegramUpdate, DownloadTask, \
     StartSession
+from ext.botan_async import track
 from ext.evernote.api import AsyncEvernoteApi
 from ext.evernote.client import EvernoteClient
 from ext.evernote.provider import NoteProvider
@@ -56,6 +57,9 @@ class EvernoteBot(TelegramBot):
         self.cache = aiomcache.Client("127.0.0.1", 11211)
         for cmd_class in get_commands():
             self.add_command(cmd_class)
+
+    def track(self, message: Message):
+        asyncio.ensure_future(track(message.user.id, message.raw))
 
     async def list_notebooks(self, user: User):
         key = "list_notebooks_{0}".format(user.id).encode()
@@ -183,6 +187,7 @@ class EvernoteBot(TelegramBot):
             await self.set_current_notebook(user, notebook_guid=data['nb'])
 
     async def on_message_received(self, message: Message):
+        self.track(message)
         if '/start' in message.bot_commands:
             return
         try:

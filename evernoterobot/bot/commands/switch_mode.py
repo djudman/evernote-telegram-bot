@@ -13,7 +13,7 @@ class SwitchModeCommand(TelegramBotCommand):
     name = 'switch_mode'
 
     async def execute(self, message: Message):
-        asyncio.ensure_future(track(message.user.id, message.raw))
+        self.bot.track(message)
         user = User.get({'id': message.user.id})
         buttons = []
         for mode in ['one_note', 'multiple_notes']:

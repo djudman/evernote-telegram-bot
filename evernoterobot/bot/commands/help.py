@@ -10,7 +10,7 @@ class HelpCommand(TelegramBotCommand):
     name = 'help'
 
     async def execute(self, message: Message):
-        asyncio.ensure_future(track(message.user.id, message.raw))
+        self.bot.track(message)
         text = '''This is bot for Evernote (https://evernote.com).
 
 Just send message to bot and it creates note in your Evernote notebook. You can send to bot:

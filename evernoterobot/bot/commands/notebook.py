@@ -13,7 +13,7 @@ class NotebookCommand(TelegramBotCommand):
     name = 'notebook'
 
     async def execute(self, message: Message):
-        asyncio.ensure_future(track(message.user.id, message.raw))
+        self.bot.track(message)
         user = User.get({'id': message.user.id})
         notebooks = await self.bot.list_notebooks(user)
 

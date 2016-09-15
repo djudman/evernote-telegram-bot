@@ -36,6 +36,21 @@ class ExceptionInfo:
         self.message = message
 
 
+def edam_user_exception(func):
+    def _wrap():
+        try:
+            return func()
+        except ErrorTypes.EDAMUserException as e:
+            if e.errorCode == 3:
+                exc_info = ExceptionInfo(PermissionDenied, 'It seems that token is invalid (or has no permissions)')
+            elif e.errorCode == 9:
+                exc_info = ExceptionInfo(TokenExpired, 'Evernote access token is expired')
+            else:
+                exc_info = ExceptionInfo(EvernoteApiError, 'Error code = {0}, parameter = {1}'.format(e.errorCode, e.parameter))
+        raise exc_info.exc_type(exc_info.message)
+    return _wrap
+
+
 class AsyncEvernoteApi:
 
     def __init__(self, loop=None):
@@ -179,6 +194,7 @@ class AsyncEvernoteApi:
         return await self.loop.run_in_executor(self.executor, _get_access_token)
 
     async def list_notebooks(self, auth_token):
+        @edam_user_exception
         def _list_notebooks():
             sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
             note_store = sdk.get_note_store()

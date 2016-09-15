@@ -17,7 +17,7 @@ class StartCommand(TelegramBotCommand):
     async def execute(self, message: Message):
         chat_id = message.chat.id
         user_id = message.user.id
-        asyncio.ensure_future(track(user_id, message.raw))
+        self.bot.track(message)
         config = settings.EVERNOTE['basic_access']
 
         welcome_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
