@@ -1,4 +1,4 @@
-Telegram bot for [Evernote](https://evernote.com).
+Telegram bot for [Evernote](https://evernote.com). [![Build Status](https://travis-ci.org/djudman/evernote-telegram-bot.svg?branch=master)](https://travis-ci.org/djudman/evernote-telegram-bot)
 ==========================
 
 This bot available in Telegram: https://telegram.me/evernoterobot
