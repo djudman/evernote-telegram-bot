@@ -98,11 +98,12 @@ class EvernoteBot(TelegramBot):
                         title='Note for Evernoterobot')
                     user.places[user.current_notebook['guid']] = note_guid
                     user.save()
-                    note_link = self.evernote_api.get_note_link(user.evernote_access_token, note_guid)
+                    note_link = await self.evernote_api.get_note_link(user.evernote_access_token, note_guid)
                     asyncio.ensure_future(
                         self.api.sendMessage(
                             user.telegram_chat_id,
-                            'You are in "One note" mode. From now all your notes will be saved in <a href="{0}">this note</a>'.format(note_link)
+                            'You are in "One note" mode. From now all your notes will be saved in <a href="{0}">this note</a>'.format(note_link),
+                            parse_mode='Html'
                         )
                     )
                 break
