@@ -82,15 +82,6 @@ class EvernoteBot(TelegramBot):
                 user.current_notebook = notebook
                 user.state = None
                 user.save()
-
-                if user.mode == 'one_note':
-                    note_guid = self.evernote.create_note(
-                        user.evernote_access_token, text='',
-                        title='Note for Evernoterobot',
-                        notebook_guid=notebook['guid'])
-                    user.places[user.current_notebook['guid']] = note_guid
-                    user.save()
-
                 notebook_name = notebook_name or notebook['name']
                 asyncio.ensure_future(
                     self.api.sendMessage(
@@ -99,6 +90,14 @@ class EvernoteBot(TelegramBot):
                         reply_markup=json.dumps({'hide_keyboard': True})
                     )
                 )
+                if user.mode == 'one_note':
+                    note_guid = await self.evernote_api.new_note(
+                        user.evernote_access_token,
+                        notebook_guid=notebook['guid'],
+                        text='',
+                        title='Note for Evernoterobot')
+                    user.places[user.current_notebook['guid']] = note_guid
+                    user.save()
                 break
         else:
             asyncio.ensure_future(self.api.sendMessage(user.telegram_chat_id, 'Please, select notebook'))
