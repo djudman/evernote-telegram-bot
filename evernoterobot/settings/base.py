@@ -1,3 +1,4 @@
+import os
 from os.path import dirname, join, realpath, basename
 import json
 
@@ -10,7 +11,10 @@ PROJECT_NAME = basename(PROJECT_DIR.lower())
 LOGS_DIR = join(realpath(ROOT_DIR), 'logs')
 DOWNLOADS_DIR = join(realpath(ROOT_DIR), 'downloads')
 
-with open(join(PROJECT_DIR, 'settings/secret.json')) as f:
+secret_file = join(PROJECT_DIR, 'settings/secret.json')
+if not os.path.exists(secret_file):
+    secret_file = join(PROJECT_DIR, 'settings/secret.json.example')
+with open(join(PROJECT_DIR, secret_file)) as f:
     SECRET = json.load(f)
 
 SMTP = SECRET['smtp']
