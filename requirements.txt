@@ -1,0 +1,2 @@
+gunicorn
+-e git+https://github.com/evernote/evernote-sdk-python3.git#egg=evernote3
