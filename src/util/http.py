@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 class Request:
     def __init__(self, wsgi_environ):
         self.init_time = datetime.now()
-        self.body = wsgi_environ.get('wsgi.input')
+        self.input = wsgi_environ.get('wsgi.input')
         self.method = wsgi_environ['REQUEST_METHOD']
         self.query_string = wsgi_environ['QUERY_STRING']
         self.raw_uri = wsgi_environ['RAW_URI']
@@ -21,10 +21,11 @@ class Request:
         self.user_agent = wsgi_environ['HTTP_USER_AGENT']
         self.path = wsgi_environ['PATH_INFO']
 
-    def read():
-        if not self.body:
+    def read(self):
+        if not self.input:
             return
-        return self.body.read()
+        self.body = self.input.read()
+        return self.body
 
 
 class Response:
@@ -41,6 +42,8 @@ class Response:
                 ('Content-Type', 'text/plain'),
                 ('Content-Length', str(len(self.body))),
             ]
+        if isinstance(self.body, str):
+            self.body = self.body.encode() 
         status_message = self.statuses.get(status_code, 'Unknown')
         self.status_code = status_code
         self.status = '{0} {1}'.format(status_code, status_message)
@@ -56,6 +59,7 @@ class Application:
     def handle_request(self, wsgi_environ):
         try:
             request = Request(wsgi_environ)
+            request.read()
             handler = self.router.get_handler(request.path, request.method)
             if handler:
                 response_data = handler(request)
@@ -109,9 +113,8 @@ def make_request(url, method='GET', params=None, body=None, headers=None):
         conn = http.client.HTTPConnection(hostname)
     else:
         raise Exception('Unsupported protocol {}'.format(protocol))
-    # if headers is None:
-    #     headers = {}
-    # body = b''
+    if headers is None:
+        headers = {}
     if method == 'POST':
         if 'Content-Type' not in headers:
             headers['Content-Type'] = 'application/x-www-form-urlencoded'

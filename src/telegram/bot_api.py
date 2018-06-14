@@ -34,17 +34,15 @@ class BotApi:
         h = hashlib.md5()
         h.update('{0}_{1}_{2}'.format(time(), url, random.random()).encode())
         request_id = h.hexdigest()
-        self.logger.debug('{dt} - REQUEST {hash} - {method} {url}, params: {params}'.format(
+        self.logger.debug('REQUEST {hash} - {method} {url}, params: {params}'.format(
             hash=request_id,
-            dt=datetime.now().strftime('%Y.%m.%d %H:%M:%S.%f'),
             method='POST',
             url=url,
             params=str(request_params)
         ))
         raw_response = make_request(url, method='POST', params=request_params)
-        self.logger.debug('{dt} - RESPONSE {hash} - {response}'.format(
+        self.logger.debug('RESPONSE {hash} - {response}'.format(
             hash=request_id,
-            dt=datetime.now().strftime('%Y.%m.%d %H:%M:%S.%f'),
             response=raw_response
         ))
         response = json.loads(raw_response.decode())

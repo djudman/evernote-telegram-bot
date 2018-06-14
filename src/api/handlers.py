@@ -1,9 +1,16 @@
+import json
+import logging
 from datetime import datetime
+from telegram.models import TelegramUpdate
 
 
 def telegram_hook(request):
-    data = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
-    return data.encode()
+    logger = logging.getLogger()
+    logger.info('Telegram update: {}'.format(request.body))
+    data = request.body.decode()
+    if isinstance(data, str):
+        data = json.loads(data)
+    return str(data)
 
 
 def evernote_oauth(request):
