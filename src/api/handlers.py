@@ -7,4 +7,8 @@ def telegram_hook(request):
 
 
 def evernote_oauth(request):
-    pass
+    return b'evernote_oauth'
+
+
+def error(request):
+    raise Exception('Some application error')
