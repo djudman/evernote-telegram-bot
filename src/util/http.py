@@ -1,8 +1,13 @@
+import http.client
+import re
 import traceback
-from datetime import datetime
-from router import UrlRouter
 from config import DEBUG
 from config import SETTINGS
+from datetime import datetime
+from util.router import UrlRouter
+from urllib.parse import parse_qs
+from urllib.parse import urlencode
+from urllib.parse import urlparse
 
 
 class Request:
@@ -23,7 +28,6 @@ class Request:
 
 
 class Response:
-
     statuses = {
         200: 'OK',
         404: 'Not Found',
@@ -93,3 +97,28 @@ class Console:
 
     def white(self, text):
         return self.colorize(text, (97, 0))
+
+
+def make_request(url, method='GET', params=None, body=None, headers=None):
+    parse_result = urlparse(url)
+    protocol = parse_result.scheme
+    hostname = parse_result.netloc
+    if protocol == 'https':
+        conn = http.client.HTTPSConnection(hostname)
+    elif protocol == 'http':
+        conn = http.client.HTTPConnection(hostname)
+    else:
+        raise Exception('Unsupported protocol {}'.format(protocol))
+    # if headers is None:
+    #     headers = {}
+    # body = b''
+    if method == 'POST':
+        if 'Content-Type' not in headers:
+            headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        if params and not body:
+            body = urlencode(params)
+    conn.request(method, '{0}?{1}'.format(parse_result.path, parse_result.query), body, headers)
+    response = conn.getresponse()
+    data = response.read()
+    conn.close()
+    return data
