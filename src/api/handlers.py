@@ -1,5 +1,6 @@
 import json
 import logging
+from bot.core import EvernoteBot
 from datetime import datetime
 from telegram.models import TelegramUpdate
 
@@ -10,7 +11,9 @@ def telegram_hook(request):
     data = request.body.decode()
     if isinstance(data, str):
         data = json.loads(data)
-    return str(data)
+    bot = EvernoteBot()
+    telegram_update = TelegramUpdate(data)
+    bot.handle_telegram_update(telegram_update)
 
 
 def evernote_oauth(request):

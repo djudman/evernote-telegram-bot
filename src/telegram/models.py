@@ -11,6 +11,18 @@ class TelegramUpdate:
         self.callback_query = TelegramCallbackQuery(data['callback_query']) if data.get('callback_query') else None
         # TODO: support other fields
 
+    def get_command(self):
+        message = self.message
+        if not message:
+            return
+        if not message.entities or len(message.entities) > 1:
+            return
+        entity = next(iter(message.entities))
+        if entity.type != 'bot_command':
+            return
+        if message.text.startswith('/') and entity.offset == 0:
+            return message.text[1:entity.length] # skip ahead '/'
+
 
 class TelegramChat:
     def __init__(self, data: dict):

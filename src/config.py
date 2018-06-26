@@ -7,6 +7,10 @@ from os.path import realpath
 
 
 DEBUG = True
+STORAGE = {
+    'class': 'bot.storage.MongoStorage',
+    'db': 'main',
+}
 PROJECT_ROOT = lambda x: join(dirname(realpath(__file__)), x)
 SETTINGS = {
     'project_root': PROJECT_ROOT(''), # FIXME: too many calls
