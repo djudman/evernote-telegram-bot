@@ -107,7 +107,9 @@ class BooleanField(Field):
 
 
 class EnumField(Field):
-    def __init__(self, *, values=None):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        values = kwargs.get('values')
         if not isinstance(values, list):
             raise Exception('Invalid type. "list" expected.')
         self.possible_values = values

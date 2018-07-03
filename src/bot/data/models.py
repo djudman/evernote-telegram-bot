@@ -45,11 +45,16 @@ class Model:
         field = self.__dict__.get(name)
         if field and isinstance(field, Field):
             field.value = value
+            return
         object.__setattr__(self, name, value)
 
-    def __getattr__(self, name):
+    def __getattribute__(self, name):
+        if name.startswith('__'):
+            return object.__getattribute__(self, name)
         field = self.__dict__.get(name)
-        if field and isinstance(field, Field):
+        if field is None:
+            return object.__getattribute__(self, name)
+        if isinstance(field, Field):
             return field.value
         return field
 
