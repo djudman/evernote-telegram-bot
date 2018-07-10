@@ -1,18 +1,23 @@
 import unittest
-from bot.data.fields import BooleanField
-from bot.data.fields import DateTimeField
-from bot.data.fields import EnumField
-from bot.data.fields import IntegerField
-from bot.data.fields import StringField
-from bot.data.fields import StructField
-from bot.data.models import Model
+from bot.core.fields import BooleanField
+from bot.core.fields import DateTimeField
+from bot.core.fields import EnumField
+from bot.core.fields import IntegerField
+from bot.core.fields import StringField
+from bot.core.fields import StructField
+from bot.core.models import Model
 from datetime import datetime
 
 
 class TestModel(Model):
     created = DateTimeField(init_current=True)
     name = StringField()
-    data = StructField()
+    data = StructField(
+        info=StructField(
+            count=IntegerField()
+        ),
+        name=StringField()
+    )
     mode = EnumField(values=['one', 'two'])
     enabled = BooleanField()
     amount = IntegerField()
@@ -46,5 +51,14 @@ class TestModels(unittest.TestCase):
         model = TestModel()
         model.mode = 'one'
         assert model.mode == 'one'
-        save_data = model.save_data()
-        assert save_data['mode'] == 'one'
+        # save_data = model.save_data()
+        # assert save_data['mode'] == 'one'
+
+    def test_struct(self):
+        model = TestModel({'data': {'info': {'count': 123}}})
+        self.assertEqual(model.data.info.count, 123)
+        model.data.info.count = 5
+        self.assertEqual(model.data.info.count, 5)
+        model.data.from_dict({ 'info': { 'count': 10 } })
+        self.assertEqual(model.data.info.count, 10)
+        self.assertIsNone(model.name)
