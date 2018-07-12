@@ -47,3 +47,14 @@ class Model:
         for name, field in self.fields.items():
             attrs[name] = self.__dict__.get(name)
         return '<{0} {1}>({2})'.format(classname, address, attrs)
+
+    def save(self):
+        collection_name = self.collection
+        save_data = self.get_save_data()
+        if not self.id:
+            self.storage.insert(collection_name, save_data)
+        else:
+            self.storage.update(collection_name, {'id': self.id}, save_data)
+
+    def delete(self):
+        self.storage.delete(self.collection, {'id': self.id})
