@@ -1,6 +1,9 @@
-from util.http import Application
+from app import Application
+from config import ConfigLoader
 
-webapp = Application()
+
+config = ConfigLoader().load()
+webapp = Application(config)
 
 def app(environ, start_response):
     status, response_headers, response_body = webapp.handle_request(environ)

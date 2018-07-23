@@ -48,7 +48,10 @@ class IntegerField(Field):
 
 class StructField(Field):
     def __init__(self, **kwargs):
-        self.fields = kwargs
+        self._fields = kwargs
+
+    def get_fields(self):
+        return self._fields
 
     def validate(self, value):
         if not isinstance(value, dict):
@@ -68,9 +71,9 @@ class BooleanField(Field):
 
 class EnumField(Field):
     def __init__(self, values):
-        self.possible_values = values
+        self._possible_values = values
 
     def validate(self, value):
-        if value not in self.possible_values:
+        if value not in self._possible_values:
             raise Exception('Invalid value "{0}"'.format(value))
         return value

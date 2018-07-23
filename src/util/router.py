@@ -5,11 +5,9 @@ from os.path import join
 
 
 class UrlRouter:
-    def __init__(self, project_root):
-        if not os.path.exists(project_root):
-            raise FileNotFoundError(project_root)
+    def __init__(self, config):
         url_files = []
-        for dirpath, dirnames, files in os.walk(project_root):
+        for dirpath, dirnames, files in os.walk(config['project_root']):
             paths = [join(dirpath, filename) for filename in files if filename == 'urls.py']
             url_files.extend(paths)
         url_files.sort()
@@ -18,7 +16,8 @@ class UrlRouter:
             spec = importlib.util.spec_from_file_location('urls', filename)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            for method, regex, handler in module.urls:
+            urls = module.urls(config)
+            for method, regex, handler in urls:
                 handler_info = (method, re.compile(regex), handler)
                 self.handlers.append(handler_info)
 

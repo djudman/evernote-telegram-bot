@@ -1,13 +1,16 @@
 import http.client
+import json
 import re
 import traceback
-from config import DEBUG
-from config import SETTINGS
 from datetime import datetime
-from util.router import UrlRouter
+from os.path import exists
+from os.path import dirname
+from os.path import join
+from os.path import realpath
 from urllib.parse import parse_qs
 from urllib.parse import urlencode
 from urllib.parse import urlparse
+from .cli import Console
 
 
 class Request:
@@ -26,6 +29,10 @@ class Request:
             return
         self.body = self.input.read()
         return self.body
+
+    def json(self):
+        data = request.body.decode()
+        return json.loads(data)
 
 
 class Response:
@@ -49,12 +56,12 @@ class Response:
         self.status = '{0} {1}'.format(status_code, status_message)
 
 
-class Application:
-    def __init__(self):
-        project_root = SETTINGS['project_root']
-        self.router = UrlRouter(project_root)
-        if DEBUG:
-            self.console = Console()
+class HttpApplication:
+    def __init__(self, config):
+        self.config = config
+        self.router = UrlRouter(config)
+        self.console = Console()
+        self.debug = config.get('debug', False)
 
     def handle_request(self, wsgi_environ):
         try:
@@ -62,6 +69,7 @@ class Application:
             request.read()
             handler = self.router.get_handler(request.path, request.method)
             if handler:
+                request.app = self
                 response_data = handler(request)
                 response = Response(body=response_data)
             else:
@@ -69,11 +77,11 @@ class Application:
         except Exception:
             response = Response(body=b'Oops. Server error.', status_code=500)
             print(traceback.format_exc()) # TODO: log to file
-        if DEBUG:
-            self.log_response(request, response)
+        if self.debug:
+            self.console_log(request, response)
         return response.status, response.headers, response.body
 
-    def log_response(self, request, response):
+    def console_log(self, request, response):
         colors_map = {
             200: self.console.green,
             404: self.console.yellow,
@@ -82,25 +90,6 @@ class Application:
         message = '{0} {1} - {2}'.format(request.method, request.path, response.status)
         color = colors_map.get(response.status_code, self.console.white)
         print(color(message))
-
-
-class Console:
-    def colorize(self, text, color):
-        if type(text) == bytes:
-            text = text.decode()
-        return "\033[{0}m{1}\033[{2}m".format(color[0], text, color[1])
-
-    def green(self, text):
-        return self.colorize(text, (92, 0))
-
-    def red(self, text):
-        return self.colorize(text, (91, 0))
-
-    def yellow(self, text):
-        return self.colorize(text, (93, 0))
-
-    def white(self, text):
-        return self.colorize(text, (97, 0))
 
 
 def make_request(url, method='GET', params=None, body=None, headers=None):

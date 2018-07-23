@@ -1,15 +1,17 @@
 import unittest
-from config import TELEGRAM
+from config import ConfigLoader
 from datetime import datetime
 from telegram.bot_api import BotApi
 
 
 class TestBotApi(unittest.TestCase):
     def setUp(self):
-        token = TELEGRAM['token']
+        config = ConfigLoader().load()
+        token = config['telegram']['token']
         self.api = BotApi(token)
-        self.chat_id = TELEGRAM['chat_id']
+        self.chat_id = config['telegram']['chat_id']
 
+    @unittest.skip('Sends message to telegram. Uncomment when it needs')
     def test_send_message(self):
         text = '{} - Hello from test'.format(datetime.now().strftime('%Y.%m.%d %H:%M:%S'))
         response = self.api.sendMessage(self.chat_id, text)

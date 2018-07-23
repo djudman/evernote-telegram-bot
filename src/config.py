@@ -6,49 +6,52 @@ from os.path import join
 from os.path import realpath
 
 
-DEBUG = True
-STORAGE = {
-    'class': 'bot.storage.MongoStorage',
-    'db': 'main',
-}
-PROJECT_ROOT = lambda x: join(dirname(realpath(__file__)), x)
-SETTINGS = {
-    'project_root': PROJECT_ROOT(''), # FIXME: too many calls
-    'tmp_root': PROJECT_ROOT('../tmp'),
-    'logs_root': PROJECT_ROOT('../logs'),
-}
+class ConfigLoader:
+    def __init__(self):
+        self.project_root = realpath(dirname(__file__))
 
-with open('config.json', 'r') as f:
-    local_config = json.load(f)
+    def load(self):
+        filenames = [
+            join(self.project_root, 'local.yaml'),
+            join(self.project_root, 'config.yaml'),
+        ]
+        config = ChainMap()
+        config.maps.append({
+            'project_root': self.project_root,
+            'tmp_root': join(realpath(dirname(self.project_root)), 'tmp'),
+            'logs_root': join(realpath(dirname(self.project_root)), 'logs'),
+        })
+        for name in filenames:
+            if not exists(name):
+                continue
+            with open(name) as f:
+                data = yaml.load(f)
+                config.maps.append(data)
+        logging_config = self.get_logging_config(config['logs_root'])
+        logging.config.dictConfig(logging_config)
+        return config
 
-HOST = local_config['host']
-EVERNOTE = local_config['evernote']
-TELEGRAM = local_config['telegram']
-
-makedirs(SETTINGS['logs_root'], exist_ok=True)
-makedirs(SETTINGS['tmp_root'], exist_ok=True)
-
-log_config = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'default': {
-            'format': '%(asctime)s - PID:%(process)d - %(levelname)s - %(message)s (%(pathname)s:%(lineno)d)',
-        },
-    },
-    'handlers': {
-        'file': {
-            'class': 'logging.FileHandler',
-            'formatter': 'default',
-            'filename': join(SETTINGS['logs_root'], 'evernoterobot.log')
-        },
-    },
-    'loggers': {
-        '': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
-logging.config.dictConfig(log_config)
+    def get_logging_config(self, logs_root):
+        return {
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'default': {
+                    'format': '%(asctime)s - PID:%(process)d - %(levelname)s - %(message)s (%(pathname)s:%(lineno)d)',
+                },
+            },
+            'handlers': {
+                'file': {
+                    'class': 'logging.FileHandler',
+                    'formatter': 'default',
+                    'filename': join(logs_root, 'evernoterobot.log')
+                },
+            },
+            'loggers': {
+                '': {
+                    'handlers': ['file'],
+                    'level': 'DEBUG',
+                    'propagate': True,
+                },
+            },
+        }

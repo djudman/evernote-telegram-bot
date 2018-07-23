@@ -1,13 +1,14 @@
-from bot.core.fields import DateTimeField
-from bot.core.fields import EnumField
-from bot.core.fields import IntegerField
-from bot.core.fields import StringField
-from bot.core.fields import StructField
+from data.storage.fields import DateTimeField
+from data.storage.fields import EnumField
+from data.storage.fields import IntegerField
+from data.storage.fields import StringField
+from data.storage.fields import StructField
+from data.storage.models import Model
+from data.storage.models import storage
 
 
+@storage(collection='users')
 class User(Model):
-    collection = 'users'
-
     created = DateTimeField(init_current=True)
     last_request_time = DateTimeField()
     bot_mode = EnumField(values=['one_note', 'multiple_notes'])

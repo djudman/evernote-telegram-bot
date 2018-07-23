@@ -1,0 +1,24 @@
+debug: true
+host: evernoterobot.djudman.info
+storage:
+    providers:
+        memory:
+            class: data.storage.providers.MemoryProvider
+        mongo:
+            class: data.storage.providers.MongoProvider
+            default: true
+            connection_string: mongodb://127.0.0.1:27017/
+            db: main
+telegram:
+    token: secret
+evernote:
+    access:
+        token: secret
+        basic:
+            key: secret
+            secret: secret,
+            oauth_callback_url: url
+        full:
+            key: secret
+            secret: secret
+            oauth_callback_url: url
