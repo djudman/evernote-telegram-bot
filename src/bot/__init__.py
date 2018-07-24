@@ -7,6 +7,7 @@ from bot.commands import start_command
 from bot.models import User
 from data.storage.storage import StorageMixin
 from telegram.bot_api import BotApi
+from util.evernote.client import EvernoteClient
 
 
 class EvernoteBot(StorageMixin):
@@ -15,6 +16,8 @@ class EvernoteBot(StorageMixin):
         self.config = config
         telegram_token = config['telegram']['token']
         self.api = BotApi(telegram_token)
+        self.url = config['telegram']['bot_url']
+        self.evernote = EvernoteClient(sandbox=config.get('debug', True))
 
     def handle_telegram_update(self, telegram_update):
         try:
@@ -52,19 +55,3 @@ class EvernoteBot(StorageMixin):
     def handle_post(self, post):
         # TODO:
         pass
-
-    def _register_user(self, telegram_message):
-        telegram_user = telegram_message.from_user
-        user_data = {
-            'id': telegram_user.id,
-            'bot_mode': 'multiple_notes',
-            'telegram': {
-                'first_name': telegram_user.first_name,
-                'last_name': telegram_user.last_name,
-                'username': telegram_user.username,
-                'chat_id': telegram_message.chat.id,
-            }
-        }
-        user = self.get_storage(User).create_model(user_data)
-        user.save()
-        return user
