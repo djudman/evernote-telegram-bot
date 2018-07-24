@@ -10,7 +10,9 @@ from os.path import realpath
 from urllib.parse import parse_qs
 from urllib.parse import urlencode
 from urllib.parse import urlparse
-from .cli import Console
+
+from util.cli import Console
+from util.router import UrlRouter
 
 
 class Request:
@@ -31,7 +33,7 @@ class Request:
         return self.body
 
     def json(self):
-        data = request.body.decode()
+        data = self.body.decode()
         return json.loads(data)
 
 

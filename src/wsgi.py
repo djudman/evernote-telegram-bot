@@ -1,8 +1,8 @@
 from app import Application
-from config import ConfigLoader
+from config import load_config
 
 
-config = ConfigLoader().load()
+config = load_config()
 webapp = Application(config)
 
 def app(environ, start_response):

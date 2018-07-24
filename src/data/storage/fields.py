@@ -53,13 +53,13 @@ class StructField(Field):
     def get_fields(self):
         return self._fields
 
-    def validate(self, value):
-        if not isinstance(value, dict):
-            return value
-        validated_value = StructField(**self._attrs)
-        for field_name, field_value in value.items():
-            setattr(validated_value, field_name, field_value)
-        return validated_value
+    # def validate(self, value):
+    #     if not isinstance(value, dict):
+    #         return value
+    #     validated_value = StructField(**self._attrs)
+    #     for field_name, field_value in value.items():
+    #         setattr(validated_value, field_name, field_value)
+    #     return validated_value
 
 
 class BooleanField(Field):

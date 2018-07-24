@@ -77,14 +77,14 @@ class Model:
         if not isinstance(data, dict):
             raise Exception('Invalid data type. Dict expected.')
         fields = self.get_fields()
-        for name, field in self.get_fields().items():
+        for name, field in fields.items():
             value = data.get(name)
             if value is None:
                 continue
             if isinstance(value, dict):
                 if not isinstance(field, StructField):
                     raise Exception('Invalid value for field "{}"'.format(name))
-                model = Model({}, fields=field.get_fields())
+                model = Model({}, fields=fields)
                 model.from_dict(value)
                 value = model
             setattr(self, name, value)

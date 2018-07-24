@@ -1,12 +1,12 @@
 import unittest
-from config import ConfigLoader
+from config import load_config
 from datetime import datetime
 from telegram.bot_api import BotApi
 
 
 class TestBotApi(unittest.TestCase):
     def setUp(self):
-        config = ConfigLoader().load()
+        config = load_config()
         token = config['telegram']['token']
         self.api = BotApi(token)
         self.chat_id = config['telegram']['chat_id']

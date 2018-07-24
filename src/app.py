@@ -1,5 +1,5 @@
 from bot import EvernoteBot
-from data.storage import StorageMixin
+from data.storage.storage import StorageMixin
 from util.http import HttpApplication
 
 
