@@ -13,7 +13,8 @@ class Storage:
         if not isinstance(query, dict):
             query = {'id': query}
         data = self.provider.get(query)
-        return self.model_class(data, storage=self)
+        if data:
+            return self.model_class(data, storage=self)
 
     def get_all(self, query, sort=None):
         documents = self.provider.get_all(query, sort=sort)
@@ -31,7 +32,7 @@ class Storage:
 
     def __repr__(self):
         return '{0}({1}, {2})'.format(
-            self.__class__.__name,
+            self.__class__.__name__,
             self.provider.__class__.__name__,
             self.model_class.__name__,
         )
@@ -60,7 +61,6 @@ class StorageMixin:
             classname = parts[-1]
             module_name = '.'.join(parts[:-1])
             module = import_module(module_name)
-            # import pdb;pdb.set_trace()
             ProviderClass = getattr(module, classname)
             provider = ProviderClass({
                 'db': model_config.get('db', provider_config.get('db')),

@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime
+
 from telegram.models import TelegramUpdate
 
 
@@ -14,12 +15,7 @@ def telegram_hook(request):
     data = request.json()
     telegram_update = TelegramUpdate(data)
     bot = request.app.bot
-    try:
-        status_message = bot.api.sendMessage(chat_id, 'Accepted')
-        bot.handle_telegram_update(telegram_update)
-    except Exception as e:
-        chat_id = telegram_update.message.chat.id
-        bot.api.sendMessage(chat_id, str(e)) # TODO: form error message
+    bot.handle_telegram_update(telegram_update)
 
 
 def evernote_oauth(request):

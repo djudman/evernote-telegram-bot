@@ -148,9 +148,10 @@ class MongoProvider(Base):
         if isinstance(query, dict):
             query = self._prepare_query(query)
         document = self.connection.find_one(self.db, self.collection, query)
-        document['id'] = document['_id']
-        del document['_id']
-        return document
+        if document:
+            document['id'] = document['_id']
+            del document['_id']
+            return document
 
     def get_all(self, query, **kwargs):
         query = self._prepare_query(query)

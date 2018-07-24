@@ -1,6 +1,7 @@
 import unittest
-from config import load_config
 from datetime import datetime
+
+from config import load_config
 from telegram.bot_api import BotApi
 
 

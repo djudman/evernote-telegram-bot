@@ -1,26 +1,39 @@
+import logging
+import traceback
+from importlib import import_module
+
 from bot.commands import help_command
 from bot.commands import start_command
+from bot.models import User
 from data.storage.storage import StorageMixin
-from importlib import import_module
 from telegram.bot_api import BotApi
 
 
 class EvernoteBot(StorageMixin):
     def __init__(self, config):
+        super().__init__(config)
         self.config = config
         telegram_token = config['telegram']['token']
         self.api = BotApi(telegram_token)
 
-    def handle_telegram_update(self, telegram_update): # TODO: handle all errors and send error message to client
-        command_name = telegram_update.get_command()
-        if command_name:
-            return self.execute_command(command_name, telegram_update)
-        message = telegram_update.message or telegram_update.edited_message
-        if message:
-            self.handle_message(message)
-        post = telegram_update.channel_post or telegram_update.edited_channel_post
-        if post:
-            self.handle_post(post)
+    def handle_telegram_update(self, telegram_update):
+        try:
+            command_name = telegram_update.get_command()
+            if command_name:
+                self.execute_command(command_name, telegram_update)
+                return
+            message = telegram_update.message or telegram_update.edited_message
+            if message:
+                self.handle_message(message)
+            post = telegram_update.channel_post or telegram_update.edited_channel_post
+            if post:
+                self.handle_post(post)
+        except Exception as e:
+            chat_id = telegram_update.message.chat.id
+            error_message = '\u274c Error. {0}'.format(e)
+            self.api.sendMessage(chat_id, error_message)
+            logging.getLogger().error(traceback.format_exc())
+
 
     def execute_command(self, name, telegram_update):
         if name == 'help':
@@ -31,10 +44,10 @@ class EvernoteBot(StorageMixin):
             raise Exception('Unknown command "{}"'.format(name))
 
     def handle_message(self, message):
-        telegram_user = message.from_user
-        user = self.storage.get(User, telegram_user.id)
+        user_id = message.from_user.id
+        user = self.get_storage(User).get(user_id)
         if not user:
-            raise Exception('Unregistered user {0}'.format(telegram_user.id))
+            raise Exception('Unregistered user {0}'.format(user_id))
 
     def handle_post(self, post):
         # TODO:

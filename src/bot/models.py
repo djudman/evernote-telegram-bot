@@ -3,8 +3,8 @@ from data.storage.fields import EnumField
 from data.storage.fields import IntegerField
 from data.storage.fields import StringField
 from data.storage.fields import StructField
-from data.storage.models import Model
-from data.storage.models import storage
+from data.storage.model import Model
+from data.storage.model import storage
 
 
 @storage(collection='users')

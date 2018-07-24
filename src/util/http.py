@@ -2,6 +2,7 @@ import http.client
 import json
 import re
 import traceback
+import ssl
 from datetime import datetime
 from os.path import exists
 from os.path import dirname
@@ -19,12 +20,12 @@ class Request:
     def __init__(self, wsgi_environ):
         self.init_time = datetime.now()
         self.input = wsgi_environ.get('wsgi.input')
-        self.method = wsgi_environ['REQUEST_METHOD']
-        self.query_string = wsgi_environ['QUERY_STRING']
-        self.raw_uri = wsgi_environ['RAW_URI']
-        self.server_protocol = wsgi_environ['SERVER_PROTOCOL']
-        self.user_agent = wsgi_environ['HTTP_USER_AGENT']
-        self.path = wsgi_environ['PATH_INFO']
+        self.method = wsgi_environ.get('REQUEST_METHOD')
+        self.query_string = wsgi_environ.get('QUERY_STRING')
+        self.raw_uri = wsgi_environ.get('RAW_URI')
+        self.server_protocol = wsgi_environ.get('SERVER_PROTOCOL')
+        self.user_agent = wsgi_environ.get('HTTP_USER_AGENT')
+        self.path = wsgi_environ.get('PATH_INFO')
 
     def read(self):
         if not self.input:
@@ -99,7 +100,8 @@ def make_request(url, method='GET', params=None, body=None, headers=None):
     protocol = parse_result.scheme
     hostname = parse_result.netloc
     if protocol == 'https':
-        conn = http.client.HTTPSConnection(hostname)
+        context = ssl.SSLContext()
+        conn = http.client.HTTPSConnection(hostname, context=context)
     elif protocol == 'http':
         conn = http.client.HTTPConnection(hostname)
     else:
@@ -111,7 +113,8 @@ def make_request(url, method='GET', params=None, body=None, headers=None):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         if params and not body:
             body = urlencode(params)
-    conn.request(method, '{0}?{1}'.format(parse_result.path, parse_result.query), body, headers)
+    request_url = '{0}?{1}'.format(parse_result.path, parse_result.query)
+    conn.request(method, request_url, body, headers)
     response = conn.getresponse()
     data = response.read()
     conn.close()

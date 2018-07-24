@@ -133,8 +133,8 @@ class TelegramMessage:
         # TODO: reply_to_message
         # TODO: edit_date
         self.text = data.get('text')
+        self.entities = []
         if data.get('entities'):
-            self.entities = []
             for entity_data in data['entities']:
                 entity = TelegramMessageEntity(entity_data)
                 self.entities.append(entity)
