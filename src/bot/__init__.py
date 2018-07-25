@@ -10,6 +10,13 @@ from telegram.bot_api import BotApi
 from util.evernote.client import EvernoteClient
 
 
+class BotError(Exception):
+    def __init__(self, message=None, client_message=False):
+        super().__init__()
+        self.message = message
+        self.send_client_message = client_message
+
+
 class EvernoteBot(StorageMixin):
     def __init__(self, config):
         super().__init__(config)
@@ -55,3 +62,21 @@ class EvernoteBot(StorageMixin):
     def handle_post(self, post):
         # TODO:
         pass
+
+
+    def oauth_callback(self, callback_key, oauth_verifier, access_type):
+        user = self.get_storage(User).get({'evernote.oauth.callback_key': callback_key})
+        if not user:
+            raise BotError('User not found. callback_key = {}'.format(callback_key))
+        if not oauth_verifier:
+            raise BotError('We are sorry, but you have declined authorization', client_message=True)
+        evernote_config = self.config['evernote']['access'][access_type]
+        user.evernote.access_token = self.evernote.get_access_token(
+            evernote_config['key'],
+            evernote_config['secret'],
+            user.evernote.oauth.token,
+            user.evernote.oauth.secret,
+            oauth_verifier
+        )
+        user.save()
+        # TODO: redirect to self.url

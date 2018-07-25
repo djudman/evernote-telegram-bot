@@ -19,6 +19,12 @@ def telegram_hook(request):
 
 
 def evernote_oauth(request):
+    callback_key = request.GET['key']
+    session_key = request.GET['session_key']
+    oauth_verifier = request.GET.get('oauth_verifier')
+    bot = request.app.bot
+    bot.oauth_callback(callback_key, oauth_verifier, access='basic')
+
     return b'evernote_oauth'
 
 

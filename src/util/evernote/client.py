@@ -10,7 +10,7 @@ class EvernoteApiError(Exception):
 
 class EvernoteClient:
     def __init__(self, sandbox):
-        self.sandbox = sandbox
+        self.sandbox = False
 
     def get_oauth_data(self, user_id, session_key, evernote_config):
         api_key = evernote_config['key']
@@ -23,7 +23,7 @@ class EvernoteClient:
             key=callback_key,
             session_key=session_key
         )
-        sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=False)
+        sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=self.sandbox)
         try:
             request_token = sdk.get_request_token(callback_url)
             if not request_token.get('oauth_token'):
@@ -38,3 +38,7 @@ class EvernoteClient:
             'oauth_token_secret': request_token['oauth_token_secret'],
             'callback_key': callback_key,
         }
+
+    def get_access_token(self, api_key, api_secret, oauth_token, oauth_token_secret, oauth_verifier):
+        sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=self.sandbox)
+        return sdk.get_access_token(oauth_token, oauth_token_secret, oauth_verifier)

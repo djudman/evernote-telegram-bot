@@ -11,6 +11,7 @@ from os.path import realpath
 from urllib.parse import parse_qs
 from urllib.parse import urlencode
 from urllib.parse import urlparse
+from urllib.parse import parse_qsl
 
 from util.cli import Console
 from util.router import UrlRouter
@@ -22,6 +23,11 @@ class Request:
         self.input = wsgi_environ.get('wsgi.input')
         self.method = wsgi_environ.get('REQUEST_METHOD')
         self.query_string = wsgi_environ.get('QUERY_STRING')
+        self.GET = {}
+        if self.query_string:
+            for name, value in parse_qsl(self.query_string):
+                self.GET[name] = value
+        print(self.query_string)
         self.raw_uri = wsgi_environ.get('RAW_URI')
         self.server_protocol = wsgi_environ.get('SERVER_PROTOCOL')
         self.user_agent = wsgi_environ.get('HTTP_USER_AGENT')
