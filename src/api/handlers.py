@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 
+from util.http import HTTPFound
 from telegram.models import TelegramUpdate
 
 
@@ -20,12 +21,10 @@ def telegram_hook(request):
 
 def evernote_oauth(request):
     callback_key = request.GET['key']
-    session_key = request.GET['session_key']
     oauth_verifier = request.GET.get('oauth_verifier')
     bot = request.app.bot
     bot.oauth_callback(callback_key, oauth_verifier, access='basic')
-
-    return b'evernote_oauth'
+    return HTTPFound(bot.url)
 
 
 def error(request):

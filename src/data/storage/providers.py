@@ -50,10 +50,15 @@ class MemoryProvider(Base):
         return document_id
 
     def update(self, query, update):
+        counter = 0
         for document_id, document in self.data.items():
             if self._check_query(document, query):
                 document.update(update)
-        return document
+                counter += 1
+        return {
+            'matched': counter,
+            'updated': counter,
+        }
 
     def delete(self, query):
         ids_to_delete = []

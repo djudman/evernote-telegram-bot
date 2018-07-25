@@ -15,7 +15,7 @@ def load_config():
         join(project_root, 'local.yaml'),
         join(project_root, 'config.yaml'),
     ]
-    config = ChainMap()
+    config = ChainMap() # TODO: bad choice. Use merge of dicts
     config.maps.append({
         'project_root': project_root,
         'tmp_root': join(realpath(dirname(project_root)), 'tmp'),

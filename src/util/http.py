@@ -47,6 +47,8 @@ class Request:
 class Response:
     statuses = {
         200: 'OK',
+        301: 'Moved Permanently',
+        302: 'Found',
         404: 'Not Found',
         500: 'Internal Server Error',
     }
@@ -65,6 +67,12 @@ class Response:
         self.status = '{0} {1}'.format(status_code, status_message)
 
 
+class HTTPFound(Response):
+    def __init__(self, redirect_url):
+        headers = [('Location', redirect_url)]
+        super().__init__(b'', 302, headers)
+
+
 class HttpApplication:
     def __init__(self, config):
         self.config = config
@@ -79,8 +87,9 @@ class HttpApplication:
             handler = self.router.get_handler(request.path, request.method)
             if handler:
                 request.app = self
-                response_data = handler(request)
-                response = Response(body=response_data)
+                response = handler(request)
+                if not isinstance(response, Response):
+                    response = Response(body=response)
             else:
                 response = Response(body=b'Page not found', status_code=404) # TODO: log to file
         except Exception:
