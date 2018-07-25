@@ -8,7 +8,7 @@ storage:
             class: data.storage.providers.MongoProvider
             default: true
             connection_string: mongodb://127.0.0.1:27017/
-            db: main
+            db: evernoterobot
 telegram:
     bot_url: http://telegram.me/evernoterobot
     token: secret

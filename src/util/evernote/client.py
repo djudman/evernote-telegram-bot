@@ -1,6 +1,11 @@
 import hashlib
+import logging
 
 from evernote.api.client import EvernoteClient as EvernoteSdk
+
+
+class EvernoteApiError(Exception):
+    pass
 
 
 class EvernoteClient:
@@ -18,9 +23,15 @@ class EvernoteClient:
             key=callback_key,
             session_key=session_key
         )
-        sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=self.sandbox)
-        request_token = sdk.get_request_token(callback_url)
-        oauth_url = sdk.get_authorize_url(request_token)
+        sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=False)
+        try:
+            request_token = sdk.get_request_token(callback_url)
+            if not request_token.get('oauth_token'):
+                logging.getLogger().error('[X] EVERNOTE returns: {}'.format(request_token))
+                raise EvernoteApiError("Can't obtain oauth token from Evernote")
+            oauth_url = sdk.get_authorize_url(request_token)
+        except Exception as e:
+            raise EvernoteApiError(e)
         return {
             'oauth_url': oauth_url,
             'oauth_token': request_token['oauth_token'],

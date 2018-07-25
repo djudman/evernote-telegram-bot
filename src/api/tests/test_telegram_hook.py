@@ -30,14 +30,14 @@ class TestTelegramHook(unittest.TestCase):
                     {
                         'type': 'bot_command',
                         'offset': 0,
-                        'length': 5,
+                        'length': 6,
                     },
                 ],
                 'chat': {
                     'id': config['telegram']['chat_id'],
                     'type': 'private',
                 },
-                'text': '/help',
+                'text': '/start',
             },
         }
         request.body = json.dumps(data).encode()

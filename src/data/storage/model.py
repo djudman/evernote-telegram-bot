@@ -84,7 +84,7 @@ class Model:
             if isinstance(value, dict):
                 if not isinstance(field, StructField):
                     raise Exception('Invalid value for field "{}"'.format(name))
-                model = Model({}, fields=fields)
+                model = Model({}, fields=field.get_fields())
                 model.from_dict(value)
                 value = model
             setattr(self, name, value)
@@ -106,7 +106,9 @@ class Model:
         if not self.id:
             self.id = storage.provider.insert(save_data)
         else:
-            storage.provider.update({'id': self.id}, save_data)
+            result = storage.provider.update({'id': self.id}, save_data)
+            if result['matched'] == 0:
+                self.id = storage.provider.insert(save_data)
 
     def delete(self):
         storage = self.config.get('storage')

@@ -1,3 +1,4 @@
+import json
 import random
 import string
 from bot.models import User
@@ -49,18 +50,22 @@ Please tap on button below to link your Evernote account with bot.'''
         'url': bot.url,
     }
     inline_keyboard = {'inline_keyboard': [[signin_button]]}
-    bot.api.sendMessage(telegram_message.chat.id, welcome_text, inline_keyboard)
+    chat_id = telegram_message.chat.id
+    status_message = bot.api.sendMessage(chat_id, welcome_text, json.dumps(inline_keyboard))
     evernote_config = bot.config['evernote']['access']['basic']
     symbols = string.ascii_letters + string.digits
     session_key = ''.join([random.choice(symbols) for i in range(32)])
-    oauth_data = bot.evernote.get_oauth_data(user.id, evernote_config, session_key)
-    user.telegram.from_dict({
-        'first_name': telegram_user.first_name,
-        'last_name': telegram_user.last_name,
-        'username': telegram_user.username,
-        'chat_id': telegram_message.chat.id,
+    oauth_data = bot.evernote.get_oauth_data(user.id, session_key, evernote_config)
+    user.evernote.oauth.from_dict({
+        'url': oauth_data['oauth_url'],
+        'callback_key': oauth_data['callback_key'],
+        'token': oauth_data['oauth_token'],
+        'secret': oauth_data['oauth_token_secret'],
     })
-    user.evernote.oauth.from_dict({}) # TODO:
+    user.save()
+    signin_button['text'] = 'Sign in to Evernote'
+    signin_button['url'] = user.evernote.oauth.url
+    bot.api.editMessageReplyMarkup(chat_id, status_message['message_id'], json.dumps(inline_keyboard))
 
 
 def register_user(bot, telegram_message):
