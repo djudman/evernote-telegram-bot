@@ -27,7 +27,6 @@ class Request:
         if self.query_string:
             for name, value in parse_qsl(self.query_string):
                 self.GET[name] = value
-        print(self.query_string)
         self.raw_uri = wsgi_environ.get('RAW_URI')
         self.server_protocol = wsgi_environ.get('SERVER_PROTOCOL')
         self.user_agent = wsgi_environ.get('HTTP_USER_AGENT')
@@ -93,8 +92,7 @@ class HttpApplication:
             else:
                 response = Response(body=b'Page not found', status_code=404) # TODO: log to file
         except Exception:
-            response = Response(body=b'Oops. Server error.', status_code=500)
-            print(traceback.format_exc()) # TODO: log to file
+            response = Response(body=b'Oops. Server error.', status_code=500) # TODO: log to file
         if self.debug:
             self.console_log(request, response)
         return response.status, response.headers, response.body

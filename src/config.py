@@ -1,3 +1,4 @@
+import copy
 import json
 import logging.config
 import yaml
@@ -12,24 +13,39 @@ from os.path import realpath
 def load_config():
     project_root = realpath(dirname(__file__))
     filenames = [
-        join(project_root, 'local.yaml'),
         join(project_root, 'config.yaml'),
+        join(project_root, 'local.yaml'),
     ]
-    config = ChainMap() # TODO: bad choice. Use merge of dicts
-    config.maps.append({
+    config = {
         'project_root': project_root,
         'tmp_root': join(realpath(dirname(project_root)), 'tmp'),
         'logs_root': join(realpath(dirname(project_root)), 'logs'),
-    })
+    }
+    makedirs(config['logs_root'], exist_ok=True)
+    makedirs(config['tmp_root'], exist_ok=True)
     for name in filenames:
         if not exists(name):
             continue
         with open(name) as f:
             data = yaml.load(f)
-            config.maps.append(data)
+            config = merge_dicts(config, data)
     logging_config = get_logging_config(config['logs_root'])
     logging.config.dictConfig(logging_config)
     return config
+
+
+def merge_dicts(dict1, dict2):
+    result = copy.deepcopy(dict1)
+    for k2, v2 in dict2.items():
+        v1 = dict1.get(k2)
+        if type(v1) == type(v2) and isinstance(v1, dict):
+            result[k2] = merge_dicts(v1, v2)
+        elif type(v1) == type(v2) and isinstance(v1, list):
+            result[k2] = list(set(v1).union(set(v2)))
+        else:
+            result[k2] = v2
+    return result
+
 
 def get_logging_config(logs_root):
     return {
