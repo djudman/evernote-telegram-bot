@@ -36,7 +36,7 @@ class TestProviders(unittest.TestCase):
     def test_mongo_provider(self):
         random_name = "".join([random.choice(letters) for x in range(8)])
         config = {
-            'connection_string': 'mongodb://127.0.0.1:27017',
+            'connection_string': 'mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=100',
             'db': random_name,
             'collection': 'test',
         }

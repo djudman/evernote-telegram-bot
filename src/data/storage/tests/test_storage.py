@@ -74,7 +74,7 @@ class TestStorage(TestCase):
                 'providers': {
                     'mongo': {
                         'class': 'data.storage.providers.MongoProvider',
-                        'connection_string': 'mongodb://127.0.0.1:27017/',
+                        'connection_string': 'mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=100',
                     }
                 }
             },
