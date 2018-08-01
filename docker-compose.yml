@@ -1,0 +1,7 @@
+version: "3"
+services:
+    evernotebot:
+        image: djudman/evernote-telegram-bot:latest
+        # container_name: evernoterobot
+        ports: "8080:8080"
+        volumes: "/opt/bot/logs:/opt/bot/logs"

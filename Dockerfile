@@ -21,6 +21,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 	libffi-dev \
 	bzip2 \
 	uuid-dev \
+	git \
 	&& rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 
@@ -93,8 +94,9 @@ RUN set -ex; \
 	rm -f get-pip.py
 
 RUN pip3 install pipenv
-WORKDIR /opt/evernoterobot
+WORKDIR /opt/bot/evernoterobot
 COPY Pipfile ./
 COPY Pipfile.lock ./
 RUN set -ex && pipenv install --deploy --system
-COPY . .
+COPY ./src/ .
+ENTRYPOINT ["gunicorn -D wsgi:app"]
