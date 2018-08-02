@@ -99,4 +99,4 @@ COPY Pipfile ./
 COPY Pipfile.lock ./
 RUN set -ex && pipenv install --deploy --system
 COPY ./src/ .
-ENTRYPOINT ["gunicorn -D wsgi:app"]
+ENTRYPOINT ["gunicorn", "wsgi:app"]
