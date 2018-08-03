@@ -1,5 +1,6 @@
 import http.client
 import json
+import logging
 import re
 import traceback
 import ssl
@@ -91,8 +92,11 @@ class HttpApplication:
                     response = Response(body=response)
             else:
                 response = Response(body=b'Page not found', status_code=404) # TODO: log to file
-        except Exception:
+                message = 'Not found: [{method}] {uri}'.format(uri=request.raw_uri, method=request.method)
+                logging.getLogger().warn(message)
+        except Exception as e:
             response = Response(body=b'Oops. Server error.', status_code=500) # TODO: log to file
+            logging.getLogger().error(e, exc_info=1)
         if self.debug:
             self.console_log(request, response)
         return response.status, response.headers, response.body

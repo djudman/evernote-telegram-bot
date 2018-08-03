@@ -11,5 +11,5 @@ def urls(config):
         ('GET', r'^/evernote/access/basic/$', evernote_oauth),
         ('GET', r'^/evernote/access/full/$', evernote_oauth),
         ('GET', r'^/error', error),
-        ('GET', r'^/', welcome),
+        ('GET', r'^/?$', welcome),
     )

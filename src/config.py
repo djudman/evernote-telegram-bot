@@ -16,19 +16,20 @@ def load_config():
         join(project_root, 'config.yaml'),
         join(project_root, 'local.yaml'),
     ]
-    config = {
-        'project_root': project_root,
-        'tmp_root': join(realpath(dirname(project_root)), 'tmp'),
-        'logs_root': join(realpath(dirname(project_root)), 'logs'),
-    }
-    makedirs(config['logs_root'], exist_ok=True)
-    makedirs(config['tmp_root'], exist_ok=True)
+    config = {}
     for name in filenames:
         if not exists(name):
             continue
         with open(name) as f:
             data = yaml.load(f)
             config = merge_dicts(config, data)
+    config.update({
+        'project_root': project_root,
+        'tmp_root': join(realpath(dirname(project_root)), 'var/tmp/'),
+        'logs_root': join(realpath(dirname(project_root)), 'var/log/'),
+    })
+    makedirs(config['logs_root'], exist_ok=True)
+    makedirs(config['tmp_root'], exist_ok=True)
     logging_config = get_logging_config(config['logs_root'])
     logging.config.dictConfig(logging_config)
     return config

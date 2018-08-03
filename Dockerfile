@@ -66,8 +66,6 @@ RUN set -ex \
 
 # make some useful symlinks that are expected to exist
 RUN cd /usr/local/bin \
-	&& ln -s idle3 idle \
-	&& ln -s pydoc3 pydoc \
 	&& ln -s python3 python \
 	&& ln -s python3-config python-config
 
@@ -93,10 +91,10 @@ RUN set -ex; \
 		\) -exec rm -rf '{}' +; \
 	rm -f get-pip.py
 
-RUN pip3 install pipenv
-WORKDIR /opt/bot/evernoterobot
-COPY Pipfile ./
-COPY Pipfile.lock ./
-RUN set -ex && pipenv install --deploy --system
-COPY ./src/ .
-ENTRYPOINT ["gunicorn", "wsgi:app"]
+WORKDIR /srv/src/
+COPY Pipfile Pipfile.lock ./src/ ./
+RUN set -ex; \
+	pip3 install pipenv \
+	&& pipenv install --deploy --system \
+	&& cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "--workers=4", "--access-logfile=/srv/var/log/gunicorn/access.log", "--error-logfile=/srv/var/log/gunicorn/error.log", "wsgi:app", ">> /srv/var/log/gunicorn/error.log"]

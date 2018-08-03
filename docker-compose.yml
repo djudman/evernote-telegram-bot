@@ -2,8 +2,8 @@ version: "3"
 services:
     evernotebot:
         image: djudman/evernote-telegram-bot:latest
-        # container_name: evernoterobot
+        container_name: evernotebot # NOTE: If container name is specified there is only one container may exists
         ports:
             - "8000:8000"
         volumes:
-            - "/opt/bot/logs:/opt/bot/logs"
+            - "./var:/srv/var"
