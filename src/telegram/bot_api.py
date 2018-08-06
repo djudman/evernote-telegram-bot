@@ -50,8 +50,16 @@ class BotApi:
             raise BotApiError(response['error_code'], response['description'])
         return response['result']
 
-    def setWebhook(self, url):
-        return self.__request('setWebhook', url=url)
+    def setWebhook(self, url, certificate=None, max_connections=40, allowed_updates=None):
+        if allowed_updates is None:
+            allowed_updates = []
+        kwargs = {
+            'url': url,
+            'certificate': certificate,
+            'max_connections': max_connections,
+            'allowed_updates': allowed_updates,
+        }
+        return self.__request('setWebhook', **kwargs)
 
     def sendMessage(self, chat_id, text, reply_markup=None, parse_mode=None):
         return self.__request(

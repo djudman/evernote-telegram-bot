@@ -1,5 +1,5 @@
 debug: true
-host: evernoterobot.djudman.info
+host: evernotebot.djudman.info:80
 storage:
     providers:
         memory:
@@ -8,7 +8,7 @@ storage:
             class: data.storage.providers.MongoProvider
             default: true
             connection_string: mongodb://127.0.0.1:27017/
-            db: evernoterobot
+            db: evernotebot
 telegram:
     token: secret
 evernote:
