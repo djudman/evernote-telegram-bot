@@ -29,6 +29,7 @@ def load_config():
         'logs_root': join(realpath(dirname(project_root)), 'var/log/'),
     })
     config['webhook_url'] = 'https://{hostname}/{token}'.format(hostname=config['host'], token=config['telegram']['token'])
+    config['evernote']['oauth_callback_url'] = 'https://{hostname}{path}'.format(hostname=config['host'], path=config['evernote']['oauth_path'])
     makedirs(config['logs_root'], exist_ok=True)
     makedirs(config['tmp_root'], exist_ok=True)
     logging_config = get_logging_config(config['logs_root'])

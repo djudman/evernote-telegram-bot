@@ -52,10 +52,9 @@ Please tap on button below to link your Evernote account with bot.'''
     inline_keyboard = {'inline_keyboard': [[signin_button]]}
     chat_id = telegram_message.chat.id
     status_message = bot.api.sendMessage(chat_id, welcome_text, json.dumps(inline_keyboard))
-    evernote_config = bot.config['evernote']['access']['basic']
     symbols = string.ascii_letters + string.digits
     session_key = ''.join([random.choice(symbols) for i in range(32)])
-    oauth_data = bot.evernote.get_oauth_data(user.id, session_key, evernote_config)
+    oauth_data = bot.evernote.get_oauth_data(user.id, session_key, bot.config['evernote'])
     user.evernote.oauth.from_dict({
         'url': oauth_data['oauth_url'],
         'callback_key': oauth_data['callback_key'],

@@ -9,8 +9,7 @@ def urls(config):
     webhook_url = urlparse(config['webhook_url'])
     return (
         ('POST', webhook_url.path, telegram_hook),
-        ('GET', r'^/evernote/access/basic/$', evernote_oauth),
-        ('GET', r'^/evernote/access/full/$', evernote_oauth),
+        ('GET', r'^/evernote/oauth$', evernote_oauth),
         ('GET', r'^/error', error),
         ('GET', r'^/?$', welcome),
     )

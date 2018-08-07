@@ -12,14 +12,15 @@ class EvernoteClient:
     def __init__(self, sandbox):
         self.sandbox = False
 
-    def get_oauth_data(self, user_id, session_key, evernote_config):
-        api_key = evernote_config['key']
-        api_secret = evernote_config['secret']
-        oauth_callback_url = evernote_config['oauth_callback_url']
+    def get_oauth_data(self, user_id, session_key, evernote_config, access='basic'):
+        access_config = evernote_config['access'][access]
+        api_key = access_config['key']
+        api_secret = access_config['secret']
         bytes_key = '{0}{1}{2}'.format(api_key, api_secret, user_id).encode()
         callback_key = hashlib.sha1(bytes_key).hexdigest()
-        callback_url = "{callback_url}?key={key}&session_key={session_key}".format(
-            callback_url=oauth_callback_url,
+        callback_url = "{callback_url}?access={access}&key={key}&session_key={session_key}".format(
+            access=access,
+            callback_url=evernote_config['oauth_callback_url'],
             key=callback_key,
             session_key=session_key
         )

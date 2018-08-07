@@ -32,6 +32,12 @@ class TestProviders(unittest.TestCase):
         self.assertEqual(document['z'], 1)
         provider.delete({'id': id1})
         self.assertEqual(provider.count(), 2)
+        id4 = provider.insert({'x': {'y': {'z': 123}}})
+        document = provider.get({'x.y.z': 123})
+        self.assertIsNotNone(document)
+        provider.update({'x.y.z': 123}, {'x': 1})
+        document = provider.get(id4)
+        self.assertIsNotNone(document)
 
     def test_mongo_provider(self):
         random_name = "".join([random.choice(letters) for x in range(8)])

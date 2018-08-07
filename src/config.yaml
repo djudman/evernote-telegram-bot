@@ -1,5 +1,5 @@
 debug: true
-host: evernotebot.djudman.info:80
+host: evernotebot.djudman.info:88
 storage:
     providers:
         memory:
@@ -17,8 +17,6 @@ evernote:
         basic:
             key: secret
             secret: secret
-            oauth_callback_url: url
         full:
             key: secret
             secret: secret
-            oauth_callback_url: url
