@@ -1,12 +1,13 @@
 import logging
 from importlib import import_module
+from requests_oauthlib.oauth1_session import TokenRequestDenied
 
+from bot import handlers
 from bot.commands import help_command
 from bot.commands import start_command
 from bot.models import User
 from data.storage.storage import StorageMixin
 from telegram.bot_api import BotApi
-from requests_oauthlib.oauth1_session import TokenRequestDenied
 from util.evernote.client import EvernoteClient
 
 
@@ -50,7 +51,13 @@ class EvernoteBot(StorageMixin):
         user_id = message.from_user.id
         user = self.get_storage(User).get(user_id)
         if not user:
-            raise Exception('Unregistered user {0}'.format(user_id))
+            raise Exception('Unregistered user {0}. {1}'.format(user_id, self.get_storage(User).get_all({})))
+        if message.text:
+            handlers.text.handle_text(self, message)
+        if message.audio:
+            handlers.audio.handle_audio(self, message)
+        if message.location:
+            handlers.location.handle_location(self, message)
 
     def handle_post(self, post):
         # TODO:
@@ -68,11 +75,12 @@ class EvernoteBot(StorageMixin):
         chat_id = user.telegram.chat_id
         evernote_config = self.config['evernote']['access'][access_type]
         try:
+            oauth = user.evernote.oauth
             user.evernote.access_token = self.evernote.get_access_token(
                 evernote_config['key'],
                 evernote_config['secret'],
-                user.evernote.oauth.token,
-                user.evernote.oauth.secret,
+                oauth.token,
+                oauth.secret,
                 oauth_verifier
             )
             user.save()
@@ -90,6 +98,8 @@ class EvernoteBot(StorageMixin):
         default_notebook = self.evernote.get_default_notebook(user.evernote.access_token)
         user.evernote.notebook.from_dict(default_notebook)
         user.save()
-        self.api.sendMessage(chat_id, 'Current notebook: {0}\nCurrent mode: {1}'.format(user.evernote.notebook.name, user.bot_mode))
+        mode = user.bot_mode.replace('_', ' ').capitalize()
+        text = 'Current notebook: {0}\nCurrent mode: {1}'.format(user.evernote.notebook.name, mode)
+        self.api.sendMessage(chat_id, text)
 
 

@@ -1,6 +1,6 @@
 import hashlib
 import logging
-
+import evernote.edam.type.ttypes as Types
 from evernote.api.client import EvernoteClient as EvernoteSdk
 
 
@@ -69,3 +69,12 @@ class EvernoteClient:
             'guid': notebook.guid,
             'name': notebook.name,
         }
+
+    def create_note(self, token, notebook_guid, text, title, files=None):
+        note = Types.Note()
+        note.title = title
+        note.notebookGuid = notebook_guid
+        note.content = text
+        sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        note_store.createNote(note)

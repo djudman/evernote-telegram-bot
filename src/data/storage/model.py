@@ -34,7 +34,7 @@ class Model:
         self._created = datetime.now()
 
     def __repr__(self):
-        attrs = {}
+        attrs = {'id': self.id}
         for name in self.get_fields().keys():
             value = getattr(self, name)
             attrs[name] = value

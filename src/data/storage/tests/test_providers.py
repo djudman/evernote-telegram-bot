@@ -8,9 +8,10 @@ from data.storage.providers import MongoProvider
 class TestProviders(unittest.TestCase):
     def test_memory_provider(self):
         provider = MemoryProvider({})
-        document1 = {'x': 1, 'version': 1}
+        document1 = {'id': 123, 'x': 1, 'version': 1}
         id1 = provider.insert(document1)
         self.assertEqual(provider.count(), 1)
+        self.assertIsNotNone(provider.get(123))
         document2 = {'y': 1, 'version': 2}
         id2 = provider.insert(document2)
         self.assertEqual(provider.count(), 2)

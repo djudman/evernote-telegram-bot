@@ -44,7 +44,7 @@ class MemoryProvider(Base):
         return uuid.uuid4().hex
 
     def insert(self, data):
-        document_id = self._generate_id()
+        document_id = data.get('id', self._generate_id())
         data['id'] = document_id
         self.data[document_id] = data
         return document_id
