@@ -43,3 +43,29 @@ class EvernoteClient:
     def get_access_token(self, api_key, api_secret, oauth_token, oauth_token_secret, oauth_verifier):
         sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=self.sandbox)
         return sdk.get_access_token(oauth_token, oauth_token_secret, oauth_verifier)
+
+    def get_all_notebooks(self, token, query):
+        sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        notebooks = note_store.listNotebooks()
+        notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in notebooks]
+        if not query:
+            return notebooks
+        # TODO: write better
+        result = []
+        for entry in notebooks:
+            for k, v in query.items():
+                if entry[k] != v:
+                    break
+            else:
+                result.append(entry)
+        return result
+
+    def get_default_notebook(self, token):
+        sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        notebook = note_store.getDefaultNotebook()
+        return {
+            'guid': notebook.guid,
+            'name': notebook.name,
+        }

@@ -87,3 +87,9 @@ class EvernoteBot(StorageMixin):
             return
         text = 'Evernote account is connected.\nFrom now you can just send a message and a note will be created.'
         self.api.sendMessage(chat_id, text)
+        default_notebook = self.evernote.get_default_notebook(user.evernote.access_token)
+        user.evernote.notebook.from_dict(default_notebook)
+        user.save()
+        self.api.sendMessage(chat_id, 'Current notebook: {0}\nCurrent mode: {1}'.format(user.evernote.notebook.name, user.bot_mode))
+
+
