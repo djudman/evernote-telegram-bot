@@ -30,6 +30,6 @@ class User(Model):
             secret=StringField(),
             url=StringField(),
             callback_key=StringField(),
-            app_key=StringField()
+            app_key=StringField() # TODO: it seems this field is unused
         )
     )

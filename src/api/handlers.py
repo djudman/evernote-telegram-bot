@@ -6,13 +6,8 @@ from util.http import HTTPFound
 from telegram.models import TelegramUpdate
 
 
-def welcome(request):
-    return b'Welcome!'
-
-
 def telegram_hook(request):
-    logger = logging.getLogger()
-    logger.info('Telegram update: {}'.format(request.body))
+    logging.getLogger().info('Telegram update: {}'.format(request.body))
     data = request.json()
     telegram_update = TelegramUpdate(data)
     bot = request.app.bot
@@ -26,6 +21,10 @@ def evernote_oauth(request):
     bot = request.app.bot
     bot.oauth_callback(callback_key, oauth_verifier, access)
     return HTTPFound(bot.url)
+
+
+def welcome(request):
+    return b'Welcome!'
 
 
 def error(request):

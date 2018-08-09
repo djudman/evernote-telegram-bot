@@ -45,28 +45,29 @@ class StorageMixin:
 
     def get_storage(self, model_class):
         cache_key = model_class.__name__
-        if not self._storage_cache.get(cache_key):
-            model_config = getattr(model_class, 'config', {})
-            provider_name = model_config.get('provider')
-            if provider_name:
-                provider_config = self.config['storage']['providers'][provider_name]
-            else:
-                for name, config in self.config['storage']['providers'].items():
-                    if config.get('default'):
-                        provider_config = config
-                        break
-            if not provider_config:
-                raise Exception('Provider not configured.')
-            parts = provider_config['class'].split('.')
-            classname = parts[-1]
-            module_name = '.'.join(parts[:-1])
-            module = import_module(module_name)
-            ProviderClass = getattr(module, classname)
-            provider = ProviderClass({
-                'db': model_config.get('db', provider_config.get('db')),
-                'collection': model_config.get('collection'),
-                'connection_string': provider_config.get('connection_string'),
-            })
-            storage = Storage(provider, model_class)
-            self._storage_cache[cache_key] = storage
+        if self._storage_cache.get(cache_key):
+            return self._storage_cache[cache_key]
+        model_config = getattr(model_class, 'config', {})
+        provider_name = model_config.get('provider')
+        if provider_name:
+            provider_config = self.config['storage']['providers'][provider_name]
+        else:
+            for _, config in self.config['storage']['providers'].items():
+                if config.get('default'):
+                    provider_config = config
+                    break
+        if not provider_config:
+            raise Exception('Provider not configured.')
+        parts = provider_config['class'].split('.')
+        classname = parts[-1]
+        module_name = '.'.join(parts[:-1])
+        module = import_module(module_name)
+        ProviderClass = getattr(module, classname)
+        provider = ProviderClass({
+            'db': model_config.get('db', provider_config.get('db')),
+            'collection': model_config.get('collection'),
+            'connection_string': provider_config.get('connection_string'),
+        })
+        storage = Storage(provider, model_class)
+        self._storage_cache[cache_key] = storage
         return self._storage_cache[cache_key]

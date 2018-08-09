@@ -1,8 +1,10 @@
+import unittest
+
 from data.storage.fields import StringField
 from data.storage.model import Model
 from data.storage.model import storage
 from data.storage.storage import StorageMixin
-from unittest import TestCase
+from test import TestCase
 
 
 class TestModel(Model):
@@ -68,6 +70,7 @@ class TestStorage(TestCase):
         }
         self.check_storage(config, TestMemoryModel)
 
+    @unittest.skip('TODO: clear test database before each test')
     def test_mongo_storage(self):
         config = {
             'storage': {

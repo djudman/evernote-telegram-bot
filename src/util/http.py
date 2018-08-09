@@ -22,7 +22,7 @@ class Request:
     def __init__(self, wsgi_environ):
         self.init_time = datetime.now()
         self.input = wsgi_environ.get('wsgi.input')
-        self.method = wsgi_environ.get('REQUEST_METHOD')
+        self.method = wsgi_environ.get('REQUEST_METHOD', 'GET')
         self.query_string = wsgi_environ.get('QUERY_STRING')
         self.GET = {}
         if self.query_string:
@@ -31,7 +31,7 @@ class Request:
         self.raw_uri = wsgi_environ.get('RAW_URI')
         self.server_protocol = wsgi_environ.get('SERVER_PROTOCOL')
         self.user_agent = wsgi_environ.get('HTTP_USER_AGENT')
-        self.path = wsgi_environ.get('PATH_INFO')
+        self.path = wsgi_environ.get('PATH_INFO', '/')
 
     def read(self):
         if not self.input:
@@ -56,10 +56,11 @@ class Response:
     def __init__(self, body, status_code=200, headers=None):
         self.body = body if body else b''
         if headers is None:
-            self.headers = [
+            headers = [
                 ('Content-Type', 'text/plain'),
                 ('Content-Length', str(len(self.body))),
             ]
+        self.headers = headers
         if isinstance(self.body, str):
             self.body = self.body.encode() 
         status_message = self.statuses.get(status_code, 'Unknown')

@@ -9,7 +9,3 @@ class Application(HttpApplication):
         super().__init__(config)
         logging.getLogger().debug(config)
         self.bot = EvernoteBot(config)
-        try:
-            self.bot.api.setWebhook(config['webhook_url'])
-        except:
-            pass

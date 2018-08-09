@@ -2,7 +2,67 @@
 import importlib.util
 import os
 import sys
+import time
 import unittest
+from config import load_config
+from telegram.models import TelegramUpdate
+
+
+def build_test_data(update_id=None, message_id=None, date=None, from_id=None, chat_id=None, text=None):
+    config = load_config()
+    entities = []
+    if text.startswith('/'):
+        entities.append({
+            'type': 'bot_command',
+            'offset': 0,
+            'length': len(text),
+        })
+    return {
+        'update_id': update_id or '123',
+        'message': {
+            'message_id': message_id or 111,
+            'date': date or int(time.time()),
+            'from': {
+                'id': from_id or 222,
+                'is_bot': False,
+                'first_name': 'Test',
+            },
+            'entities': entities,
+            'chat': {
+                'id': chat_id or config['telegram']['chat_id'],
+                'type': 'private',
+            },
+            'text': text or '/start',
+        },
+    }
+
+
+class TestCase(unittest.TestCase):
+    def setUp(self):
+        self.config = load_config()
+        self.fixtures = {
+            'start_command': build_test_data(text='/start'),
+            'help_command': build_test_data(text='/help'),
+            'simple_text': build_test_data(text='hello, world'),
+        }
+
+    def tearDown(self):
+        pass
+
+
+class MockMethod:
+    def __init__(self, result=None):
+        self.calls = []
+        self.result = result
+
+    def __call__(self, *args, **kwargs):
+        call_data = {'args': args, 'kwargs': kwargs}
+        self.calls.append(call_data)
+        return self.result
+
+    @property
+    def call_count(self):
+        return len(self.calls)
 
 
 def import_module_by_path(path):
@@ -18,7 +78,7 @@ def get_test_modules(pattern):
         module = import_module_by_path(pattern)
         return [module]
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    for dirpath, dirnames, filenames in os.walk(current_dir):
+    for dirpath, _, filenames in os.walk(current_dir):
         for name in filenames:
             if name.startswith('test') and name.endswith('.py') and pattern in name.lower():
                 path = os.path.join(dirpath, name)
