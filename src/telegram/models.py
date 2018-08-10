@@ -148,9 +148,8 @@ class TelegramMessage:
         # TODO: video_note
         self.caption = data.get('caption')
         # TODO: contact
-        if data.get('location'):
-            self.location = TelegramLocation(data['location'])
-            self.venue = TelegramVenue(data['venue']) if data.get('venue') else None
+        self.location = TelegramLocation(data['location']) if data.get('location') else None
+        self.venue = TelegramVenue(data['venue']) if data.get('venue') else None
         # TODO: add other fields
 
 

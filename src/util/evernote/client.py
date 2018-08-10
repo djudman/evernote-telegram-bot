@@ -1,11 +1,73 @@
 import hashlib
+import mimetypes
 import logging
+import re
+from os.path import basename
+
 import evernote.edam.type.ttypes as Types
 from evernote.api.client import EvernoteClient as EvernoteSdk
 
 
 class EvernoteApiError(Exception):
     pass
+
+
+class NoteContent:
+    def __init__(self, content=None):
+        self.content = self.parse(content)
+
+    def parse(self, content):
+        matched = re.search(r'<en-note>(?P<content>.*)</en-note>', content or '')
+        if not matched:
+            return ''
+        return matched.group('content')
+
+    def make_resource(self, filename):
+        with open(filename, 'rb') as f:
+            data_bytes = f.read()
+        md5 = hashlib.md5()
+        md5.update(data_bytes)
+
+        data = Types.Data()
+        data.size = len(data_bytes)
+        data.bodyHash = md5.digest()
+        data.body = data_bytes
+
+        name = basename(filename)
+        extension = name.split('.')[-1]
+        mime_type = mimetypes.types_map.get('.{}'.format(extension), 'application/octet-stream')
+        resource = Types.Resource()
+        resource.mime = mime_type
+        resource.data = data
+        resource.attributes = Types.ResourceAttributes(fileName=name)
+        return {
+            'resource': resource,
+            'mime_type': mime_type,
+            'md5': md5.hexdigest(),
+        }
+
+    def append(self, *, text='', filename=None):
+        new_content = ''
+        if text:
+            new_content += text.replace('&', '&amp;')
+        if filename:
+            resource_data = self.make_resource(filename)
+            new_content += '<en-media type="{mime_type}" hash="{md5}" />'.format(
+                mime_type=resource_data['mime_type'],
+                md5=resource_data['md5']
+            )
+        if new_content:
+            self.content += '<br />{0}'.format(new_content)
+
+
+    def __str__(self):
+        return '\
+<?xml version="1.0" encoding="UTF-8"?>\
+<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">\
+<en-note>{0}</en-note>'.format(self.content)
+
+    def __unicode__(self):
+        return str(self)
 
 
 class EvernoteClient:
@@ -74,7 +136,11 @@ class EvernoteClient:
         note = Types.Note()
         note.title = title
         note.notebookGuid = notebook_guid
-        note.content = text
+        content = NoteContent()
+        content.append(text=text)
+        if files:
+            map(lambda filename: content.append(filename=filename), files)
+        note.content = str(content)
         sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
         note_store = sdk.get_note_store()
         note_store.createNote(note)

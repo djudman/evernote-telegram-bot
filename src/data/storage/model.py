@@ -90,7 +90,7 @@ class Model:
             setattr(self, name, value)
 
     def to_dict(self):
-        data = {}
+        data = {'id': self.id}
         for name, field in self.get_fields().items():
             value = getattr(self, name)
             if isinstance(field, StructField):

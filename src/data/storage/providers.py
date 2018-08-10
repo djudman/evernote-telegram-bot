@@ -51,7 +51,7 @@ class MemoryProvider(Base):
 
     def update(self, query, update):
         counter = 0
-        for document_id, document in self.data.items():
+        for document in self.data.values():
             if self._check_query(document, query):
                 document.update(update)
                 counter += 1
@@ -83,7 +83,7 @@ class MemoryProvider(Base):
 
     def get(self, query):
         if not isinstance(query, dict):
-            query = { 'id': query }
+            query = {'id': query}
         for obj in self.data.values():
             if self._check_query(obj, query):
                 return obj

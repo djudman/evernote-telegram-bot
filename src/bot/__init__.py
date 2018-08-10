@@ -2,9 +2,11 @@ import logging
 from importlib import import_module
 from requests_oauthlib.oauth1_session import TokenRequestDenied
 
-from bot import handlers
 from bot.commands import help_command
 from bot.commands import start_command
+from bot.handlers.text import handle_text
+from bot.handlers.audio import handle_audio
+from bot.handlers.location import handle_location
 from bot.models import User
 from data.storage.storage import StorageMixin
 from telegram.bot_api import BotApi
@@ -53,11 +55,11 @@ class EvernoteBot(StorageMixin):
         if not user:
             raise Exception('Unregistered user {0}. {1}'.format(user_id, self.get_storage(User).get_all({})))
         if message.text:
-            handlers.text.handle_text(self, message)
+            handle_text(self, message)
         if message.audio:
-            handlers.audio.handle_audio(self, message)
+            handle_audio(self, message)
         if message.location:
-            handlers.location.handle_location(self, message)
+            handle_location(self, message)
 
     def handle_post(self, post):
         # TODO:

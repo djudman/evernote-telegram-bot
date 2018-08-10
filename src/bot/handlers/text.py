@@ -9,6 +9,6 @@ def handle_text(bot, telegram_message):
         user.evernote.access_token,
         user.evernote.notebook.guid,
         telegram_message.text,
-        telegram_message.caption
+        telegram_message.text[:20]
     )
     bot.api.editMessageText(telegram_message.chat.id, status_message['message_id'], 'Saved.')
