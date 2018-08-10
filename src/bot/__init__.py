@@ -5,6 +5,7 @@ from requests_oauthlib.oauth1_session import TokenRequestDenied
 from bot.commands import help_command
 from bot.commands import start_command
 from bot.handlers.text import handle_text
+from bot.handlers.photo import handle_photo
 from bot.handlers.audio import handle_audio
 from bot.handlers.location import handle_location
 from bot.models import User
@@ -54,12 +55,16 @@ class EvernoteBot(StorageMixin):
         user = self.get_storage(User).get(user_id)
         if not user:
             raise Exception('Unregistered user {0}. {1}'.format(user_id, self.get_storage(User).get_all({})))
+        status_message = self.api.sendMessage(message.chat.id, 'Accepted')
         if message.text:
             handle_text(self, message)
+        if message.photo:
+            handle_photo(self, message)
         if message.audio:
             handle_audio(self, message)
         if message.location:
             handle_location(self, message)
+        self.api.editMessageText(message.chat.id, status_message['message_id'], 'Saved')
 
     def handle_post(self, post):
         # TODO:

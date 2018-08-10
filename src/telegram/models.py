@@ -132,7 +132,7 @@ class TelegramMessage:
         self.forward_date = int(data['forward_date']) if data.get('forward_date') else None
         # TODO: reply_to_message
         # TODO: edit_date
-        self.text = data.get('text')
+        self.text = data.get('text', '')
         self.entities = []
         if data.get('entities'):
             for entity_data in data['entities']:

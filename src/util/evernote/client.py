@@ -15,6 +15,7 @@ class EvernoteApiError(Exception):
 class NoteContent:
     def __init__(self, content=None):
         self.content = self.parse(content)
+        self.resources = []
 
     def parse(self, content):
         matched = re.search(r'<en-note>(?P<content>.*)</en-note>', content or '')
@@ -52,6 +53,7 @@ class NoteContent:
             new_content += text.replace('&', '&amp;')
         if filename:
             resource_data = self.make_resource(filename)
+            self.resources.append(resource_data['resource'])
             new_content += '<en-media type="{mime_type}" hash="{md5}" />'.format(
                 mime_type=resource_data['mime_type'],
                 md5=resource_data['md5']
@@ -134,13 +136,16 @@ class EvernoteClient:
 
     def create_note(self, token, notebook_guid, text, title, files=None):
         note = Types.Note()
-        note.title = title
+        note.title = title or 'Telegram bot'
         note.notebookGuid = notebook_guid
         content = NoteContent()
         content.append(text=text)
         if files:
-            map(lambda filename: content.append(filename=filename), files)
+            for name in files:
+                content.append(filename=name)
+                logging.getLogger().debug("Note content: {}".format(str(content)))
         note.content = str(content)
+        note.resources = content.resources
         sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
         note_store = sdk.get_note_store()
         note_store.createNote(note)
