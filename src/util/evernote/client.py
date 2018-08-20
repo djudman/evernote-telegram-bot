@@ -50,7 +50,10 @@ class NoteContent:
     def append(self, *, text='', filename=None):
         new_content = ''
         if text:
-            new_content += text.replace('&', '&amp;')
+            text = text.replace('&', '&amp;')
+            text = text.replace('>', '&gt;')
+            text = text.replace('<', '&lt;')
+            new_content += '<div>{}</div>'.format(text)
         if filename:
             resource_data = self.make_resource(filename)
             self.resources.append(resource_data['resource'])
@@ -148,4 +151,15 @@ class EvernoteClient:
         note.resources = content.resources
         sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
         note_store = sdk.get_note_store()
-        note_store.createNote(note)
+        return note_store.createNote(note)
+
+    def get_note(self, token, note_guid, with_content=True, with_resources_data=True, with_resources_recognition=False, with_resources_alternate_data=False):
+        sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
+        note_store = sdk.get_note_store()
+        return note_store.getNote(
+            note_guid,
+            with_content,
+            with_resources_data,
+            with_resources_recognition,
+            with_resources_alternate_data
+        )

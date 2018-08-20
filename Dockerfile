@@ -97,4 +97,4 @@ RUN set -ex; \
 	pip3 install pipenv \
 	&& pipenv install --deploy --system \
 	&& cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime
-ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "--workers=4", "--preload", "--access-logfile=/srv/var/log/gunicorn/access.log", "--error-logfile=/srv/var/log/gunicorn/error.log", "wsgi:app", ">> /srv/var/log/gunicorn/error.log"]
+ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "--workers=1", "--preload", "--access-logfile=/srv/var/log/gunicorn/access.log", "--error-logfile=/srv/var/log/gunicorn/error.log", "wsgi:app", ">> /srv/var/log/gunicorn/error.log"]
