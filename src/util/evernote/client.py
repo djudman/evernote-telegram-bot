@@ -73,7 +73,7 @@ class NoteContent:
 
 
 class EvernoteClient:
-    def __init__(self, sandbox):
+    def __init__(self, sandbox=False):
         self.sandbox = False
 
     def get_oauth_data(self, user_id, session_key, evernote_config, access='basic'):
