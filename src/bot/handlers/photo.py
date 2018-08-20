@@ -26,8 +26,7 @@ def handle_photo(bot, telegram_message):
     bot.evernote.create_note(
         user.evernote.access_token,
         user.evernote.notebook.guid,
-        telegram_message.text,
-        telegram_message.caption or telegram_message.text[:20] or 'Photo',
-        (filename,)
+        text=telegram_message.text,
+        title=telegram_message.caption or telegram_message.text[:20] or 'Photo',
+        files=(filename,)
     )
-

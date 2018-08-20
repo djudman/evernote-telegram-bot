@@ -47,13 +47,15 @@ class NoteContent:
             'md5': md5.hexdigest(),
         }
 
-    def append(self, *, text='', filename=None):
+    def append(self, *, text='', html='', filename=None):
         new_content = ''
         if text:
             text = text.replace('&', '&amp;')
             text = text.replace('>', '&gt;')
             text = text.replace('<', '&lt;')
             new_content += '<div>{}</div>'.format(text)
+        if html:
+            new_content += html
         if filename:
             resource_data = self.make_resource(filename)
             self.resources.append(resource_data['resource'])
@@ -137,12 +139,12 @@ class EvernoteClient:
             'name': notebook.name,
         }
 
-    def create_note(self, token, notebook_guid, text, title, files=None):
+    def create_note(self, token, notebook_guid, text='', title=None, files=None, html=None):
         note = Types.Note()
         note.title = title or 'Telegram bot'
         note.notebookGuid = notebook_guid
         content = NoteContent()
-        content.append(text=text)
+        content.append(text=text, html=html)
         if files:
             for name in files:
                 content.append(filename=name)

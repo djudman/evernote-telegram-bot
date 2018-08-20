@@ -12,6 +12,7 @@ storage:
 telegram:
     token: secret
 evernote:
+    oauth_path: /some/path
     access:
         token: secret
         basic:
