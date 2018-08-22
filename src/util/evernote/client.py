@@ -113,9 +113,12 @@ class EvernoteClient:
         sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=self.sandbox)
         return sdk.get_access_token(oauth_token, oauth_token_secret, oauth_verifier)
 
-    def get_all_notebooks(self, token, query):
+    def get_note_store(self, token):
         sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
-        note_store = sdk.get_note_store()
+        return sdk.get_note_store()
+
+    def get_all_notebooks(self, token, query):
+        note_store = self.get_note_store(token)
         notebooks = note_store.listNotebooks()
         notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in notebooks]
         if not query:
@@ -131,15 +134,14 @@ class EvernoteClient:
         return result
 
     def get_default_notebook(self, token):
-        sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
-        note_store = sdk.get_note_store()
+        note_store = self.get_note_store(token)
         notebook = note_store.getDefaultNotebook()
         return {
             'guid': notebook.guid,
             'name': notebook.name,
         }
 
-    def create_note(self, token, notebook_guid, text='', title=None, files=None, html=None):
+    def create_note(self, token, notebook_guid, text=None, title=None, files=None, html=None):
         note = Types.Note()
         note.title = title or 'Telegram bot'
         note.notebookGuid = notebook_guid
@@ -148,16 +150,23 @@ class EvernoteClient:
         if files:
             for name in files:
                 content.append(filename=name)
-                logging.getLogger().debug("Note content: {}".format(str(content)))
         note.content = str(content)
         note.resources = content.resources
-        sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
-        note_store = sdk.get_note_store()
+        note_store = self.get_note_store(token)
         return note_store.createNote(note)
 
+    def update_note(self, token, note_guid, text=None, title=None, files=None, html=None):
+        note = self.get_note(token, note_guid)
+        content = NoteContent(note.content)
+        content.append(text=text, html=html)
+        if files:
+            for name in files:
+                content.append(filename=name)
+        note_store = self.get_note_store(token)
+        return note_store.updateNote(note)
+
     def get_note(self, token, note_guid, with_content=True, with_resources_data=True, with_resources_recognition=False, with_resources_alternate_data=False):
-        sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
-        note_store = sdk.get_note_store()
+        note_store = self.get_note_store(token)
         return note_store.getNote(
             note_guid,
             with_content,

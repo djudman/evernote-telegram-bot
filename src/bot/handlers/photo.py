@@ -21,12 +21,6 @@ def handle_photo(bot, telegram_message):
     filename = join(bot.config['tmp_root'], '{0}_{1}'.format(file_id, basename(urlparse(download_url).path)))
     with open(filename, 'wb') as f:
         f.write(data)
-    user_id = telegram_message.from_user.id
-    user = bot.get_storage(User).get(user_id)
-    bot.evernote.create_note(
-        user.evernote.access_token,
-        user.evernote.notebook.guid,
-        text=telegram_message.text,
-        title=telegram_message.caption or telegram_message.text[:20] or 'Photo',
-        files=(filename,)
-    )
+    user = bot.get_user(telegram_message)
+    title = telegram_message.caption or telegram_message.text[:20] or 'Photo'
+    bot.save_note(user, text=telegram_message.text, title=title, files=(filename,))

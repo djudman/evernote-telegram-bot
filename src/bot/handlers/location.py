@@ -21,11 +21,5 @@ def handle_location(bot, telegram_message):
         if foursquare_id:
             url = 'https://foursquare.com/v/{}'.format(foursquare_id)
             html += "<br /><a href='{url}'>{url}</a>".format(url=url)
-    user_id = telegram_message.from_user.id
-    user = bot.get_storage(User).get(user_id)
-    bot.evernote.create_note(
-        user.evernote.access_token,
-        user.evernote.notebook.guid,
-        title='Location',
-        html=html
-    )
+    user = bot.get_user(telegram_message)
+    bot.save_note(user, title='Location', html=html)

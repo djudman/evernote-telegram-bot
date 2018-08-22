@@ -12,6 +12,7 @@ class User(Model):
     created = DateTimeField(init_current=True)
     last_request_time = DateTimeField()
     bot_mode = EnumField(values=['one_note', 'multiple_notes'])
+    state = StringField()
     telegram = StructField(
         first_name=StringField(),
         last_name=StringField(),
@@ -25,6 +26,7 @@ class User(Model):
             name=StringField(),
             guid=StringField()
         ),
+        shared_note_id=StringField(), # NOTE: uses in 'one_note' mode
         oauth=StructField(
             token=StringField(),
             secret=StringField(),

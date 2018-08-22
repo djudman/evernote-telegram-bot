@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 import string
 from bot.models import User
@@ -82,3 +83,49 @@ def register_user(bot, telegram_message):
     user = bot.get_storage(User).create_model(user_data)
     user.save()
     return user
+
+
+def switch_mode_command(bot, telegram_message):
+    mode = telegram_message.text
+    user = bot.get_user(telegram_message)
+    buttons = []
+    for mode in ('one_note', 'multiple_notes'):
+        name = mode.capitalize().replace('_', ' ')
+        if user.bot_mode == mode:
+            name = '> {} <'.format(name)
+        buttons.append({'text': name})
+    keyboard = {
+        'keyboard': [[b] for b in buttons],
+        'resize_keyboard': True,
+        'one_time_keyboard': True,
+    }
+    bot.api.sendMessage(user.telegram.chat_id, 'Please, select mode', json.dumps(keyboard))
+    user.state = 'switch_mode'
+    user.save()
+
+
+def switch_mode(bot, message):
+    mode = message.text.lower().replace(' ', '_')
+    if mode not in ('one_note', 'multiple_notes'):
+        logging.getLogger().warning('Invalid mode {}'.format(mode))
+        return
+    user = bot.get_user(message)
+    user.bot_mode = mode
+    if mode == 'one_note':
+        note = bot.evernote.create_note(
+            user.evernote.access_token,
+            user.evernote.notebook.guid,
+            title='Telegram bot notes'
+        )
+        user.evernote.shared_note_id = note.guid
+    user.save()
+
+
+def switch_notebook_command(bot, telegram_message):
+    user = bot.get_user(telegram_message)
+    user.state = 'switch_notebook'
+    user.save()
+
+
+def switch_notebook(user_id, notebook_name):
+    pass

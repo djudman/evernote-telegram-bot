@@ -2,11 +2,9 @@ from bot.models import User
 
 
 def handle_text(bot, telegram_message):
-    user_id = telegram_message.from_user.id
-    user = bot.get_storage(User).get(user_id)
-    bot.evernote.create_note(
-        user.evernote.access_token,
-        user.evernote.notebook.guid,
-        text=telegram_message.text,
-        title=telegram_message.text[:20]
-    )
+    user = bot.get_user(telegram_message)
+    state = user.state
+    if state:
+        bot.handle_state(state, telegram_message)
+    else:
+        bot.save_note(user, text=telegram_message.text, title=telegram_message.text[:20])
