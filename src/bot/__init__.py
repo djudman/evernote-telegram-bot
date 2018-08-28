@@ -109,13 +109,14 @@ class EvernoteBot(StorageMixin):
         evernote_config = self.config['evernote']['access'][access_type]
         try:
             oauth = user.evernote.oauth
-            user.evernote.access_token = self.evernote.get_access_token(
+            user.evernote.access.token = self.evernote.get_access_token(
                 evernote_config['key'],
                 evernote_config['secret'],
                 oauth.token,
                 oauth.secret,
                 oauth_verifier
             )
+            user.evernote.access.permission = access_type
             user.save()
         except TokenRequestDenied as e:
             logging.getLogger().error(e, exc_info=1)
@@ -128,7 +129,7 @@ class EvernoteBot(StorageMixin):
             return
         text = 'Evernote account is connected.\nFrom now you can just send a message and a note will be created.'
         self.api.sendMessage(chat_id, text)
-        default_notebook = self.evernote.get_default_notebook(user.evernote.access_token)
+        default_notebook = self.evernote.get_default_notebook(user.evernote.access.token)
         user.evernote.notebook.from_dict(default_notebook)
         user.save()
         mode = user.bot_mode.replace('_', ' ').capitalize()
@@ -138,7 +139,7 @@ class EvernoteBot(StorageMixin):
     def save_note(self, user, text=None, title=None, html=None, files=None):
         if user.bot_mode == 'one_note':
             self.evernote.update_note(
-                user.evernote.access_token,
+                user.evernote.access.token,
                 user.evernote.shared_note_id,
                 text=text,
                 html=html,
@@ -147,7 +148,7 @@ class EvernoteBot(StorageMixin):
             )
         else:
             self.evernote.create_note(
-                user.evernote.access_token,
+                user.evernote.access.token,
                 user.evernote.notebook.guid,
                 text=text,
                 html=html,

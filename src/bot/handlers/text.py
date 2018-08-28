@@ -1,6 +1,3 @@
-from bot.models import User
-
-
 def handle_text(bot, telegram_message):
     user = bot.get_user(telegram_message)
     state = user.state

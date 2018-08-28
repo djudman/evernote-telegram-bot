@@ -21,7 +21,10 @@ class User(Model):
         start_session_token=StringField()
     )
     evernote = StructField(
-        access_token=StringField(),
+        access=StructField(
+            token=StringField(),
+            permission=EnumField(values=['basic', 'full'])
+        ),
         notebook=StructField(
             name=StringField(),
             guid=StringField()

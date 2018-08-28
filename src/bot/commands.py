@@ -44,28 +44,11 @@ def start_command(bot, telegram_message):
     user = bot.get_storage(User).get(telegram_user.id)
     if not user:
         user = register_user(bot, telegram_message)
-    welcome_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
+    message_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
 Please tap on button below to link your Evernote account with bot.'''
-    signin_button = {
-        'text': 'Waiting for Evernote...',
-        'url': bot.url,
-    }
-    inline_keyboard = {'inline_keyboard': [[signin_button]]}
-    chat_id = telegram_message.chat.id
-    status_message = bot.api.sendMessage(chat_id, welcome_text, json.dumps(inline_keyboard))
-    symbols = string.ascii_letters + string.digits
-    session_key = ''.join([random.choice(symbols) for i in range(32)])
-    oauth_data = bot.evernote.get_oauth_data(user.id, session_key, bot.config['evernote'])
-    user.evernote.oauth.from_dict({
-        'url': oauth_data['oauth_url'],
-        'callback_key': oauth_data['callback_key'],
-        'token': oauth_data['oauth_token'],
-        'secret': oauth_data['oauth_token_secret'],
-    })
+    button_text = 'Sign in to Evernote'
+    oauth(bot, user, message_text, button_text)
     user.save()
-    signin_button['text'] = 'Sign in to Evernote'
-    signin_button['url'] = user.evernote.oauth.url
-    bot.api.editMessageReplyMarkup(chat_id, status_message['message_id'], json.dumps(inline_keyboard))
 
 
 def register_user(bot, telegram_message):
@@ -83,6 +66,27 @@ def register_user(bot, telegram_message):
     user = bot.get_storage(User).create_model(user_data)
     user.save()
     return user
+
+
+def oauth(bot, user, message_text, button_text, access='basic'):
+    signin_button = {
+        'text': 'Waiting for Evernote...',
+        'url': bot.url,
+    }
+    inline_keyboard = {'inline_keyboard': [[signin_button]]}
+    status_message = bot.api.sendMessage(user.telegram.chat_id, message_text, json.dumps(inline_keyboard))
+    symbols = string.ascii_letters + string.digits
+    session_key = ''.join([random.choice(symbols) for i in range(32)])
+    oauth_data = bot.evernote.get_oauth_data(user.id, session_key, bot.config['evernote'], access)
+    user.evernote.oauth.from_dict({
+        'url': oauth_data['oauth_url'],
+        'callback_key': oauth_data['callback_key'],
+        'token': oauth_data['oauth_token'],
+        'secret': oauth_data['oauth_token_secret'],
+    })
+    signin_button['text'] = button_text
+    signin_button['url'] = user.evernote.oauth.url
+    bot.api.editMessageReplyMarkup(user.telegram.chat_id, status_message['message_id'], json.dumps(inline_keyboard))
 
 
 def switch_mode_command(bot, telegram_message):
@@ -112,12 +116,19 @@ def switch_mode(bot, message):
     user = bot.get_user(message)
     user.bot_mode = mode
     if mode == 'one_note':
-        note = bot.evernote.create_note(
-            user.evernote.access_token,
-            user.evernote.notebook.guid,
-            title='Telegram bot notes'
-        )
-        user.evernote.shared_note_id = note.guid
+        if user.evernote.access.permission == 'full':
+            note = bot.evernote.create_note(
+                user.evernote.access.token,
+                user.evernote.notebook.guid,
+                title='Telegram bot notes'
+            )
+            user.evernote.shared_note_id = note.guid
+        else:
+            text = 'To enable "One note" mode you should allow to bot to read and update your notes'
+            bot.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
+            message_text = 'Please tap on button below to give access to bot.'
+            button_text = 'Allow read and update notes'
+            oauth(bot, user, message_text, button_text, access='full')
     user.save()
 
 
