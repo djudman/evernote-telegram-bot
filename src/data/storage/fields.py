@@ -74,6 +74,8 @@ class EnumField(Field):
         self._possible_values = values
 
     def validate(self, value):
+        if value is None:
+            value = self._possible_values[0]
         if value not in self._possible_values:
             raise Exception('Invalid value "{0}"'.format(value))
         return value
