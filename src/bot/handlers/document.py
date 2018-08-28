@@ -6,6 +6,7 @@ from util.http import make_request
 
 
 def handle_document(bot, telegram_message):
+    status_message = bot.api.sendMessage(telegram_message.chat.id, 'Document accepted')
     max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
     if telegram_message.document.file_size > max_size:
         raise Exception('File too big. Telegram does not allow to the bot to download files over 20Mb.')
@@ -18,4 +19,5 @@ def handle_document(bot, telegram_message):
     user = bot.get_user(telegram_message)
     title = telegram_message.caption or telegram_message.text[:20] or 'Document'
     bot.save_note(user, text=telegram_message.text, title=title, files=(filename,))
+    bot.api.editMessageText(telegram_message.chat.id, status_message['message_id'], 'Saved')
 

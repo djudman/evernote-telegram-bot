@@ -6,6 +6,7 @@ from util.http import make_request
 
 
 def handle_photo(bot, telegram_message):
+    status_message = bot.api.sendMessage(telegram_message.chat.id, 'Photo accepted')
     max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
     file_id = None
     for photo in sorted(telegram_message.photo, key=lambda x: x.file_size, reverse=True):
@@ -23,3 +24,4 @@ def handle_photo(bot, telegram_message):
     user = bot.get_user(telegram_message)
     title = telegram_message.caption or telegram_message.text[:20] or 'Photo'
     bot.save_note(user, text=telegram_message.text, title=title, files=(filename,))
+    bot.api.editMessageText(telegram_message.chat.id, status_message['message_id'], 'Saved')

@@ -68,7 +68,6 @@ class EvernoteBot(StorageMixin):
         user = self.get_user(message)
         if not user:
             raise Exception('Unregistered user {0}. {1}'.format(user.id, self.get_storage(User).get_all({})))
-        status_message = self.api.sendMessage(message.chat.id, 'Accepted')
         if message.text:
             handle_text(self, message)
         if message.photo:
@@ -79,7 +78,6 @@ class EvernoteBot(StorageMixin):
             handle_document(self, message)
         if message.location:
             handle_location(self, message)
-        self.api.editMessageText(message.chat.id, status_message['message_id'], 'Saved')
 
     def handle_post(self, post):
         # TODO:
