@@ -162,6 +162,7 @@ class EvernoteClient:
         if files:
             for name in files:
                 content.append(filename=name)
+        note.content = str(content)
         note_store = self.get_note_store(token)
         return note_store.updateNote(note)
 
