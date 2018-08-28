@@ -61,7 +61,10 @@ def register_user(bot, telegram_message):
             'last_name': telegram_user.last_name,
             'username': telegram_user.username,
             'chat_id': telegram_message.chat.id,
-        }
+        },
+        'evernote': {
+            'access': {'permission': 'basic'},
+        },
     }
     user = bot.get_storage(User).create_model(user_data)
     user.save()
