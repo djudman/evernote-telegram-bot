@@ -12,7 +12,7 @@ def handle_document(bot, telegram_message):
     file_id = telegram_message.document.file_id
     download_url = bot.api.getFile(file_id)
     data = make_request(download_url)
-    filename = join(bot.config['tmp_root'], '{0}_{1}'.format(file_id, basename(urlparse(download_url).path)))
+    filename = join(bot.config['tmp_root'], '{0}_{1}'.format(file_id, telegram_message.document.file_name))
     with open(filename, 'wb') as f:
         f.write(data)
     user = bot.get_user(telegram_message)
