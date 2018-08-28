@@ -14,13 +14,13 @@ from test import TestCase
 
 class TestSwitchNoteCommand(TestCase):
     def test_base(self):
-        # TODO:
         request = Request({})
         request.app = Application(self.config)
         request.app.bot.api.sendMessage = MockMethod(result={'message_id': 1})
         request.app.bot.api.editMessageReplyMarkup = MockMethod()
-        Note = namedtuple('Note', ['guid'])
-        request.app.bot.evernote.create_note = MockMethod(result=Note(guid='guid:123'))
+        Note = namedtuple('Note', ['guid', 'content'])
+        request.app.bot.evernote.create_note = MockMethod(result=Note(guid='guid:123', content=''))
+        request.app.bot.evernote.update_note = MockMethod(result=Note(content='', guid='guid123'))
         data = self.fixtures['start_command']
         update = TelegramUpdate(data)
         start_command(request.app.bot, update.message)
@@ -36,3 +36,4 @@ class TestSwitchNoteCommand(TestCase):
         data = self.fixtures['simple_text']
         update = TelegramUpdate(data)
         handle_text(request.app.bot, update.message)
+        self.assertEqual(request.app.bot.evernote.update_note.call_count, 1)

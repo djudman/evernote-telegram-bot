@@ -83,14 +83,14 @@ class EvernoteBot(StorageMixin):
         pass
 
     def handle_state(self, state_label, message):
-        user = self.get_user(message)
         if state_label == 'switch_mode':
             switch_mode(self, message)
         elif state_label == 'switch_notebook':
             switch_notebook(self, message)
         else:
             logging.getLogger().warning('Invalid state: {}'.format(state_label))
-        user.state = None
+        user = self.get_user(message)
+        user.state = '' # TODO: it seems that impossible to save None value
         user.save()
         self.api.sendMessage(user.telegram.chat_id, 'Done.', json.dumps({'hide_keyboard': True}))
 
