@@ -12,6 +12,7 @@ from bot.commands import switch_notebook_command
 from bot.handlers.text import handle_text
 from bot.handlers.photo import handle_photo
 from bot.handlers.audio import handle_audio
+from bot.handlers.document import handle_document
 from bot.handlers.location import handle_location
 from bot.models import User
 from data.storage.storage import StorageMixin
@@ -74,6 +75,8 @@ class EvernoteBot(StorageMixin):
             handle_photo(self, message)
         if message.audio:
             handle_audio(self, message)
+        if message.document:
+            handle_document(self, message)
         if message.location:
             handle_location(self, message)
         self.api.editMessageText(message.chat.id, status_message['message_id'], 'Saved')
