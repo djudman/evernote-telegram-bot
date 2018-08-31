@@ -87,11 +87,15 @@ class EvernoteBot(StorageMixin):
 
     def handle_state(self, state_label, message):
         if state_label == 'switch_mode':
-            mode = message.text.lower().replace(' ', '_')
+            user = self.get_user(message)
+            mode = message.text.lower()
+            if mode.startswith('> ') and mode.endswith(' <'):
+                mode = mode[2:-2]
+            mode = mode.replace(' ', '_')
             if mode not in ('one_note', 'multiple_notes'):
                 logging.getLogger().warning('Invalid mode {}'.format(mode))
+                self.api.sendMessage(user.telegram.chat_id, 'Unknown mode "{}"'.format(mode))
                 return
-            user = self.get_user(message)
             self.switch_mode(user, mode)
             user.save()
         elif state_label == 'switch_notebook':
@@ -101,7 +105,6 @@ class EvernoteBot(StorageMixin):
 
     def switch_mode(self, user, new_mode):
         user.state = ''
-        user.bot_mode = new_mode
         if new_mode == 'one_note':
             if user.evernote.access.permission == 'full':
                 note = self.evernote.create_note(
@@ -109,6 +112,7 @@ class EvernoteBot(StorageMixin):
                     user.evernote.notebook.guid,
                     title='Telegram bot notes'
                 )
+                user.bot_mode = new_mode
                 user.evernote.shared_note_id = note.guid
             else:
                 text = 'To enable "One note" mode you should allow to bot to read and update your notes'
@@ -117,7 +121,8 @@ class EvernoteBot(StorageMixin):
                 button_text = 'Allow read and update notes'
                 oauth(self, user, message_text, button_text, access='full')
                 return
-        text = 'The Bot was switched to "{0}" mode.'.format(new_mode)
+        user.bot_mode = new_mode
+        text = 'The Bot was switched to "{0}" mode.'.format(new_mode.replace('_', ' ').capitalize())
         self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
 
     def switch_notebook(self, message):
