@@ -71,7 +71,7 @@ def register_user(bot, telegram_message):
     return user
 
 
-def oauth(bot, user, message_text, button_text, access='basic'):
+def oauth(bot, user, message_text, button_text, access='basic'): # TODO: move somewhere
     signin_button = {
         'text': 'Waiting for Evernote...',
         'url': bot.url,
@@ -111,35 +111,7 @@ def switch_mode_command(bot, telegram_message):
     user.save()
 
 
-def switch_mode(bot, message):
-    mode = message.text.lower().replace(' ', '_')
-    if mode not in ('one_note', 'multiple_notes'):
-        logging.getLogger().warning('Invalid mode {}'.format(mode))
-        return
-    user = bot.get_user(message)
-    user.bot_mode = mode
-    if mode == 'one_note':
-        if user.evernote.access.permission == 'full':
-            note = bot.evernote.create_note(
-                user.evernote.access.token,
-                user.evernote.notebook.guid,
-                title='Telegram bot notes'
-            )
-            user.evernote.shared_note_id = note.guid
-        else:
-            text = 'To enable "One note" mode you should allow to bot to read and update your notes'
-            bot.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
-            message_text = 'Please tap on button below to give access to bot.'
-            button_text = 'Allow read and update notes'
-            oauth(bot, user, message_text, button_text, access='full')
-    user.save()
-
-
 def switch_notebook_command(bot, telegram_message):
     user = bot.get_user(telegram_message)
     user.state = 'switch_notebook'
     user.save()
-
-
-def switch_notebook(user_id, notebook_name):
-    pass

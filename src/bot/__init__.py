@@ -4,10 +4,9 @@ from importlib import import_module
 from requests_oauthlib.oauth1_session import TokenRequestDenied
 
 from bot.commands import help_command
+from bot.commands import oauth
 from bot.commands import start_command
-from bot.commands import switch_mode
 from bot.commands import switch_mode_command
-from bot.commands import switch_notebook
 from bot.commands import switch_notebook_command
 from bot.handlers.text import handle_text
 from bot.handlers.photo import handle_photo
@@ -68,6 +67,9 @@ class EvernoteBot(StorageMixin):
         user = self.get_user(message)
         if not user:
             raise Exception('Unregistered user {0}. {1}'.format(user.id, self.get_storage(User).get_all({})))
+        if user.state:
+            self.handle_state(user.state, message)
+            return
         if message.text:
             handle_text(self, message)
         if message.photo:
@@ -85,15 +87,61 @@ class EvernoteBot(StorageMixin):
 
     def handle_state(self, state_label, message):
         if state_label == 'switch_mode':
-            switch_mode(self, message)
+            mode = message.text.lower().replace(' ', '_')
+            if mode not in ('one_note', 'multiple_notes'):
+                logging.getLogger().warning('Invalid mode {}'.format(mode))
+                return
+            user = self.get_user(message)
+            self.switch_mode(user, mode)
+            user.save()
         elif state_label == 'switch_notebook':
-            switch_notebook(self, message)
+            self.switch_notebook(message)
         else:
             logging.getLogger().warning('Invalid state: {}'.format(state_label))
-        user = self.get_user(message)
-        user.state = '' # TODO: it seems that impossible to save None value
-        user.save()
-        self.api.sendMessage(user.telegram.chat_id, 'Done.', json.dumps({'hide_keyboard': True}))
+
+    def switch_mode(self, user, new_mode):
+        user.state = ''
+        user.bot_mode = new_mode
+        if new_mode == 'one_note':
+            if user.evernote.access.permission == 'full':
+                note = self.evernote.create_note(
+                    user.evernote.access.token,
+                    user.evernote.notebook.guid,
+                    title='Telegram bot notes'
+                )
+                user.evernote.shared_note_id = note.guid
+            else:
+                text = 'To enable "One note" mode you should allow to bot to read and update your notes'
+                self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
+                message_text = 'Please tap on button below to give access to bot.'
+                button_text = 'Allow read and update notes'
+                oauth(self, user, message_text, button_text, access='full')
+                return
+        text = 'The Bot was switched to "{0}" mode.'.format(new_mode)
+        self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
+
+    def switch_notebook(self, message):
+        pass
+
+    def save_note(self, user, text=None, title=None, html=None, files=None):
+        if user.bot_mode == 'one_note':
+            self.evernote.update_note(
+                user.evernote.access.token,
+                user.evernote.shared_note_id,
+                text=text,
+                html=html,
+                title=title,
+                files=files
+            )
+        else:
+            self.evernote.create_note(
+                user.evernote.access.token,
+                user.evernote.notebook.guid,
+                text=text,
+                html=html,
+                title=title,
+                files=files
+            )
 
     def oauth_callback(self, callback_key, oauth_verifier, access_type):
         user = self.get_storage(User).get({'evernote.oauth.callback_key': callback_key})
@@ -125,31 +173,15 @@ class EvernoteBot(StorageMixin):
             logging.getLogger().error(e, exc_info=1)
             self.api.sendMessage(chat_id, 'Unknown error. Please, try again later.')
             return
-        text = 'Evernote account is connected.\nFrom now you can just send a message and a note will be created.'
-        self.api.sendMessage(chat_id, text)
-        default_notebook = self.evernote.get_default_notebook(user.evernote.access.token)
-        user.evernote.notebook.from_dict(default_notebook)
-        user.save()
-        mode = user.bot_mode.replace('_', ' ').capitalize()
-        text = 'Current notebook: {0}\nCurrent mode: {1}'.format(user.evernote.notebook.name, mode)
-        self.api.sendMessage(chat_id, text)
-
-    def save_note(self, user, text=None, title=None, html=None, files=None):
-        if user.bot_mode == 'one_note':
-            self.evernote.update_note(
-                user.evernote.access.token,
-                user.evernote.shared_note_id,
-                text=text,
-                html=html,
-                title=title,
-                files=files
-            )
+        if access_type == 'basic':
+            text = 'Evernote account is connected.\nFrom now you can just send a message and a note will be created.'
+            self.api.sendMessage(chat_id, text)
+            default_notebook = self.evernote.get_default_notebook(user.evernote.access.token)
+            user.evernote.notebook.from_dict(default_notebook)
+            user.save()
+            mode = user.bot_mode.replace('_', ' ').capitalize()
+            text = 'Current notebook: {0}\nCurrent mode: {1}'.format(user.evernote.notebook.name, mode)
+            self.api.sendMessage(chat_id, text)
         else:
-            self.evernote.create_note(
-                user.evernote.access.token,
-                user.evernote.notebook.guid,
-                text=text,
-                html=html,
-                title=title,
-                files=files
-            )
+            self.switch_mode(user, 'one_note')
+            user.save()
