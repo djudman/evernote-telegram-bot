@@ -115,3 +115,16 @@ def switch_notebook_command(bot, telegram_message):
     user = bot.get_user(telegram_message)
     user.state = 'switch_notebook'
     user.save()
+    all_notebooks = bot.evernote.get_all_notebooks(user.evernote.access.token)
+    buttons = []
+    for notebook in all_notebooks:
+        name = notebook['name']
+        if name == user.evernote.notebook.name:
+            name = '> {} <'.format(name)
+        buttons.append({'text': name})
+    keyboard = {
+        'keyboard': [[b] for b in buttons],
+        'resize_keyboard': True,
+        'one_time_keyboard': True,
+    }
+    bot.api.sendMessage(user.telegram.chat_id, 'Please, select notebook', json.dumps(keyboard))

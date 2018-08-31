@@ -86,8 +86,8 @@ class EvernoteBot(StorageMixin):
         pass
 
     def handle_state(self, state_label, message):
+        user = self.get_user(message)
         if state_label == 'switch_mode':
-            user = self.get_user(message)
             mode = message.text.lower()
             if mode.startswith('> ') and mode.endswith(' <'):
                 mode = mode[2:-2]
@@ -99,7 +99,11 @@ class EvernoteBot(StorageMixin):
             self.switch_mode(user, mode)
             user.save()
         elif state_label == 'switch_notebook':
-            self.switch_notebook(message)
+            name = message.text
+            if name.startswith('> ') and mode.endswith(' <'):
+                name = name[2:-2]
+            self.switch_notebook(user, name)
+            user.save()
         else:
             logging.getLogger().warning('Invalid state: {}'.format(state_label))
 
@@ -125,8 +129,18 @@ class EvernoteBot(StorageMixin):
         text = 'The Bot was switched to "{0}" mode.'.format(new_mode.replace('_', ' ').capitalize())
         self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
 
-    def switch_notebook(self, message):
-        pass
+    def switch_notebook(self, user, notebook_name):
+        token = user.evernote.access.token
+        query = { 'name': notebook_name }
+        notebooks = self.evernote.get_all_notebooks(token, query)
+        if not notebooks:
+            self.api.sendMessage(user.telegram.chat_id, 'Notebook "{}" not found'.format(notebook_name))
+            return
+        user.state = ''
+        user.evernote.notebook.from_dict(notebooks[0])
+        # TODO: self.create_note(notebook) if user.bot_mode == 'one_note'
+        text = 'Current notebook: {0}'.format(notebook_name)
+        self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
 
     def save_note(self, user, text=None, title=None, html=None, files=None):
         if user.bot_mode == 'one_note':

@@ -117,7 +117,7 @@ class EvernoteClient:
         sdk = EvernoteSdk(token=token, sandbox=self.sandbox)
         return sdk.get_note_store()
 
-    def get_all_notebooks(self, token, query):
+    def get_all_notebooks(self, token, query=None):
         note_store = self.get_note_store(token)
         notebooks = note_store.listNotebooks()
         notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in notebooks]

@@ -2,7 +2,6 @@ from collections import namedtuple
 
 from app import Application
 from bot.commands import start_command
-from bot.commands import switch_mode
 from bot.commands import switch_mode_command
 from bot.handlers.text import handle_text
 from bot.models import User
