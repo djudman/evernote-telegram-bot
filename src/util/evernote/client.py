@@ -175,3 +175,29 @@ class EvernoteClient:
             with_resources_recognition,
             with_resources_alternate_data
         )
+
+    def get_note_link(self, auth_token, note_guid, app_link=False):
+        user = await self.get_user(auth_token)
+        if not user:
+            raise EvernoteApiError('User not found (token = {})'.format(auth_token))
+        app_link_template = 'evernote:///view/{user_id}/{shard}/{note_guid}/{note_guid}/'
+        web_link_template = 'https://{service}/shard/{shard}/nl/{user_id}/{note_guid}/'
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        params = {
+            'service': sdk.service_host,
+            'shard': user['shard_id'],
+            'user_id': user['id'],
+            'note_guid': note_guid,
+        }
+        if app_link:
+            return app_link_template.format(**params)
+        return web_link_template.format(**params)
+
+    def get_user(self, auth_token):
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        user_store = sdk.get_user_store()
+        user = user_store.getUser(auth_token)
+        return {
+            'id': user.id,
+            'shard_id': user.shardId,
+        }

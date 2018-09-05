@@ -100,7 +100,7 @@ class EvernoteBot(StorageMixin):
             user.save()
         elif state_label == 'switch_notebook':
             name = message.text
-            if name.startswith('> ') and mode.endswith(' <'):
+            if name.startswith('> ') and name.endswith(' <'):
                 name = name[2:-2]
             self.switch_notebook(user, name)
             user.save()
