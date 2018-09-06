@@ -11,6 +11,7 @@ from bot.commands import switch_notebook_command
 from bot.handlers.text import handle_text
 from bot.handlers.photo import handle_photo
 from bot.handlers.audio import handle_audio
+from bot.handlers.video import handle_video
 from bot.handlers.document import handle_document
 from bot.handlers.location import handle_location
 from bot.models import User
@@ -75,8 +76,10 @@ class EvernoteBot(StorageMixin):
             handle_text(self, message)
         if message.photo:
             handle_photo(self, message)
-        if message.audio:
+        if message.voice:
             handle_audio(self, message)
+        if message.video:
+            handle_video(self, message)
         if message.document:
             handle_document(self, message)
         if message.location:
