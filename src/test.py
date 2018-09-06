@@ -43,7 +43,7 @@ class TestCase(unittest.TestCase):
         self.fixtures = {
             'start_command': build_test_data(text='/start'),
             'switch_mode_command': build_test_data(text='/switch_mode'),
-            'switch_mode_text': build_test_data(text='One note'),
+            'one_note_mode_text': build_test_data(text='One note'),
             'help_command': build_test_data(text='/help'),
             'simple_text': build_test_data(text='hello, world'),
         }

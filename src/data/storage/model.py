@@ -90,12 +90,13 @@ class Model:
             setattr(self, name, value)
 
     def to_dict(self):
-        data = {'id': self.id}
+        data = {'id': self.id} if self.id else {}
         for name, field in self.get_fields().items():
             value = getattr(self, name)
             if isinstance(field, StructField):
                 value = value.to_dict()
-            data[name] = value
+            if value is not None:
+                data[name] = value
         return data
 
     def save(self):

@@ -5,7 +5,7 @@ import string
 from bot.models import User
 
 
-def help_command(bot, chat_id):
+def help_command(bot, telegram_message):
     help_text = '''This is bot for Evernote (https://evernote.com).
 
 Just send message to bot and it creates note in your Evernote notebook. 
@@ -36,7 +36,7 @@ We are sorry for low speed, but Evernote API are slow (about 1 sec per request).
 
 Contacts: djudman@gmail.com
 '''
-    bot.api.sendMessage(chat_id, help_text)
+    bot.api.sendMessage(telegram_message.chat.id, help_text)
 
 
 def start_command(bot, telegram_message):

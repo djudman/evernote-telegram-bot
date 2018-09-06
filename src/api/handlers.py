@@ -21,11 +21,3 @@ def evernote_oauth(request):
     bot = request.app.bot
     bot.oauth_callback(callback_key, oauth_verifier, access)
     return HTTPFound(bot.url)
-
-
-def welcome(request):
-    return b'Welcome!'
-
-
-def error(request):
-    raise Exception('Some application error')

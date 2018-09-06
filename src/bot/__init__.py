@@ -54,7 +54,7 @@ class EvernoteBot(StorageMixin):
     def execute_command(self, name, telegram_update):
         message = telegram_update.message
         if name == 'help':
-            return help_command(self, message.chat.id)
+            return help_command(self, message)
         elif name == 'start':
             return start_command(self, message)
         elif name == 'switch_mode':
