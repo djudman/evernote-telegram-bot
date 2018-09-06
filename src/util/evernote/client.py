@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import mimetypes
 import logging
@@ -23,8 +24,8 @@ class NoteContent:
             return ''
         return matched.group('content')
 
-    def make_resource(self, filename):
-        with open(filename, 'rb') as f:
+    def make_resource(self, file):
+        with open(file['path'], 'rb') as f:
             data_bytes = f.read()
         md5 = hashlib.md5()
         md5.update(data_bytes)
@@ -34,7 +35,7 @@ class NoteContent:
         data.bodyHash = md5.digest()
         data.body = data_bytes
 
-        name = basename(filename)
+        name = file['name']
         extension = name.split('.')[-1]
         mime_type = mimetypes.types_map.get('.{}'.format(extension), 'application/octet-stream')
         resource = Types.Resource()
@@ -47,7 +48,7 @@ class NoteContent:
             'md5': md5.hexdigest(),
         }
 
-    def append(self, *, text='', html='', filename=None):
+    def append(self, *, text='', html='', file=None):
         new_content = ''
         if text:
             text = text.replace('&', '&amp;')
@@ -56,8 +57,8 @@ class NoteContent:
             new_content += '<div>{}</div>'.format(text)
         if html:
             new_content += html
-        if filename:
-            resource_data = self.make_resource(filename)
+        if file:
+            resource_data = self.make_resource(file)
             self.resources.append(resource_data['resource'])
             new_content += '<en-media type="{mime_type}" hash="{md5}" />'.format(
                 mime_type=resource_data['mime_type'],
@@ -148,8 +149,8 @@ class EvernoteClient:
         content = NoteContent()
         content.append(text=text, html=html)
         if files:
-            for name in files:
-                content.append(filename=name)
+            for file in files:
+                content.append(file=file)
         note.content = str(content)
         note.resources = content.resources
         note_store = self.get_note_store(token)
@@ -159,16 +160,13 @@ class EvernoteClient:
         note = self.get_note(token, note_guid)
         content = NoteContent(note.content)
         content.append(text=text, html=html)
-        note_store = self.get_note_store(token)
         if files:
             attachments_note = self.create_note(token, note.notebookGuid, '', 'Uploaded by Telegram bot', files)
-            attachments_content = NoteContent(attachments_note.content)
-            for name in files:
-                attachments_content.append(filename=name)
-            note_store.createNote(attachments_note)
-            link = 'File: {}'.format(self.get_note_link(token, attachments_note.guid))
-            content.append(text=link)
+            for file in files:
+                link = '<a href="{url}">{filename}</a>'.format(url=self.get_note_link(token, attachments_note.guid), filename=file['name'])
+                content.append(html=link)
         note.content = str(content)
+        note_store = self.get_note_store(token)
         return note_store.updateNote(note)
 
     def get_note(self, token, note_guid, with_content=True, with_resources_data=True, with_resources_recognition=False, with_resources_alternate_data=False):
@@ -205,4 +203,19 @@ class EvernoteClient:
         return {
             'id': user.id,
             'shard_id': user.shardId,
+        }
+
+    def get_quota_info(self, auth_token):
+        sdk = EvernoteSdk(token=auth_token, sandbox=self.sandbox)
+        user_store = sdk.get_user_store()
+        note_store = self.get_note_store(auth_token)
+        user = user_store.getUser()
+        state = note_store.getSyncState()
+        total_monthly_quota = user.accounting.uploadLimit
+        used_so_far = state.uploaded
+        quota_remaining = total_monthly_quota - used_so_far
+        reset_date = datetime.datetime.fromtimestamp(user.accounting.uploadLimitEnd / 1000.0)
+        return {
+            'remaining': quota_remaining,
+            'reset_date': reset_date, 
         }

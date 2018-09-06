@@ -1,2 +1,2 @@
 def handle_audio(bot, telegram_message):
-    pass
+    raise Exception('Not implemented yet.')

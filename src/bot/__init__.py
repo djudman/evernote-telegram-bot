@@ -66,7 +66,8 @@ class EvernoteBot(StorageMixin):
     def handle_message(self, message):
         user = self.get_user(message)
         if not user:
-            raise Exception('Unregistered user {0}. {1}'.format(user.id, self.get_storage(User).get_all({})))
+            user_id = message.from_user.id
+            raise Exception('Unregistered user {0}. You\'ve to send /start command to register'.format(user_id))
         if user.state:
             self.handle_state(user.state, message)
             return
