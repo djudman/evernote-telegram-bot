@@ -182,7 +182,7 @@ class EvernoteClient:
         )
 
     def get_note_link(self, auth_token, note_guid, app_link=False):
-        user = await self.get_user(auth_token)
+        user = self.get_user(auth_token)
         if not user:
             raise EvernoteApiError('User not found (token = {})'.format(auth_token))
         app_link_template = 'evernote:///view/{user_id}/{shard}/{note_guid}/{note_guid}/'
