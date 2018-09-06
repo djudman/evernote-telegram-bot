@@ -159,16 +159,16 @@ class EvernoteClient:
         note = self.get_note(token, note_guid)
         content = NoteContent(note.content)
         content.append(text=text, html=html)
+        note_store = self.get_note_store(token)
         if files:
             attachments_note = self.create_note(token, note.notebookGuid, '', 'Uploaded by Telegram bot', files)
             attachments_content = NoteContent(attachments_note.content)
             for name in files:
                 attachments_content.append(filename=name)
-            attachments_note.save()
+            note_store.createNote(attachments_note)
             link = 'File: {}'.format(self.get_note_link(token, attachments_note.guid))
             content.append(text=link)
         note.content = str(content)
-        note_store = self.get_note_store(token)
         return note_store.updateNote(note)
 
     def get_note(self, token, note_guid, with_content=True, with_resources_data=True, with_resources_recognition=False, with_resources_alternate_data=False):
