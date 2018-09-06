@@ -1,5 +1,5 @@
 import logging
-from bot import EvernoteBot
+from bot.core import EvernoteBot
 from data.storage.storage import StorageMixin
 from util.http import HttpApplication
 
