@@ -113,6 +113,10 @@ class EvernoteBot(StorageMixin):
 
     def switch_mode(self, user, new_mode):
         user.state = ''
+        if user.bot_mode == new_mode:
+            text = 'The Bot already in "{0}" mode.'.format(new_mode.replace('_', ' ').capitalize())
+            self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
+            return
         if new_mode == 'one_note':
             if user.evernote.access.permission == 'full':
                 note = self.evernote.create_note(
