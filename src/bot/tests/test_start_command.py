@@ -30,7 +30,6 @@ class TestStartCommand(TestCase):
         oauth = users[0].evernote.oauth
         self.assertIsNotNone(oauth.token)
         self.assertIsNotNone(oauth.secret)
-        self.assertIsNotNone(oauth.url)
         self.assertIsNotNone(oauth.callback_key)
         self.assertEqual(request.app.bot.api.editMessageReplyMarkup.call_count, 1)
         self.assertEqual(request.app.bot.evernote.get_oauth_data.call_count, 1)

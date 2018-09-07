@@ -82,13 +82,12 @@ def oauth(bot, user, message_text, button_text, access='basic'): # TODO: move so
     session_key = ''.join([random.choice(symbols) for i in range(32)])
     oauth_data = bot.evernote.get_oauth_data(user.id, session_key, bot.config['evernote'], access)
     user.evernote.oauth.from_dict({
-        'url': oauth_data['oauth_url'],
         'callback_key': oauth_data['callback_key'],
         'token': oauth_data['oauth_token'],
         'secret': oauth_data['oauth_token_secret'],
     })
     signin_button['text'] = button_text
-    signin_button['url'] = user.evernote.oauth.url
+    signin_button['url'] = oauth_data['oauth_url']
     bot.api.editMessageReplyMarkup(user.telegram.chat_id, status_message['message_id'], json.dumps(inline_keyboard))
 
 

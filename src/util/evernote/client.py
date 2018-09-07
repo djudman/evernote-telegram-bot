@@ -88,9 +88,9 @@ class EvernoteClient:
         api_secret = access_config['secret']
         bytes_key = '{0}{1}{2}'.format(api_key, api_secret, user_id).encode()
         callback_key = hashlib.sha1(bytes_key).hexdigest()
-        callback_url = "{callback_url}?access={access}&key={key}&session_key={session_key}".format(
+        callback_url = "{url}?access={access}&key={key}&session_key={session_key}".format(
             access=access,
-            callback_url=evernote_config['oauth_callback_url'],
+            url=evernote_config['oauth_callback_url'],
             key=callback_key,
             session_key=session_key
         )
