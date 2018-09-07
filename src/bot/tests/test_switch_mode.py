@@ -48,6 +48,7 @@ class TestSwitchNote(TestCase):
         self.assertEqual(user.bot_mode, 'multiple_notes')
 
         request.app.bot.evernote.get_access_token = MockMethod(result='token')
+        request.app.bot.evernote.get_note_link = MockMethod()
         Note = namedtuple('Note', ['guid', 'content'])
         request.app.bot.evernote.create_note = MockMethod(result=Note(guid='guid:123', content=''))
         oauth_request = Request({'QUERY_STRING': 'key={key}&oauth_verifier=x&access=full'.format(key=callback_key)})

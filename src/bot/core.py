@@ -126,6 +126,9 @@ class EvernoteBot(StorageMixin):
                 )
                 user.bot_mode = new_mode
                 user.evernote.shared_note_id = note.guid
+                note_url = self.evernote.get_note_link(user.evernote.access.token, note.guid)
+                text = 'Your notes will be saved to <a href="{url}">this note</a>'.format(url=note_url)
+                self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}), parse_mode='Html')
             else:
                 text = 'To enable "One note" mode you should allow to bot to read and update your notes'
                 self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
