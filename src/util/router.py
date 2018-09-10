@@ -7,7 +7,7 @@ from os.path import join
 class UrlRouter:
     def __init__(self, config):
         url_files = []
-        for dirpath, dirnames, files in os.walk(config['project_root']):
+        for dirpath, dirnames, files in os.walk(config['src_root']):
             paths = [join(dirpath, filename) for filename in files if filename == 'urls.py']
             url_files.extend(paths)
         url_files.sort()

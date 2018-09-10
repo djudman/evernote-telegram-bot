@@ -11,11 +11,9 @@ from os.path import realpath
 
 
 def load_config():
-    project_root = realpath(dirname(__file__))
-    filenames = [
-        join(project_root, 'config.yaml'),
-        join(project_root, 'local.yaml'),
-    ]
+    src_root = realpath(dirname(__file__))
+    project_root = realpath(dirname(src_root))
+    filenames = [join(src_root, filename) for filename in ('config.yaml', 'local.yaml')]
     config = {}
     for name in filenames:
         if not exists(name):
@@ -24,9 +22,9 @@ def load_config():
             data = yaml.load(f)
             config = merge_dicts(config, data)
     config.update({
-        'project_root': project_root,
-        'tmp_root': join(realpath(dirname(project_root)), 'var/tmp/'),
-        'logs_root': join(realpath(dirname(project_root)), 'var/log/'),
+        'src_root': src_root,
+        'tmp_root': join(project_root, 'tmp/'),
+        'logs_root': join(project_root, 'logs/'),
     })
     config['webhook_url'] = 'https://{hostname}/{token}'.format(hostname=config['host'], token=config['telegram']['token'])
     config['evernote']['oauth_callback_url'] = 'https://{hostname}{path}'.format(hostname=config['host'], path=config['evernote']['oauth_path'])
