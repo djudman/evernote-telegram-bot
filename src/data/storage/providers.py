@@ -139,6 +139,7 @@ class MongoProvider(Base):
 
     def update(self, query, update):
         query = self._prepare_query(query)
+        update = self._prepare_query(update)
         return self.connection.update(self.db, self.collection, query, update)
 
     def count(self, query):

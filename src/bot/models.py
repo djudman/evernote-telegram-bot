@@ -18,7 +18,6 @@ class User(Model):
         last_name=StringField(),
         username=StringField(),
         chat_id=IntegerField(),
-        start_session_token=StringField()
     )
     evernote = StructField(
         access=StructField(

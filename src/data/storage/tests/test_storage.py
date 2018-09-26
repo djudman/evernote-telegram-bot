@@ -1,6 +1,7 @@
 import unittest
 
 from data.storage.fields import StringField
+from data.storage.fields import StructField
 from data.storage.model import Model
 from data.storage.model import storage
 from data.storage.storage import StorageMixin
@@ -20,6 +21,13 @@ class TestMemoryModel(Model):
 class TestMongoModel(Model):
     title = StringField()
 
+
+@storage(provider='mongo', db='test', collection='test')
+class TestUnsetModel(Model):
+    name = StringField()
+    data = StructField(
+        name=StringField()
+    )
 
 class TestApp(StorageMixin):
     pass
@@ -83,3 +91,28 @@ class TestStorage(TestCase):
             },
         }
         self.check_storage(config, TestMongoModel)
+
+    def test_unset_none_fields(self):
+        config = {
+            'storage': {
+                'providers': {
+                    'mongo': {
+                        'class': 'data.storage.providers.MongoProvider',
+                        'connection_string': 'mongodb://127.0.0.1:27017/',
+                    }
+                }
+            },
+        }
+        app = TestApp(config=config)
+        storage = app.get_storage(TestUnsetModel)
+        model = storage.create_model({})
+        model.name = 'test'
+        model.data.name = 'data_name'
+        model.save()
+        model.data = None
+        model.save()
+        documents = storage.provider.get_all({'id': model.id})
+        self.assertEqual(len(documents), 1)
+        d = documents[0]
+        self.assertEqual(d['name'], 'test')
+        self.assertTrue('data' not in d)
