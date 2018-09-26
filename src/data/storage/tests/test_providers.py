@@ -54,10 +54,11 @@ class TestProviders(unittest.TestCase):
         document2 = {'x': 1, 'test': 2, 'id': 'zzz'}
         self.assertEqual(provider.insert(document2), 'zzz')
         self.assertEqual(provider.count({}), 2)
-        provider.update({'x': 1}, {'z': 'z'})
+        provider.update({'x': 1}, {'z': 'z', 'test': None})
         self.assertIsNotNone(provider.get(id1))
         for d in provider.get_all({}):
             self.assertEqual(d['z'], 'z')
+            self.assertTrue('test' not in d)
         deleted_count = provider.delete({'id': id1})
         self.assertEqual(deleted_count, 1)
         self.assertEqual(provider.count({}), 1)

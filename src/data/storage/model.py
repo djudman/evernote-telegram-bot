@@ -95,8 +95,7 @@ class Model:
             value = getattr(self, name)
             if isinstance(field, StructField):
                 value = value.to_dict()
-            if value is not None:
-                data[name] = value
+            data[name] = value
         return data
 
     def save(self):
