@@ -193,6 +193,7 @@ class EvernoteBot(StorageMixin):
                 oauth_verifier
             )
             user.evernote.access.permission = access_type
+            user.evernote.oauth = None
             user.save()
         except TokenRequestDenied as e:
             logging.getLogger().error(e, exc_info=1)

@@ -93,7 +93,7 @@ class Model:
         data = {'id': self.id} if self.id else {}
         for name, field in self.get_fields().items():
             value = getattr(self, name)
-            if isinstance(field, StructField):
+            if value and isinstance(field, StructField):
                 value = value.to_dict()
             data[name] = value
         return data
