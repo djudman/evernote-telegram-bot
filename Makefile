@@ -12,5 +12,6 @@ test:
 update:
 	git pull origin master
 	docker build --force-rm -t djudman/evernote-telegram-bot:$(VERSION) .
+	docker tag djudman/evernote-telegram-bot:$(VERSION) djudman/evernote-telegram-bot:latest
 	docker-compose up -d
 	docker logs evernotebot
