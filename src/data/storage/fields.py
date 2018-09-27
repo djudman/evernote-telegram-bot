@@ -46,6 +46,15 @@ class IntegerField(Field):
         return int(value)
 
 
+class FloatField(Field):
+    def validate(self, value):
+        if value is None:
+            return
+        if isinstance(value, float):
+            return value
+        return float(value)
+
+
 class StructField(Field):
     def __init__(self, **kwargs):
         self._fields = kwargs

@@ -1,5 +1,6 @@
 from data.storage.fields import DateTimeField
 from data.storage.fields import EnumField
+from data.storage.fields import FloatField
 from data.storage.fields import IntegerField
 from data.storage.fields import StringField
 from data.storage.fields import StructField
@@ -36,3 +37,11 @@ class User(Model):
             app_key=StringField() # TODO: it seems this field is unused
         )
     )
+
+
+@storage(collection='message_logs')
+class MessageLogEntry(Model):
+    created = DateTimeField(init_current=True)
+    user_id = IntegerField()
+    message_type = EnumField(values=['text', 'voice', 'audio', 'photo', 'video', 'document', 'location'])
+    request_duration = FloatField()

@@ -1,17 +1,25 @@
 import json
 import logging
 from datetime import datetime
+from time import time
 
+from bot.models import MessageLogEntry
 from util.http import HTTPFound
 from telegram.models import TelegramUpdate
 
 
 def telegram_hook(request):
+    start_ts = time()
+    bot = request.app.bot
+    log_entry = bot.get_storage(MessageLogEntry).create_model({})
     logging.getLogger().info('Telegram update: {}'.format(request.body))
     data = request.json()
     telegram_update = TelegramUpdate(data)
-    bot = request.app.bot
     bot.handle_telegram_update(telegram_update)
+    log_entry.user_id = telegram_update.message.from_user.id
+    log_entry.message_type = telegram_update.message.get_type()
+    log_entry.request_duration = time() - start_ts
+    log_entry.save()
 
 
 def evernote_oauth(request):

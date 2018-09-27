@@ -12,7 +12,7 @@ from test import TestCase
 from util.http import Request
 
 
-class TestSwitchNote(TestCase):
+class TestSwitchMode(TestCase):
     def test_base(self):
         request = Request({})
         request.app = Application(self.config)

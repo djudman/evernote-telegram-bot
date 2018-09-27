@@ -152,6 +152,21 @@ class TelegramMessage:
         self.venue = TelegramVenue(data['venue']) if data.get('venue') else None
         # TODO: add other fields
 
+    def get_type(self):
+        if self.voice:
+            return 'voice'
+        if self.video:
+            return 'video'
+        if self.location:
+            return 'location'
+        if self.audio:
+            return 'audio'
+        if self.photo:
+            return 'photo'
+        if self.document:
+            return 'document'
+        return 'text'
+
 
 class TelegramMessageEntity:
     def __init__(self, data: dict):
