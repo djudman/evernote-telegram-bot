@@ -112,7 +112,7 @@ class EvernoteBot(StorageMixin):
             logging.getLogger().warning('Invalid state: {}'.format(state_label))
 
     def switch_mode(self, user, new_mode):
-        user.state = ''
+        user.state = None
         if user.bot_mode == new_mode:
             text = 'The Bot already in "{0}" mode.'.format(new_mode.replace('_', ' ').capitalize())
             self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
@@ -147,7 +147,7 @@ class EvernoteBot(StorageMixin):
         if not notebooks:
             self.api.sendMessage(user.telegram.chat_id, 'Notebook "{}" not found'.format(notebook_name))
             return
-        user.state = ''
+        user.state = None
         user.evernote.notebook.from_dict(notebooks[0])
         # TODO: self.create_note(notebook) if user.bot_mode == 'one_note'
         text = 'Current notebook: {0}'.format(notebook_name)
