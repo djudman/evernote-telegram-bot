@@ -118,28 +118,31 @@ class EvernoteBot(StorageMixin):
             self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
             return
         if new_mode == 'one_note':
-            if user.evernote.access.permission == 'full':
-                note = self.evernote.create_note(
-                    user.evernote.access.token,
-                    user.evernote.notebook.guid,
-                    title='Telegram bot notes'
-                )
-                user.bot_mode = new_mode
-                user.evernote.shared_note_id = note.guid
-                note_url = self.evernote.get_note_link(user.evernote.access.token, note.guid)
-                text = 'Your notes will be saved to <a href="{url}">this note</a>'.format(url=note_url)
-                self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}), parse_mode='Html')
-            else:
-                user.evernote.shared_note_id = None
-                text = 'To enable "One note" mode you should allow to bot to read and update your notes'
-                self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
-                message_text = 'Please tap on button below to give access to bot.'
-                button_text = 'Allow read and update notes'
-                oauth(self, user, message_text, button_text, access='full')
-                return
+            self.switch_mode_one_note(user)
+        else:
+            user.evernote.shared_note_id = None
         user.bot_mode = new_mode
         text = 'The Bot was switched to "{0}" mode.'.format(new_mode.replace('_', ' ').capitalize())
         self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
+
+    def switch_mode_one_note(self, user):
+        if user.evernote.access.permission != 'full':
+            text = 'To enable "One note" mode you should allow to bot to read and update your notes'
+            self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
+            message_text = 'Please tap on button below to give access to bot.'
+            button_text = 'Allow read and update notes'
+            oauth(self, user, message_text, button_text, access='full')
+            return
+        note = self.evernote.create_note(
+            user.evernote.access.token,
+            user.evernote.notebook.guid,
+            title='Telegram bot notes'
+        )
+        user.bot_mode = 'one_note'
+        user.evernote.shared_note_id = note.guid
+        note_url = self.evernote.get_note_link(user.evernote.access.token, note.guid)
+        text = 'Your notes will be saved to <a href="{url}">this note</a>'.format(url=note_url)
+        self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}), parse_mode='Html')
 
     def switch_notebook(self, user, notebook_name):
         token = user.evernote.access.token
