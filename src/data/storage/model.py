@@ -31,7 +31,6 @@ class Model:
             else:
                 setattr(self, name, field.get_initial_value())
         self.from_dict(data)
-        self._created = datetime.now()
 
     def __repr__(self):
         attrs = {'id': self.id}
@@ -76,6 +75,8 @@ class Model:
     def from_dict(self, data: dict):
         if not isinstance(data, dict):
             raise Exception('Invalid data type. Dict expected.')
+        self.id = data.get('id')
+        self._created = data.get('created')
         fields = self.get_fields()
         for name, field in fields.items():
             value = data.get(name)
@@ -90,7 +91,11 @@ class Model:
             setattr(self, name, value)
 
     def to_dict(self):
-        data = {'id': self.id} if self.id else {}
+        data = {}
+        if self.id:
+            data['id'] = self.id
+        if self._created:
+            data['created'] = self._created
         for name, field in self.get_fields().items():
             value = getattr(self, name)
             if value and isinstance(field, StructField):
@@ -102,10 +107,12 @@ class Model:
         storage = self.config['storage']
         if not storage:
             raise Exception('Storage not configured')
-        save_data = self.to_dict()
-        if not self.id:
+        if not self._created:
+            self._created = datetime.now()
+            save_data = self.to_dict()
             self.id = storage.provider.insert(save_data)
         else:
+            save_data = self.to_dict()
             result = storage.provider.update({'id': self.id}, save_data)
             if result['matched'] == 0:
                 self.id = storage.provider.insert(save_data)

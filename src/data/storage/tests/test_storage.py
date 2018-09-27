@@ -105,14 +105,17 @@ class TestStorage(TestCase):
         }
         app = TestApp(config=config)
         storage = app.get_storage(TestUnsetModel)
-        model = storage.create_model({})
+        model = storage.create_model({'id': 123})
         model.name = 'test'
         model.data.name = 'data_name'
         model.save()
+        self.assertEqual(model.id, 123)
         model.data = None
         model.save()
         documents = storage.provider.get_all({'id': model.id})
         self.assertEqual(len(documents), 1)
         d = documents[0]
         self.assertEqual(d['name'], 'test')
+        self.assertEqual(d['id'], 123)
         self.assertTrue('data' not in d)
+        storage.provider.delete({'id': model.id})
