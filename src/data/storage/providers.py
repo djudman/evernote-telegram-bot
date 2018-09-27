@@ -157,6 +157,8 @@ class MongoProvider(Base):
         unset_fields = {}
         for name in get_none_fields(updated_fields):
             unset_fields[name] = ''
+            if name in updated_fields and updated_fields[name] is None:
+                del updated_fields[name]
         return self.connection.update(self.db, self.collection, query, updated_fields, unset_fields)
 
     def count(self, query):
