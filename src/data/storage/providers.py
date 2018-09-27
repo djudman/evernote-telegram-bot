@@ -49,15 +49,14 @@ class MemoryProvider(Base):
         self.data[document_id] = data
         return document_id
 
-    def update(self, query, update):
-        counter = 0
-        for document in self.data.values():
-            if self._check_query(document, query):
-                document.update(update)
-                counter += 1
+    def update(self, query, new_document):
+        keys_to_update = [key for key, document in self.data.items() if self._check_query(document, query)]
+        num_updated = len(keys_to_update)
+        for k in keys_to_update:
+            self.data[k] = new_document
         return {
-            'matched': counter,
-            'updated': counter,
+            'matched': num_updated,
+            'updated': num_updated,
         }
 
     def delete(self, query):
@@ -128,19 +127,37 @@ class MongoProvider(Base):
         return inserted_id
 
     def _prepare_query(self, query):
-        if 'id' in query:
-            query['_id'] = query['id']
-            del query['id']
-        for field, value in copy.deepcopy(query).items():
+        data = copy.deepcopy(query)
+        if 'id' in data:
+            data['_id'] = data['id']
+            del data['id']
+        for field, value in copy.deepcopy(data).items():
             if re.search(r'^id\.', field): # TODO: check this
-                query['_{}'.format(field)] = value
-                del query[field]
-        return query
+                data['_{}'.format(field)] = value
+                del data[field]
+            else:
+                data[field] = value
+        return data
 
     def update(self, query, update):
+        def get_none_fields(document):
+             none_fields = []
+             for k, v in document.items():
+                 if v is None:
+                     none_fields.append(k)
+                     continue
+                 if isinstance(v, dict):
+                     names = get_none_fields(v)
+                     for name in names:
+                         none_fields.append('{0}.{1}'.format(k, name))
+             return none_fields
+
         query = self._prepare_query(query)
-        update = self._prepare_query(update)
-        return self.connection.update(self.db, self.collection, query, update)
+        updated_fields = self._prepare_query(update)
+        unset_fields = {}
+        for name in get_none_fields(updated_fields):
+            unset_fields[name] = ''
+        return self.connection.update(self.db, self.collection, query, updated_fields, unset_fields)
 
     def count(self, query):
         query = self._prepare_query(query)

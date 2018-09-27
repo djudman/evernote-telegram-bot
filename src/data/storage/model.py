@@ -90,7 +90,7 @@ class Model:
                 value = model
             setattr(self, name, value)
 
-    def to_dict(self):
+    def to_dict(self, keep_none_value=False):
         data = {}
         if self.id:
             data['id'] = self.id
@@ -100,7 +100,9 @@ class Model:
             value = getattr(self, name)
             if value and isinstance(field, StructField):
                 value = value.to_dict()
-            if value is not None:
+            if keep_none_value:
+                data[name] = value
+            elif value is not None:
                 data[name] = value
         return data
 
@@ -113,7 +115,7 @@ class Model:
             save_data = self.to_dict()
             self.id = storage.provider.insert(save_data)
         else:
-            save_data = self.to_dict()
+            save_data = self.to_dict(keep_none_value=True)
             result = storage.provider.update({'id': self.id}, save_data)
             if result['matched'] == 0:
                 self.id = storage.provider.insert(save_data)

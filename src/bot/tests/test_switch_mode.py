@@ -44,7 +44,7 @@ class TestSwitchNote(TestCase):
         self.assertEqual(request.app.bot.evernote.get_oauth_data.call_count, 1)
         self.assertEqual(request.app.bot.api.sendMessage.call_count, 4)
         user = request.app.bot.get_storage(User).get(user_id)
-        self.assertEqual(user.state, '')
+        self.assertEqual(user.state, None)
         self.assertEqual(user.bot_mode, 'multiple_notes')
 
         request.app.bot.evernote.get_access_token = MockMethod(result='token')

@@ -20,8 +20,11 @@ class MongoConnection:
         result = self.client[db][collection].insert_one(document)
         return result.inserted_id
 
-    def update(self, db, collection, query, update):
-        result = self.client[db][collection].update_many(query, {'$set': update})
+    def update(self, db, collection, query, updated_fields, unset_fields):
+        update = {'$set': updated_fields}
+        if unset_fields:
+            update['$unset'] = unset_fields
+        result = self.client[db][collection].update_many(query, update)
         return {
             'matched': result.matched_count,
             'modified': result.modified_count,

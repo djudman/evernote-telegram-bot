@@ -17,26 +17,27 @@ class TestProviders(unittest.TestCase):
         self.assertEqual(provider.count(), 2)
         for document in provider.get_all({}):
             self.assertIsNotNone(document['id'])
-        document3 = {'z': 1, 'version': 2}
+        document3 = {'z': 1, 'version': 3}
         id3 = provider.insert(document3)
         document = provider.get({'version': 2})
-        provider.update({'version': 2}, {'version': 1, 'x': 'x'})
+        document['version'] = 1
+        document['x'] = 'x'
+        provider.update({'version': 2}, document)
         document = provider.get(id2)
         self.assertEqual(document['id'], id2)
         self.assertEqual(document['version'], 1)
-        self.assertEqual(document['x'], 'x')
         self.assertEqual(document['y'], 1)
         document = provider.get(id3)
         self.assertEqual(document['id'], id3)
-        self.assertEqual(document['version'], 1)
-        self.assertEqual(document['x'], 'x')
+        self.assertEqual(document['version'], 3)
         self.assertEqual(document['z'], 1)
         provider.delete({'id': id1})
         self.assertEqual(provider.count(), 2)
         id4 = provider.insert({'x': {'y': {'z': 123}}})
         document = provider.get({'x.y.z': 123})
         self.assertIsNotNone(document)
-        provider.update({'x.y.z': 123}, {'x': 1})
+        document['x'] = 1
+        provider.update({'x.y.z': 123}, document)
         document = provider.get(id4)
         self.assertIsNotNone(document)
 
