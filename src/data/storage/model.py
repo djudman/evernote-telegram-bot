@@ -100,7 +100,8 @@ class Model:
             value = getattr(self, name)
             if value and isinstance(field, StructField):
                 value = value.to_dict()
-            data[name] = value
+            if value is not None:
+                data[name] = value
         return data
 
     def save(self):

@@ -21,22 +21,7 @@ class MongoConnection:
         return result.inserted_id
 
     def update(self, db, collection, query, update):
-        def get_none_fields(document):
-            none_fields = []
-            for k, v in document.items():
-                if v is None:
-                    return [k]
-                if isinstance(v, dict):
-                    names = get_none_fields(v)
-                    for name in names:
-                        none_fields.append('{0}.{1}'.format(k, name))
-            return none_fields
-        unset_update = {}
-        for name in get_none_fields(update):
-            unset_update.update({ name: '' })
         result = self.client[db][collection].update_many(query, {'$set': update})
-        if unset_update:
-            self.client[db][collection].update_many(query, {'$unset': unset_update})
         return {
             'matched': result.matched_count,
             'modified': result.modified_count,

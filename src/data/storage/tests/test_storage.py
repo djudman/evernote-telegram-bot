@@ -26,7 +26,11 @@ class TestMongoModel(Model):
 class TestUnsetModel(Model):
     name = StringField()
     data = StructField(
-        name=StringField()
+        info=StructField(
+            nickname=StringField()
+        ),
+        name=StringField(),
+        surname=StringField()
     )
 
 class TestApp(StorageMixin):
@@ -107,15 +111,19 @@ class TestStorage(TestCase):
         storage = app.get_storage(TestUnsetModel)
         model = storage.create_model({'id': 123})
         model.name = 'test'
-        model.data.name = 'data_name'
+        model.data.info.nickname = 'iv'
+        model.data.name = 'Ivan'
+        model.data.surname = 'Ivanov'
         model.save()
         self.assertEqual(model.id, 123)
-        model.data = None
+        model.data.name = None
+        model.data.info = None
         model.save()
         documents = storage.provider.get_all({'id': model.id})
         self.assertEqual(len(documents), 1)
         d = documents[0]
         self.assertEqual(d['name'], 'test')
         self.assertEqual(d['id'], 123)
-        self.assertTrue('data' not in d)
+        self.assertTrue('info' not in d['data'])
+        self.assertTrue('name' not in d['data'])
         storage.provider.delete({'id': model.id})
