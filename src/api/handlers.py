@@ -19,7 +19,7 @@ def telegram_hook(request):
     try:
         bot.handle_telegram_update(telegram_update)
     except Exception as e:
-        logging.getLogger().error(e, exc_info=1)
+        logging.getLogger().error(str(e), exc_info=1)
     finally:
         # TODO: add post, channel_edited_post
         if not telegram_update.message:

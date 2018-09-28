@@ -46,7 +46,7 @@ class EvernoteBot(StorageMixin):
             if post:
                 self.handle_post(post)
         except Exception as e:
-            logging.getLogger().error(e, exc_info=1)
+            logging.getLogger().error(str(e), exc_info=1)
             chat_id = telegram_update.message.chat.id
             error_message = '\u274c Error. {0}'.format(e)
             self.api.sendMessage(chat_id, error_message)
