@@ -21,6 +21,9 @@ def telegram_hook(request):
     except Exception as e:
         logging.getLogger().error(e, exc_info=1)
     finally:
+        # TODO: add post, channel_edited_post
+        if not telegram_update.message:
+            return
         log_entry.user_id = telegram_update.message.from_user.id if telegram_update.message.from_user else 0
         log_entry.message_type = telegram_update.message.get_type()
         log_entry.request_duration = time() - start_ts
