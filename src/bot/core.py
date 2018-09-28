@@ -44,7 +44,7 @@ class EvernoteBot(StorageMixin):
                 self.handle_message(message)
             post = telegram_update.channel_post or telegram_update.edited_channel_post
             if post:
-                self.handle_message(post)
+                self.handle_post(post)
         except Exception as e:
             logging.getLogger().error(e, exc_info=1)
             chat_id = telegram_update.message.chat.id
