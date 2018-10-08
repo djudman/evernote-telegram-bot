@@ -30,7 +30,7 @@ RUN set -ex; \
 ENTRYPOINT [ \
 	"gunicorn", \
 	"--bind=0.0.0.0:8000", \
-	"--workers=1", \
+	"--workers=3", \
 	"--preload", \
 	"--access-logfile=/srv/logs/gunicorn-access.log", \
 	"--error-logfile=/srv/logs/gunicorn-error.log", \

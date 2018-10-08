@@ -10,6 +10,9 @@ from telegram.models import TelegramUpdate
 
 def build_test_data(update_id=None, message_id=None, date=None, from_id=None, chat_id=None, text=None):
     config = load_config()
+    telegram_config = config.get('telegram')
+    if not telegram_config or not telegram_config.get('chat_id'):
+        return
     entities = []
     if text.startswith('/'):
         entities.append({

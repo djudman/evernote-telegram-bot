@@ -69,6 +69,8 @@ class EvernoteBot(StorageMixin):
         if not user:
             user_id = message.from_user.id
             raise Exception('Unregistered user {0}. You\'ve to send /start command to register'.format(user_id))
+        if not user.evernote.access.token:
+            raise Exception('You have to sign in to Evernote first. Send /start and press the button')
         if user.state:
             self.handle_state(user.state, message)
             return
