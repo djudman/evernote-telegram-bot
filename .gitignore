@@ -2,3 +2,4 @@ __pycache__
 *.pyc
 *.log
 src/local.yaml
+.DS_Store
