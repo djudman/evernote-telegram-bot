@@ -119,8 +119,8 @@ class EvernoteBot(StorageMixin):
             return
         if new_mode == 'one_note':
             self.switch_mode_one_note(user)
-        else:
-            user.evernote.shared_note_id = None
+            return
+        user.evernote.shared_note_id = None
         user.bot_mode = new_mode
         text = 'The Bot was switched to "{0}" mode.'.format(new_mode.replace('_', ' ').capitalize())
         self.api.sendMessage(user.telegram.chat_id, text, json.dumps({'hide_keyboard': True}))
