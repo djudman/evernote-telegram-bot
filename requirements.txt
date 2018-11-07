@@ -1,5 +1,5 @@
-gunicorn==19.8.1
+gunicorn>=19.8.1
 -e git+https://github.com/evernote/evernote-sdk-python3.git#egg=evernote3
 oauth2
-pymongo==3.7.1
-PyYAML==3.13
+pymongo>=3.7.1
+PyYAML>=3.13
