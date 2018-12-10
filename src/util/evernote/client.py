@@ -55,6 +55,7 @@ class NoteContent:
             text = text.replace('&', '&amp;')
             text = text.replace('>', '&gt;')
             text = text.replace('<', '&lt;')
+            text = text.replace('\n', '<br />')
             new_content += '<div>{}</div>'.format(text)
         if html:
             new_content += html
