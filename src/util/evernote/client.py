@@ -3,7 +3,6 @@ import hashlib
 import mimetypes
 import logging
 import re
-from os.path import basename
 
 import evernote.edam.type.ttypes as Types
 from evernote.api.client import EvernoteClient as EvernoteSdk
@@ -14,18 +13,20 @@ class EvernoteApiError(Exception):
 
 
 class NoteContent:
-    def __init__(self, content=None):
+    def __init__(self, content=''):
+        if not isinstance(content, str):
+            raise Exception('Content must have `string` type')
         self.content = self.parse(content)
         self.resources = []
 
     def parse(self, content):
-        matched = re.search(r'<en-note>(?P<content>.*)</en-note>', content or '')
+        matched = re.search(r'<en-note>(?P<content>.*)</en-note>', content)
         if not matched:
             return ''
         return matched.group('content')
 
-    def make_resource(self, file):
-        with open(file['path'], 'rb') as f:
+    def make_resource(self, file_info):
+        with open(file_info['path'], 'rb') as f:
             data_bytes = f.read()
         md5 = hashlib.md5()
         md5.update(data_bytes)
@@ -35,7 +36,7 @@ class NoteContent:
         data.bodyHash = md5.digest()
         data.body = data_bytes
 
-        name = file['name']
+        name = file_info['name']
         extension = name.split('.')[-1]
         mime_type = mimetypes.types_map.get('.{}'.format(extension), 'application/octet-stream')
         resource = Types.Resource()
@@ -66,7 +67,6 @@ class NoteContent:
             )
         if new_content:
             self.content += '<br />{0}'.format(new_content)
-
 
     def __str__(self):
         return '\
@@ -144,6 +144,7 @@ class EvernoteClient:
 
     def create_note(self, token, notebook_guid, text=None, title=None, files=None, html=None):
         note = Types.Note()
+        title = title.replace('\n', ' ')  # Evernote doesn't support \n in titles
         note.title = title or 'Telegram bot'
         note.notebookGuid = notebook_guid
         content = NoteContent()
