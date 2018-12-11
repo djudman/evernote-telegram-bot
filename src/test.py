@@ -95,7 +95,7 @@ def get_test_modules(pattern):
 if __name__ == '__main__':
     pattern = sys.argv[1].lower() if len(sys.argv) > 1 else ''
     loader = unittest.TestLoader()
-    suite  = unittest.TestSuite()
+    suite = unittest.TestSuite()
     for module in get_test_modules(pattern):
         suite.addTests(loader.loadTestsFromModule(module))
     runner = unittest.TextTestRunner(verbosity=2)
