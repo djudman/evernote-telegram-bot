@@ -1,12 +1,12 @@
 from collections import namedtuple
 
-from api.handlers import evernote_oauth
-from app import Application
+from web.api.handlers import evernote_oauth
+from web.app import Application
 from bot.commands import start_command
 from bot.commands import switch_mode_command
 from bot.handlers.text import handle_text
 from bot.models import User
-from telegram.models import TelegramUpdate
+from util.telegram.models import TelegramUpdate
 from test import MockMethod
 from test import TestCase
 from util.http import Request

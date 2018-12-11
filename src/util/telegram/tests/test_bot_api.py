@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 
 from config import load_config
-from telegram.bot_api import BotApi
+from util.telegram import BotApi
 
 
 class TestBotApi(unittest.TestCase):

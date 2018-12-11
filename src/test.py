@@ -5,7 +5,6 @@ import sys
 import time
 import unittest
 from config import load_config
-from telegram.models import TelegramUpdate
 
 
 def build_test_data(update_id=None, message_id=None, date=None, from_id=None, chat_id=None, text=None):

@@ -1,9 +1,7 @@
 import json
-import unittest
 
-from api.handlers import telegram_hook
-from app import Application
-from config import load_config
+from web.api.handlers import telegram_hook
+from web.app import Application
 from util.http import Request
 from test import TestCase
 from test import MockMethod

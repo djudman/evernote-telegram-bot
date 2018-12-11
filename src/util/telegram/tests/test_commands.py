@@ -1,6 +1,6 @@
 import unittest
 
-from telegram.models import TelegramUpdate
+from util.telegram.models import TelegramUpdate
 
 
 class TestModels(unittest.TestCase):

@@ -1,5 +1,5 @@
-from api.handlers import evernote_oauth
-from api.handlers import telegram_hook
+from web.api.handlers import evernote_oauth
+from web.api.handlers import telegram_hook
 from urllib.parse import urlparse 
 
 

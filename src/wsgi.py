@@ -1,4 +1,4 @@
-from app import Application
+from web.app import Application
 from config import load_config
 
 

@@ -2,8 +2,8 @@ import json
 import hashlib
 import logging
 import random
-from datetime import datetime
 from time import time
+
 from util.http import make_request
 
 

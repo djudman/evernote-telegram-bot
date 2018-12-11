@@ -71,7 +71,7 @@ def register_user(bot, telegram_message):
     return user
 
 
-def oauth(bot, user, message_text, button_text, access='basic'): # TODO: move somewhere
+def oauth(bot, user, message_text, button_text, access='basic'):  # TODO: move somewhere
     signin_button = {
         'text': 'Waiting for Evernote...',
         'url': bot.url,
@@ -79,7 +79,7 @@ def oauth(bot, user, message_text, button_text, access='basic'): # TODO: move so
     inline_keyboard = {'inline_keyboard': [[signin_button]]}
     status_message = bot.api.sendMessage(user.telegram.chat_id, message_text, json.dumps(inline_keyboard))
     symbols = string.ascii_letters + string.digits
-    session_key = ''.join([random.choice(symbols) for i in range(32)])
+    session_key = ''.join([random.choice(symbols) for _ in range(32)])
     oauth_data = bot.evernote.get_oauth_data(user.id, session_key, bot.config['evernote'], access)
     user.evernote.oauth.from_dict({
         'callback_key': oauth_data['callback_key'],

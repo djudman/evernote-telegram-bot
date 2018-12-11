@@ -1,9 +1,5 @@
-import json
-import unittest
-
-from api.handlers import evernote_oauth
-from app import Application
-from config import load_config
+from web.api.handlers import evernote_oauth
+from web.app import Application
 from util.http import Request
 from test import TestCase
 from test import MockMethod

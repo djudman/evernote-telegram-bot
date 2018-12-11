@@ -1,6 +1,5 @@
 import json
 import logging
-from importlib import import_module
 from requests_oauthlib.oauth1_session import TokenRequestDenied
 
 from bot.commands import help_command
@@ -16,7 +15,7 @@ from bot.handlers.document import handle_document
 from bot.handlers.location import handle_location
 from bot.models import User
 from data.storage.storage import StorageMixin
-from telegram.bot_api import BotApi
+from util.telegram.bot_api import BotApi
 from util.evernote.client import EvernoteClient
 
 

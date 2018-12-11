@@ -170,11 +170,16 @@ class TelegramMessage:
 
 class TelegramMessageEntity:
     def __init__(self, data: dict):
-        self.type = data['type'] # Can be mention (@username), hashtag, bot_command, url, email, bold (bold text), italic (italic text), code (monowidth string), pre (monowidth block), text_link (for clickable text URLs), text_mention (for users without usernames)
+        # Can be mention (@username), hashtag, bot_command, url, email, bold (bold text), italic (italic text),
+        # code (monowidth string), pre (monowidth block), text_link (for clickable text URLs),
+        # text_mention (for users without usernames)
+        self.type = data['type']
         self.offset = int(data['offset'])
         self.length = int(data['length'])
-        self.url = data.get('url') # Optional. For “text_link” only, url that will be opened after user taps on the text
-        self.user = TelegramUser(data['user']) if data.get('user') else None # Optional. For “text_mention” only, the mentioned user
+        # Optional. For “text_link” only, url that will be opened after user taps on the text
+        self.url = data.get('url')
+        # Optional. For “text_mention” only, the mentioned user
+        self.user = TelegramUser(data['user']) if data.get('user') else None
 
 
 class TelegramCallbackQuery:

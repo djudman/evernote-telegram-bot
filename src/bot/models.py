@@ -29,12 +29,12 @@ class User(Model):
             name=StringField(),
             guid=StringField()
         ),
-        shared_note_id=StringField(), # NOTE: uses in 'one_note' mode
+        shared_note_id=StringField(),  # NOTE: uses in 'one_note' mode
         oauth=StructField(
             token=StringField(),
             secret=StringField(),
             callback_key=StringField(),
-            app_key=StringField() # TODO: it seems this field is unused
+            app_key=StringField()  # TODO: it seems this field is unused
         )
     )
 

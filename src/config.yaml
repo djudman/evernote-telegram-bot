@@ -1,9 +1,11 @@
 debug: true
+secret: secret  # TODO: put here secret key for project
 host: evernotebot.djudman.info:88
 storage:
     providers:
         memory:
             class: data.storage.providers.MemoryProvider
+            default: true
         mongo:
             class: data.storage.providers.MongoProvider
             default: true
@@ -11,7 +13,7 @@ storage:
             db: evernotebot
 telegram:
     bot_url: http://telegram.me/evernoterobot
-    token: secret
+    token: secret  # TODO: put here token for your bot. You can get the token via BotFather bot in telegram.
 evernote:
     oauth_path: /some/path
     access:
@@ -22,3 +24,6 @@ evernote:
         full:
             key: secret
             secret: secret
+admin:
+    user: root  # TODO: put here your username
+    password: root  # TODO: put here salted sha1 of your password

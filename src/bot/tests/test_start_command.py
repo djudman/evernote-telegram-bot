@@ -1,8 +1,8 @@
-from app import Application
+from web.app import Application
 from bot.commands import start_command
 from bot.models import User
 from util.http import Request
-from telegram.models import TelegramUpdate
+from util.telegram.models import TelegramUpdate
 from test import MockMethod
 from test import TestCase
 

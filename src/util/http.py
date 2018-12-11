@@ -26,11 +26,17 @@ class Request:
         self.user_agent = wsgi_environ.get('HTTP_USER_AGENT')
         self.path = wsgi_environ.get('PATH_INFO', '/')
         self.body = b''
+        self.wsgi_environ = wsgi_environ
 
     def read(self):
         if not self.input:
             return
-        self.body = self.input.read()
+        length = self.wsgi_environ['CONTENT_LENGTH']
+        if length:
+            length = int(length)
+        else:
+            length = 0
+        self.body = self.input.read(length)
         return self.body
 
     def json(self):
@@ -74,6 +80,7 @@ class HttpApplication:
         self.router = UrlRouter(config)
         self.console = Console()
         self.debug = config.get('debug', False)
+        self.logger = logging.getLogger()
 
     def handle_request(self, wsgi_environ):
         try:
@@ -86,12 +93,12 @@ class HttpApplication:
                 if not isinstance(response, Response):
                     response = Response(body=response)
             else:
-                response = Response(body=b'Page not found', status_code=404) # TODO: log to file
+                response = Response(body=b'Page not found', status_code=404)  # TODO: log to file
                 message = 'Not found: [{method}] {uri}'.format(uri=request.raw_uri, method=request.method)
-                logging.getLogger().warn(message)
+                self.logger.warning(message)
         except Exception as e:
-            response = Response(body=b'Oops. Server error.', status_code=500) # TODO: log to file
-            logging.getLogger().error(e, exc_info=1)
+            response = Response(body=b'Oops. Server error.', status_code=500)  # TODO: log to file
+            self.logger.error(e, exc_info=1)
         if self.debug:
             self.console_log(request, response)
         return response.status, response.headers, response.body
@@ -111,9 +118,9 @@ def make_request(url, method='GET', params=None, body=None, headers=None):
     parse_result = urlparse(url)
     protocol = parse_result.scheme
     hostname = parse_result.netloc
+    qs = parse_result.query
     if protocol == 'https':
-        context = ssl.SSLContext()
-        conn = http.client.HTTPSConnection(hostname, context=context)
+        conn = http.client.HTTPSConnection(hostname, context=ssl.SSLContext())
     elif protocol == 'http':
         conn = http.client.HTTPConnection(hostname)
     else:
@@ -125,7 +132,9 @@ def make_request(url, method='GET', params=None, body=None, headers=None):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         if params and not body:
             body = urlencode(params)
-    request_url = '{0}?{1}'.format(parse_result.path, parse_result.query)
+    elif method == 'GET' and params:
+        qs = urlencode(params)
+    request_url = '{0}?{1}'.format(parse_result.path, qs)
     conn.request(method, request_url, body, headers)
     response = conn.getresponse()
     data = response.read()

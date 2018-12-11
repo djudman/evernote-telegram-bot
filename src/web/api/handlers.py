@@ -1,11 +1,9 @@
-import json
 import logging
-from datetime import datetime
 from time import time
 
 from bot.models import MessageLogEntry
+from util.telegram.models import TelegramUpdate
 from util.http import HTTPFound
-from telegram.models import TelegramUpdate
 
 
 def telegram_hook(request):
@@ -28,6 +26,7 @@ def telegram_hook(request):
         log_entry.message_type = telegram_update.message.get_type()
         log_entry.request_duration = time() - start_ts
         log_entry.save()
+
 
 def evernote_oauth(request):
     callback_key = request.GET['key']
