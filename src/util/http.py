@@ -1,15 +1,8 @@
 import http.client
 import json
 import logging
-import re
-import traceback
 import ssl
 from datetime import datetime
-from os.path import exists
-from os.path import dirname
-from os.path import join
-from os.path import realpath
-from urllib.parse import parse_qs
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 from urllib.parse import parse_qsl
@@ -32,6 +25,7 @@ class Request:
         self.server_protocol = wsgi_environ.get('SERVER_PROTOCOL')
         self.user_agent = wsgi_environ.get('HTTP_USER_AGENT')
         self.path = wsgi_environ.get('PATH_INFO', '/')
+        self.body = b''
 
     def read(self):
         if not self.input:

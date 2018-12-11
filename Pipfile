@@ -4,10 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-gunicorn = "==19.8.1"
-"evernote3" = {editable = true, git = "https://github.com/evernote/evernote-sdk-python3.git"}
+gunicorn = "==19.9.0"
+evernote3 = "==1.25.12"
 "oauth2" = "*"
-pymongo = "==3.7.1"
+pymongo = "==3.7.2"
 PyYAML = "==3.13"
 
 [dev-packages]
