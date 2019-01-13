@@ -1,6 +1,6 @@
 debug: true
 secret: secret  # TODO: put here secret key for project
-host: evernotebot.djudman.info:88
+host: evernotebot.djudman.info
 storage:
     providers:
         memory:
