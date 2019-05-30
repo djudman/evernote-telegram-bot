@@ -7,7 +7,7 @@ ENV LANG C.UTF-8
 RUN apk add git tzdata
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
-ENV PYTHON_PIP_VERSION 18.0
+ENV PYTHON_PIP_VERSION 19.0
 RUN set -ex; \
 	wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py'; \
 	python get-pip.py --disable-pip-version-check --no-cache-dir "pip==$PYTHON_PIP_VERSION"; \
@@ -22,18 +22,15 @@ RUN set -ex; \
 	rm -f get-pip.py
 
 WORKDIR /srv/src/
-COPY Pipfile Pipfile.lock ./src/ ./
 RUN set -ex; \
-	pip3 install pipenv; \
-	pipenv install --deploy --system; \
+	pip3 install -r requirements.txt \
 	cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 ENTRYPOINT [ \
 	"gunicorn", \
 	"--bind=0.0.0.0:8000", \
-	"--workers=3", \
+	"--workers=2", \
 	"--preload", \
 	"--access-logfile=/srv/logs/gunicorn-access.log", \
 	"--error-logfile=/srv/logs/gunicorn-error.log", \
-	"wsgi:app", \
-	">> /srv/logs/gunicorn-error.log" \
+	"evernotebot.wsgi:app"
 ]
