@@ -1,6 +1,6 @@
-import logging
+import traceback
 from time import time
-from os.path import dirname, realpath
+from os.path import dirname, realpath, join
 from urllib.parse import urlparse
 
 from evernotebot.config import load_config
@@ -34,12 +34,9 @@ app = WsgiApplication(src_root, config=config, urls=(
     ('GET', r'^/evernote/oauth$', evernote_oauth),
 ))
 app.bot = EvernoteBot(config)
-# FIXME: Temporary hack
-import json
-app.log = lambda level, message: print(json.dumps({'level': level, 'message': message}))
-
 try:
     app.bot.api.setWebhook(webhook_url)
 except Exception as e:
-    message = 'Can\'t set up webhook url `{url}`. Exception: {exception}'.format(url=webhook_url, exception=e)
+    str_traceback = ''.join(traceback.format_tb(e.__traceback__))
+    message = 'Can\'t set up webhook url `{url}`. Exception:\n{exception}'.format(url=webhook_url, exception=str_traceback)
     app.log(level='error', message=message)
