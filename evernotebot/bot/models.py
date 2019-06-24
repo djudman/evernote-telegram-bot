@@ -1,39 +1,50 @@
-from evernotebot.data.storage.fields import DateTimeField
-from evernotebot.data.storage.fields import EnumField
-from evernotebot.data.storage.fields import FloatField
-from evernotebot.data.storage.fields import IntegerField
-from evernotebot.data.storage.fields import StringField
-from evernotebot.data.storage.fields import StructField
-from evernotebot.data.storage.model import Model
-from evernotebot.data.storage.model import storage
+from dataclasses import dataclass, asdict
 
 
-@storage(collection='users')
-class User(Model):
-    created = DateTimeField(init_current=True)
-    last_request_time = DateTimeField()
-    bot_mode = EnumField(values=['one_note', 'multiple_notes'])
-    state = StringField()
-    telegram = StructField(
-        first_name=StringField(),
-        last_name=StringField(),
-        username=StringField(),
-        chat_id=IntegerField(),
-    )
-    evernote = StructField(
-        access=StructField(
-            token=StringField(),
-            permission=EnumField(values=['basic', 'full'])
-        ),
-        notebook=StructField(
-            name=StringField(),
-            guid=StringField()
-        ),
-        shared_note_id=StringField(),  # NOTE: uses in 'one_note' mode
-        oauth=StructField(
-            token=StringField(),
-            secret=StringField(),
-            callback_key=StringField(),
-            app_key=StringField()  # TODO: it seems this field is unused
-        )
-    )
+@dataclass
+class TelegramData:
+    first_name: str
+    last_name: str
+    username: str
+    chat_id: int
+
+
+@dataclass
+class EvernoteAccess:
+    token: str
+    permission: str
+
+
+@dataclass
+class EvernoteNotebook:
+    name: str
+    guid: str
+
+
+@dataclass
+class EvernoteOauthData:
+    token: str
+    secret: str
+    callback_key: str
+    api_key: str
+
+
+@dataclass
+class EvernoteData:
+    access: EvernoteAccess
+    notebook: EvernoteNotebook
+    shared_note_id: str
+    oauth: EvernoteOauthData = None
+
+
+@dataclass
+class BotUser:
+    created: float
+    last_request_ts: float
+    bot_mode: str = 'multiple_notes'
+    state: str = None
+    telegram: TelegramData = None
+    evernote: EvernoteData = None
+
+    def asdict(self):
+        return asdict(self)

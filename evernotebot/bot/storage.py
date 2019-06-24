@@ -14,8 +14,8 @@ class Mongo:
     def get(self, object_id):
         query = {'_id': object_id}
         obj = self._collection.find_one(query)
-        if obj is None:
-            raise MongoException(f"Object `{object_id}` not found")
+        # if obj is None:
+        #     raise MongoException(f"Object `{object_id}` not found")
         return obj
 
     def get_all(self, query):

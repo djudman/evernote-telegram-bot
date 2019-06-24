@@ -2,10 +2,11 @@ import json
 import logging
 import random
 import string
-from evernotebot.bot.models import User
+from utelegram.models import Message
+from evernotebot.bot.models import BotUser, EvernoteOauthData
 
 
-def help_command(bot, telegram_message):
+def help_command(bot, message: Message):
     help_text = '''This is bot for Evernote (https://evernote.com).
 
 Just send message to bot and it creates note in your Evernote notebook. 
@@ -36,22 +37,23 @@ We are sorry for low speed, but Evernote API are slow (about 1 sec per request).
 
 Contacts: djudman@gmail.com
 '''
-    bot.api.sendMessage(telegram_message.chat.id, help_text)
+    bot.api.sendMessage(message.chat.id, help_text)
 
 
-def start_command(bot, telegram_message):
-    telegram_user = telegram_message.from_user
-    user = bot.get_storage(User).get(telegram_user.id)
-    if not user:
-        user = register_user(bot, telegram_message)
+def start_command(bot, message: Message):
+    user_id = message.from_user.id
+    user_data = bot.storage.get(user_id)
+    if not user_data:
+        user_data = register_user(bot, message)
+    user = BotUser(**user_data)
     message_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
 Please tap on button below to link your Evernote account with bot.'''
     button_text = 'Sign in to Evernote'
     oauth(bot, user, message_text, button_text)
-    user.save()
+    bot.storage.save(user.asdict())
 
 
-def register_user(bot, telegram_message):
+def register_user(bot, telegram_message: Message) -> BotUser:
     telegram_user = telegram_message.from_user
     user_data = {
         'id': telegram_user.id,
@@ -66,34 +68,36 @@ def register_user(bot, telegram_message):
             'access': {'permission': 'basic'},
         },
     }
-    user = bot.get_storage(User).create_model(user_data)
-    user.save()
-    return user
+    bot.storage.create(user_data)
+    return user_data
 
 
-def oauth(bot, user, message_text, button_text, access='basic'):  # TODO: move somewhere
+def oauth(bot, user: BotUser, message_text: str, button_text: str, access='basic'):  # TODO: move somewhere
+    chat_id = user.telegram.chat_id
     signin_button = {
         'text': 'Waiting for Evernote...',
         'url': bot.url,
     }
     inline_keyboard = {'inline_keyboard': [[signin_button]]}
-    status_message = bot.api.sendMessage(user.telegram.chat_id, message_text, json.dumps(inline_keyboard))
+    status_message = bot.api.sendMessage(chat_id, message_text, json.dumps(inline_keyboard))
     symbols = string.ascii_letters + string.digits
     session_key = ''.join([random.choice(symbols) for _ in range(32)])
     oauth_data = bot.evernote.get_oauth_data(user.id, session_key, bot.config['evernote'], access)
-    user.evernote.oauth.from_dict({
-        'callback_key': oauth_data['callback_key'],
-        'token': oauth_data['oauth_token'],
-        'secret': oauth_data['oauth_token_secret'],
-    })
+    user.evernote.oauth = EvernoteOauthData(
+        callback_key=oauth_data['callback_key'],
+        token=oauth_data['oauth_token'],
+        secret=oauth_data['oauth_token_secret']
+    )
     signin_button['text'] = button_text
     signin_button['url'] = oauth_data['oauth_url']
-    bot.api.editMessageReplyMarkup(user.telegram.chat_id, status_message['message_id'], json.dumps(inline_keyboard))
+    bot.api.editMessageReplyMarkup(chat_id, status_message['message_id'], json.dumps(inline_keyboard))
 
 
-def switch_mode_command(bot, telegram_message):
-    mode = telegram_message.text
-    user = bot.get_user(telegram_message)
+def switch_mode_command(bot, message: Message):
+    mode = message.text
+    user_id = message.from_user.id
+    user_data = bot.storage.get(user_id)
+    user = BotUser(**user_data)
     buttons = []
     for mode in ('one_note', 'multiple_notes'):
         name = mode.capitalize().replace('_', ' ')
@@ -107,13 +111,15 @@ def switch_mode_command(bot, telegram_message):
     }
     bot.api.sendMessage(user.telegram.chat_id, 'Please, select mode', json.dumps(keyboard))
     user.state = 'switch_mode'
-    user.save()
+    bot.storage.save(user.asdict())
 
 
-def switch_notebook_command(bot, telegram_message):
-    user = bot.get_user(telegram_message)
+def switch_notebook_command(bot, message: Message):
+    user_id = message.from_user.id
+    user_data = bot.storage.get(user_id)
+    user = BotUser(**user_data)
     user.state = 'switch_notebook'
-    user.save()
+    bot.storage.save(user.asdict())
     all_notebooks = bot.evernote.get_all_notebooks(user.evernote.access.token)
     buttons = []
     for notebook in all_notebooks:

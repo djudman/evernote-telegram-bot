@@ -15,7 +15,7 @@ from evernotebot.bot.handlers.video import handle_video
 from evernotebot.bot.handlers.document import handle_document
 from evernotebot.bot.handlers.location import handle_location
 
-from evernotebot.bot.models import User
+from evernotebot.bot.models import BotUser
 from evernotebot.bot.storage import Mongo
 from evernotebot.util.evernote.client import EvernoteClient
 from utelegram import TelegramBot, TelegramBotError
@@ -24,40 +24,44 @@ from utelegram.models import Message
 
 class EvernoteBot(TelegramBot):
     def __init__(self, config):
-        self.evernote = EvernoteClient(sandbox=config.get('debug', True))
-        telegram_config = config['telegram']
-        token = telegram_config['token']
-        bot_url = telegram_config['bot_url']
-        storage_config = config['storage']
-        connection_string = storage_config['connection_string']
-        db_name = storage_config['db']
+        self.evernote = EvernoteClient(sandbox=config.get("debug", True))
+        telegram_config = config["telegram"]
+        token = telegram_config["token"]
+        bot_url = telegram_config["bot_url"]
+        storage_config = config["storage"]
+        connection_string = storage_config["connection_string"]
+        db_name = storage_config["db"]
         super().__init__(token, bot_url=bot_url, config=config)
-        self._storage = Mongo(connection_string, db_name, 'users')
-        self.set_update_handler('message', self.on_message)
-        self.set_update_handler('edited_message', self.on_message)
+        self.storage = Mongo(connection_string, db_name, "users")
+        self.set_update_handler("message", self.on_message)
+        self.set_update_handler("edited_message", self.on_message)
 
     def on_message(self, bot, message: Message):
         user_id = message.from_user.id
-        bot_user = self._storage.get(user_id)
+        bot_user = self.storage.get(user_id)
         if not bot_user:
-            raise Exception('Unregistered user {0}. You\'ve to send /start command to register'.format(user_id))
-        if not bot_user.evernote.access.token:
-            raise Exception('You have to sign in to Evernote first. Send /start and press the button')
+            raise Exception(f"Unregistered user {user_id}. "
+                            "You've to send /start command to register")
+        if not bot_user.evernote or not bot_user.evernote.access.token:
+            raise Exception("You have to sign in to Evernote first. "
+                            "Send /start and press the button")
         if bot_user.state:
             self.handle_state(bot_user, message)
         else:
             self.handle_message(message)
 
-    def handle_state(self, bot_user: User, message: Message):
-        state_label = bot_user.state
-        if state_label not in ('switch_mode', 'switch_notebook'):
-            raise Exception(f'Invalid state: {state_label}')
-        if state_label == 'switch_mode':
-            self.switch_mode(bot_user, message.text)
-        elif state_label == 'switch_notebook':
-            self.switch_notebook(bot_user, message.text)
+    def handle_state(self, bot_user: BotUser, message: Message):
+        state = bot_user.state
+        handlers_map = {
+            "switch_mode": self.switch_mode,
+            "switch_notebook": self.switch_notebook,
+        }
+        state_handler = handlers_map.get(state)
+        if not state_handler:
+            raise Exception(f"Invalid state: {state}")
+        state_handler(bot_user, message.text)
         bot_user.state = None
-        self._storage.save(bot_user.asdict())
+        self.storage.save(bot_user.asdict())
 
     def handle_message(self, message: Message):
         if message.text:
@@ -73,27 +77,27 @@ class EvernoteBot(TelegramBot):
         if message.location:
             handle_location(self, message)
 
-    def switch_mode(self, bot_user, new_mode):
+    def switch_mode(self, bot_user: BotUser, new_mode: str):
         new_mode = new_mode.lower()
-        if new_mode.startswith('> ') and new_mode.endswith(' <'):
+        if new_mode.startswith("> ") and new_mode.endswith(" <"):
             new_mode = new_mode[2:-2]
-        new_mode = new_mode.replace(' ', '_')
-        if new_mode not in ('one_note', 'multiple_notes'):
-            raise TelegramBotError(f'Unknown mode "{new_mode}"')
-        new_mode_title = new_mode.replace('_', ' ').capitalize()
+        new_mode = new_mode.replace(" ", "_")
+        if new_mode not in ("one_note", "multiple_notes"):
+            raise TelegramBotError(f"Unknown mode '{new_mode}'")
+        new_mode_title = new_mode.replace("_", " ").capitalize()
         chat_id = bot_user.telegram.chat_id
         if bot_user.bot_mode == new_mode:
-            text = f'The Bot already in "{new_mode_title}" mode.'
-            self.api.sendMessage(chat_id, text, json.dumps({'hide_keyboard': True}))
-        elif new_mode == 'one_note':
+            text = f"The Bot already in '{new_mode_title}' mode."
+            self.api.sendMessage(chat_id, text, json.dumps({"hide_keyboard": True}))
+        elif new_mode == "one_note":
             self.switch_mode_one_note(bot_user)
         else:
             bot_user.evernote.shared_note_id = None
             bot_user.bot_mode = new_mode
-            text = f'The Bot was switched to "{new_mode_title}" mode.'
-            self.api.sendMessage(chat_id, text, json.dumps({'hide_keyboard': True}))
+            text = f"The Bot was switched to '{new_mode_title}' mode."
+            self.api.sendMessage(chat_id, text, json.dumps({"hide_keyboard": True}))
 
-    def switch_notebook(self, bot_user, notebook_name: str):
+    def switch_notebook(self, bot_user: BotUser, notebook_name: str):
         if notebook_name.startswith('> ') and notebook_name.endswith(' <'):
             notebook_name = notebook_name[2:-2]
         token = bot_user.evernote.access.token
@@ -108,7 +112,7 @@ class EvernoteBot(TelegramBot):
         chat_id = bot_user.telegram.chat_id
         self.api.sendMessage(chat_id, f'Current notebook: {notebook["name"]}', json.dumps({'hide_keyboard': True}))
 
-    def switch_mode_one_note(self, bot_user):
+    def switch_mode_one_note(self, bot_user: BotUser):
         chat_id = bot_user.telegram.chat_id
         evernote_data = bot_user.evernote
         if evernote_data.access.permission == 'full':
@@ -132,7 +136,7 @@ class EvernoteBot(TelegramBot):
     def oauth_callback(self, callback_key, oauth_verifier, access_type):
         if not oauth_verifier:
             raise TelegramBotError('We are sorry, but you have declined authorization.')
-        users = self._storage.get_all({'evernote.oauth.callback_key': callback_key})
+        users = self.storage.get_all({'evernote.oauth.callback_key': callback_key})
         if not users:
             raise Exception(f'User not found. callback_key = {callback_key}')
         user = users[0]
@@ -149,7 +153,7 @@ class EvernoteBot(TelegramBot):
             )
             user.evernote.access.permission = access_type
             user.evernote.oauth = None
-            self._storage.save(user.asdict())
+            self.storage.save(user.asdict())
         except TokenRequestDenied as e:
             # TODO: log original exception
             raise Exception('We are sorry, but we have some problems with Evernote connection. Please try again later.')
@@ -162,12 +166,12 @@ class EvernoteBot(TelegramBot):
             default_notebook = self.evernote.get_default_notebook(user.evernote.access.token)
             user.evernote.notebook.name = default_notebook['name']
             user.evernote.notebook.guid = default_notebook['guid']
-            self._storage.save(user.asdict())
+            self.storage.save(user.asdict())
             mode = user.bot_mode.replace('_', ' ').capitalize()
             self.api.sendMessage(chat_id, f'Current notebook: {user.evernote.notebook.name}\nCurrent mode: {mode}')
         else:
             self.switch_mode(user, 'one_note')
-            self._storage.save(user.asdict())
+            self.storage.save(user.asdict())
 
     def save_note(self, user, text=None, title=None, html=None, files=None):
         if user.bot_mode == 'one_note':
