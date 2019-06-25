@@ -2,11 +2,13 @@ import traceback
 from os.path import dirname, realpath
 from urllib.parse import urlparse
 
-from evernotebot.config import load_config
-from evernotebot.bot.core import EvernoteBot
 from uhttp import WsgiApplication
 from uhttp.core import HTTPFound
+from utelegram.bot import TelegramBotError
 from utelegram.models import Update
+
+from evernotebot.config import load_config
+from evernotebot.bot.core import EvernoteBot
 
 
 def telegram_hook(request):
@@ -20,7 +22,10 @@ def evernote_oauth(request):
     oauth_verifier = request.GET.get('oauth_verifier')
     access_type = request.GET.get('access', 'basic')
     bot = request.app.bot
-    bot.oauth_callback(callback_key, oauth_verifier, access_type)
+    try:
+        bot.evernote_oauth_callback(callback_key, oauth_verifier, access_type)
+    except TelegramBotError as e:
+        pass
     return HTTPFound(bot.url)
 
 

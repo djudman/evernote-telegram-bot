@@ -1,25 +1,22 @@
 import json
 import logging
+import random
+import string
+from os.path import basename
+from os.path import join
+from urllib.parse import urlparse
+
+from uhttp.client import make_request
+
 from requests_oauthlib.oauth1_session import TokenRequestDenied
-
-from evernotebot.bot.commands import help_command
-from evernotebot.bot.commands import oauth
-from evernotebot.bot.commands import start_command
-from evernotebot.bot.commands import switch_mode_command
-from evernotebot.bot.commands import switch_notebook_command
-
-from evernotebot.bot.handlers.text import handle_text
-from evernotebot.bot.handlers.photo import handle_photo
-from evernotebot.bot.handlers.audio import handle_audio
-from evernotebot.bot.handlers.video import handle_video
-from evernotebot.bot.handlers.document import handle_document
-from evernotebot.bot.handlers.location import handle_location
-
-from evernotebot.bot.models import BotUser
-from evernotebot.bot.storage import Mongo
-from evernotebot.util.evernote.client import EvernoteClient
 from utelegram import TelegramBot, TelegramBotError
 from utelegram.models import Message
+
+from evernotebot.bot.commands import start_command, \
+    switch_mode_command, switch_notebook_command, help_command
+from evernotebot.bot.models import BotUser, EvernoteOauthData
+from evernotebot.bot.storage import Mongo
+from evernotebot.util.evernote.client import EvernoteClient
 
 
 class EvernoteBot(TelegramBot):
@@ -33,8 +30,19 @@ class EvernoteBot(TelegramBot):
         db_name = storage_config["db"]
         super().__init__(token, bot_url=bot_url, config=config)
         self.storage = Mongo(connection_string, db_name, "users")
+        self.register_handlers()
+
+    def register_handlers(self):
         self.set_update_handler("message", self.on_message)
         self.set_update_handler("edited_message", self.on_message)
+        commands = {
+            "start": start_command,
+            "switch_mode": switch_mode_command,
+            "switch_notebook": switch_notebook_command,
+            "help": help_command,
+        }
+        for name, handler in commands.items():
+            self.set_command_handler(name, handler)
 
     def on_message(self, bot, message: Message):
         user_id = message.from_user.id
@@ -64,18 +72,17 @@ class EvernoteBot(TelegramBot):
         self.storage.save(bot_user.asdict())
 
     def handle_message(self, message: Message):
-        if message.text:
-            handle_text(self, message)
-        if message.photo:
-            handle_photo(self, message)
-        if message.voice:
-            handle_audio(self, message)
-        if message.video:
-            handle_video(self, message)
-        if message.document:
-            handle_document(self, message)
-        if message.location:
-            handle_location(self, message)
+        message_attrs = ('text', 'photo', 'voice', 'audio', 'video', 'document', 'location')
+        for attr_name in message_attrs:
+            value = getattr(message, attr_name, None)
+            if value is None:
+                continue
+            handler = getattr(self, f"on_{attr_name}", None)
+            if handler is None:
+                continue
+            status_message = self.api.sendMessage(message.chat.id, f"{attr_name.capitalize()} accepted")
+            handler(self, message)
+            self.api.editMessageText(message.chat.id, status_message['message_id'], 'Saved')
 
     def switch_mode(self, bot_user: BotUser, new_mode: str):
         new_mode = new_mode.lower()
@@ -131,9 +138,42 @@ class EvernoteBot(TelegramBot):
             self.api.sendMessage(chat_id, text, json.dumps({'hide_keyboard': True}))
             message_text = 'Please tap on button below to give access to bot.'
             button_text = 'Allow read and update notes'
-            oauth(self, bot_user, message_text, button_text, access='full')
+            bot_user.evernote.oauth = self.get_evernote_oauth_data(bot_user.id, chat_id, message_text, button_text, access='full')
 
-    def oauth_callback(self, callback_key, oauth_verifier, access_type):
+    def save_note(self, user: BotUser, text=None, title=None, html=None, files=None):
+        if user.bot_mode == 'one_note':
+            self.evernote.update_note(
+                user.evernote.access.token,
+                user.evernote.shared_note_id,
+                text=text,
+                html=html,
+                title=title,
+                files=files
+            )
+        else:
+            self.evernote.create_note(
+                user.evernote.access.token,
+                user.evernote.notebook.guid,
+                text=text,
+                html=html,
+                title=title,
+                files=files
+            )
+
+    def get_evernote_oauth_data(self, user_id: int, chat_id: int, message_text: str, button_text: str, access='basic'):
+        auth_button = {'text': 'Waiting for Evernote...', 'url': self.url}
+        inline_keyboard = {'inline_keyboard': [[auth_button]]}
+        status_message = self.api.sendMessage(chat_id, message_text, json.dumps(inline_keyboard))
+        symbols = string.ascii_letters + string.digits
+        session_key = ''.join([random.choice(symbols) for _ in range(32)])
+        oauth_data = self.evernote.get_oauth_data(user_id, session_key, self.config['evernote'], access)
+        auth_button['text'] = button_text
+        auth_button['url'] = oauth_data['oauth_url']
+        self.api.editMessageReplyMarkup(chat_id, status_message['message_id'], json.dumps(inline_keyboard))
+        keys = ('callback_key', 'oauth_token', 'oauth_token_secret')
+        return {k: v for k, v in oauth_data.items() if k in keys}
+
+    def evernote_oauth_callback(self, callback_key, oauth_verifier, access_type):
         if not oauth_verifier:
             raise TelegramBotError('We are sorry, but you have declined authorization.')
         users = self.storage.get_all({'evernote.oauth.callback_key': callback_key})
@@ -156,10 +196,10 @@ class EvernoteBot(TelegramBot):
             self.storage.save(user.asdict())
         except TokenRequestDenied as e:
             # TODO: log original exception
-            raise Exception('We are sorry, but we have some problems with Evernote connection. Please try again later.')
+            raise TelegramBotError('We are sorry, but we have some problems with Evernote connection. Please try again later.')
         except Exception as e:
             # TODO: log original exception
-            raise Exception('Unknown error. Please, try again later.')
+            raise TelegramBotError('Unknown error. Please, try again later.')
         if access_type == 'basic':
             text = 'Evernote account is connected.\nFrom now you can just send a message and a note will be created.'
             self.api.sendMessage(chat_id, text)
@@ -173,22 +213,82 @@ class EvernoteBot(TelegramBot):
             self.switch_mode(user, 'one_note')
             self.storage.save(user.asdict())
 
-    def save_note(self, user, text=None, title=None, html=None, files=None):
-        if user.bot_mode == 'one_note':
-            self.evernote.update_note(
-                user.evernote.access.token,
-                user.evernote.shared_note_id,
-                text=text,
-                html=html,
-                title=title,
-                files=files
-            )
-        else:
-            self.evernote.create_note(
-                user.evernote.access.token,
-                user.evernote.notebook.guid,
-                text=text,
-                html=html,
-                title=title,
-                files=files
-            )
+    def _download_file_from_telegram(self, file_id):
+        download_url = self.api.getFile(file_id)
+        data = make_request(download_url)
+        short_name = basename(urlparse(download_url).path)
+        filename = join(self.config["tmp_root"], f"{file_id}_{short_name}")
+        with open(filename, "wb") as f:
+            f.write(data)
+        return filename, short_name
+
+    def _check_evernote_quota(self, evernote_access_token, file_size):
+        quota = self.evernote.get_quota_info(evernote_access_token)
+        if quota["remaining"] < file_size:
+            reset_date = quota["reset_date"].strftime("%Y-%m-%d %H:%M:%S")
+            remain_bytes = quota['remaining']
+            raise Exception(f"Your evernote quota is out ({remain_bytes} bytes remains till {reset_date})")
+
+    def _save_file_to_evernote(self, file_id, file_size, message: Message):
+        max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
+        if file_size > max_size:
+            raise Exception('File too big. Telegram does not allow to the bot to download files over 20Mb.')
+        filename, short_name = self._download_file_from_telegram(file_id)
+        user_data = self.storage.get(message.from_user.id)
+        user = BotUser(**user_data)
+        self._check_evernote_quota(user.evernote.access.token, file_size)
+        title = message.caption or message.text[:20] or 'File'
+        files = ({'path': filename, 'name': short_name},)
+        self.save_note(user, text=message.text, title=title, files=files)
+
+    def on_text(self, message: Message):
+        user_data = self.storage.get(message.from_user.id)
+        user = BotUser(**user_data)
+        text = message.text
+        self.save_note(user, text, title=text[:20])
+
+    def on_photo(self, message: Message):
+        max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
+        file_id = None
+        file_size = 0
+        for photo in message.photo: # pick the biggest file
+            if file_size < photo.file_size <= max_size:
+                file_size = photo.file_size
+                file_id = photo.file_id
+        if not file_id:
+            raise Exception("File too big. Telegram does not allow to the bot to download files over 20Mb.")
+        self._save_file_to_evernote(file_id, file_size, message)
+
+    def on_audio(self, message: Message):
+        file_id = message.voice.file_id
+        file_size = message.voice.file_size
+        self._save_file_to_evernote(file_id, file_size, message)
+
+    def on_document(self, message: Message):
+        file_size = message.document.file_size
+        file_id = message.document.file_id
+        self._save_file_to_evernote(file_id, file_size, message)
+
+    def on_video(self, message: Message):
+        file_size = message.video.file_size
+        file_id = message.video.file_id
+        self._save_file_to_evernote(file_id, file_size, message)
+
+    def on_location(self, message: Message):
+        latitude = message.location.latitude
+        longitude = message.location.longitude
+        maps_url = f"https://maps.google.com/maps?q={latitude},{longitude}"
+        title = "Location"
+        html = f"<a href='{maps_url}'>{maps_url}</a>"
+        if message.venue:
+            venue = message.venue
+            title=venue.title or title
+            address=venue.address
+            html = f"{title}<br />{address}<br /><a href='{maps_url}'>{maps_url}</a>"
+            foursquare_id = venue.foursquare_id
+            if foursquare_id:
+                url = f"https://foursquare.com/v/{foursquare_id}"
+                html += f"<br /><a href='{url}'>{url}</a>"
+        user_data = self.storage.get(message.from_user.id)
+        user = BotUser(**user_data)
+        self.save_note(user, title=title, html=html)

@@ -11,8 +11,8 @@ class TelegramData:
 
 @dataclass
 class EvernoteAccess:
-    token: str
     permission: str
+    token: str = None
 
 
 @dataclass
@@ -26,14 +26,14 @@ class EvernoteOauthData:
     token: str
     secret: str
     callback_key: str
-    api_key: str
+    api_key: str = None
 
 
 @dataclass
 class EvernoteData:
     access: EvernoteAccess
-    notebook: EvernoteNotebook
-    shared_note_id: str
+    notebook: EvernoteNotebook = None
+    shared_note_id: str = None
     oauth: EvernoteOauthData = None
 
 
@@ -41,10 +41,10 @@ class EvernoteData:
 class BotUser:
     created: float
     last_request_ts: float
+    telegram: TelegramData
+    evernote: EvernoteData
     bot_mode: str = 'multiple_notes'
     state: str = None
-    telegram: TelegramData = None
-    evernote: EvernoteData = None
 
     def asdict(self):
         return asdict(self)
