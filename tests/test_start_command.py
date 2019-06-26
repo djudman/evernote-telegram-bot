@@ -7,6 +7,7 @@ from config import bot_config
 
 class TestStartCommad(unittest.TestCase):
     def test_start(self):
+        user_id = 5
         update_data = {
             "update_id": 1,
             "message": {
@@ -19,7 +20,7 @@ class TestStartCommad(unittest.TestCase):
                     "length": len("/start"),
                 }],
                 "from_user": {
-                    "id": 5,
+                    "id": user_id,
                     "is_bot": False,
                     "first_name": "test",
                 },
@@ -30,3 +31,7 @@ class TestStartCommad(unittest.TestCase):
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteClientMock()
         bot.process_update(update_data)
+        user_data = bot.storage.get(user_id)
+        self.assertIsNotNone(user_data)
+        self.assertEqual(user_data["id"], 5)
+        self.assertEqual(user_data["evernote"]["oauth"]["token"], "token")

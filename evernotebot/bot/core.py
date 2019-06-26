@@ -19,6 +19,10 @@ from evernotebot.bot.storage import Mongo
 from evernotebot.util.evernote.client import EvernoteClient
 
 
+class EvernoteBotException(Exception):
+    pass
+
+
 class EvernoteBot(TelegramBot):
     def __init__(self, config):
         self.evernote = EvernoteClient(sandbox=config.get("debug", True))
@@ -29,7 +33,7 @@ class EvernoteBot(TelegramBot):
         connection_string = storage_config["connection_string"]
         db_name = storage_config["db"]
         super().__init__(token, bot_url=bot_url, config=config)
-        self.storage = Mongo(connection_string, db_name, "users")
+        self.storage = Mongo(connection_string, db_name=db_name, collection_name="users")
         self.register_handlers()
 
     def register_handlers(self):
@@ -48,11 +52,11 @@ class EvernoteBot(TelegramBot):
         user_id = message.from_user.id
         bot_user = self.storage.get(user_id)
         if not bot_user:
-            raise Exception(f"Unregistered user {user_id}. "
-                            "You've to send /start command to register")
+            raise EvernoteBotException(f"Unregistered user {user_id}. "
+                                        "You've to send /start command to register")
         if not bot_user.evernote or not bot_user.evernote.access.token:
-            raise Exception("You have to sign in to Evernote first. "
-                            "Send /start and press the button")
+            raise EvernoteBotException("You have to sign in to Evernote first. "
+                                       "Send /start and press the button")
         if bot_user.state:
             self.handle_state(bot_user, message)
         else:
@@ -66,7 +70,7 @@ class EvernoteBot(TelegramBot):
         }
         state_handler = handlers_map.get(state)
         if not state_handler:
-            raise Exception(f"Invalid state: {state}")
+            raise EvernoteBotException(f"Invalid state: {state}")
         state_handler(bot_user, message.text)
         bot_user.state = None
         self.storage.save(bot_user.asdict())
@@ -171,14 +175,18 @@ class EvernoteBot(TelegramBot):
         auth_button['url'] = oauth_data['oauth_url']
         self.api.editMessageReplyMarkup(chat_id, status_message['message_id'], json.dumps(inline_keyboard))
         keys = ('callback_key', 'oauth_token', 'oauth_token_secret')
-        return {k: v for k, v in oauth_data.items() if k in keys}
+        return {
+            "callback_key": oauth_data["callback_key"],
+            "token": oauth_data["oauth_token"],
+            "secret": oauth_data["oauth_token_secret"],
+        }
 
     def evernote_oauth_callback(self, callback_key, oauth_verifier, access_type):
         if not oauth_verifier:
             raise TelegramBotError('We are sorry, but you have declined authorization.')
         users = self.storage.get_all({'evernote.oauth.callback_key': callback_key})
         if not users:
-            raise Exception(f'User not found. callback_key = {callback_key}')
+            raise EvernoteBotException(f'User not found. callback_key = {callback_key}')
         user = users[0]
         chat_id = user.telegram.chat_id
         evernote_config = self.config['evernote']['access'][access_type]
@@ -227,12 +235,12 @@ class EvernoteBot(TelegramBot):
         if quota["remaining"] < file_size:
             reset_date = quota["reset_date"].strftime("%Y-%m-%d %H:%M:%S")
             remain_bytes = quota['remaining']
-            raise Exception(f"Your evernote quota is out ({remain_bytes} bytes remains till {reset_date})")
+            raise EvernoteBotException(f"Your evernote quota is out ({remain_bytes} bytes remains till {reset_date})")
 
     def _save_file_to_evernote(self, file_id, file_size, message: Message):
         max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
         if file_size > max_size:
-            raise Exception('File too big. Telegram does not allow to the bot to download files over 20Mb.')
+            raise EvernoteBotException('File too big. Telegram does not allow to the bot to download files over 20Mb.')
         filename, short_name = self._download_file_from_telegram(file_id)
         user_data = self.storage.get(message.from_user.id)
         user = BotUser(**user_data)
@@ -256,7 +264,7 @@ class EvernoteBot(TelegramBot):
                 file_size = photo.file_size
                 file_id = photo.file_id
         if not file_id:
-            raise Exception("File too big. Telegram does not allow to the bot to download files over 20Mb.")
+            raise EvernoteBotException("File too big. Telegram does not allow to the bot to download files over 20Mb.")
         self._save_file_to_evernote(file_id, file_size, message)
 
     def on_audio(self, message: Message):

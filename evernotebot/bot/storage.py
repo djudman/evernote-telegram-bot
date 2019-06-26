@@ -1,24 +1,43 @@
+from copy import deepcopy
+from contextlib import suppress
+
 from pymongo import MongoClient
+from pymongo.errors import ConfigurationError
 
 
-class MongoException(Exception):
+class MongoStorageException(Exception):
     pass
 
 
 class Mongo:
-    def __init__(self, connection_string, db=None, collection=None):
+    def __init__(self, connection_string, *, collection_name=None, db_name=None):
+        if collection_name is None:
+            raise MongoStorageException("`collection_name` is required")
         self._driver = MongoClient(connection_string)
-        self._db = getattr(self._driver, db)
-        self._collection = getattr(self._db, collection)
+        db = None
+        with suppress(ConfigurationError):
+            db = self._driver.get_database(db_name)
+        if db is None:
+            raise MongoStorageException(
+                "You have to specify database name "
+                "either in connection string or as `db_name` parameter")
+        self._collection = db.get_collection(collection_name)
 
-    def create(self, data):
+    def create(self, data: dict):
         if "id" not in data:
-            raise MongoException("`id` required")
+            raise MongoStorageException("`id` required")
+        data = deepcopy(data)
+        data["_id"] = data["id"]
+        del data["id"]
         return self._collection.insert_one(data).inserted_id
 
     def get(self, object_id):
         query = {"_id": object_id}
-        return self._collection.find_one(query)
+        data = self._collection.find_one(query)
+        if data:
+            data['id'] = data['_id']
+            del data['_id']
+            return data
 
     def get_all(self, query):
         return self._collection.find(query)
@@ -26,11 +45,13 @@ class Mongo:
     def save(self, data: dict):
         object_id = data.get("id")
         if object_id:
+            data["_id"] = object_id
             del data["id"]
             query = {"_id": object_id}
-            result = self._collection.update_one(query, data)
-            if result.modified_count != 1:
-                raise MongoException(f"Object `{object_id}` not found")
+            result = self._collection.update_one(query, {"$set": data})
+            if result.matched_count == 0:
+                raise MongoStorageException(f"Object `{object_id}` not found")
+            data["id"] = object_id
         else:
             object_id = self._collection.insert_one(data).inserted_id
             data["id"] = object_id

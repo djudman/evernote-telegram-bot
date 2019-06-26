@@ -1,5 +1,7 @@
 from dataclasses import dataclass, asdict
 
+from utelegram.models import init_dataclass_fields
+
 
 @dataclass
 class TelegramData:
@@ -36,15 +38,22 @@ class EvernoteData:
     shared_note_id: str = None
     oauth: EvernoteOauthData = None
 
+    def __post_init__(self):
+        init_dataclass_fields(self)
+
 
 @dataclass
 class BotUser:
+    id: int
     created: float
     last_request_ts: float
     telegram: TelegramData
     evernote: EvernoteData
     bot_mode: str = 'multiple_notes'
     state: str = None
+
+    def __post_init__(self):
+        init_dataclass_fields(self)
 
     def asdict(self):
         return asdict(self)

@@ -13,7 +13,7 @@ bot_config = {
         "oauth_callback_url": "",
     },
     "storage": {
-        "connection_string": "mongodb://127.0.0.1:27017",
+        "connection_string": "mongodb://127.0.0.1:27017/",
         "db": "test",
     },
 }
