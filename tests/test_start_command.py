@@ -35,3 +35,6 @@ class TestStartCommad(unittest.TestCase):
         self.assertIsNotNone(user_data)
         self.assertEqual(user_data["id"], 5)
         self.assertEqual(user_data["evernote"]["oauth"]["token"], "token")
+        self.assertEqual(bot.api.sendMessage.call_count, 1)
+        self.assertEqual(bot.api.editMessageReplyMarkup.call_count, 1)
+        self.assertEqual(bot.evernote.get_oauth_data.call_count, 1)
