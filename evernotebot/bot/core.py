@@ -14,7 +14,7 @@ from utelegram.models import Message
 
 from evernotebot.bot.commands import start_command, \
     switch_mode_command, switch_notebook_command, help_command
-from evernotebot.bot.models import BotUser, EvernoteOauthData
+from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 from evernotebot.bot.storage import Mongo
 from evernotebot.util.evernote.client import EvernoteClient
 
@@ -50,7 +50,8 @@ class EvernoteBot(TelegramBot):
 
     def on_message(self, bot, message: Message):
         user_id = message.from_user.id
-        bot_user = self.storage.get(user_id)
+        user_data = self.storage.get(user_id)
+        bot_user = BotUser(**user_data)
         if not bot_user:
             raise EvernoteBotException(f"Unregistered user {user_id}. "
                                         "You've to send /start command to register")
@@ -85,7 +86,7 @@ class EvernoteBot(TelegramBot):
             if handler is None:
                 continue
             status_message = self.api.sendMessage(message.chat.id, f"{attr_name.capitalize()} accepted")
-            handler(self, message)
+            handler(message)
             self.api.editMessageText(message.chat.id, status_message['message_id'], 'Saved')
 
     def switch_mode(self, bot_user: BotUser, new_mode: str):
@@ -187,7 +188,8 @@ class EvernoteBot(TelegramBot):
         users = self.storage.get_all({'evernote.oauth.callback_key': callback_key})
         if not users:
             raise EvernoteBotException(f'User not found. callback_key = {callback_key}')
-        user = users[0]
+        user_data = next(users)
+        user = BotUser(**user_data)
         chat_id = user.telegram.chat_id
         evernote_config = self.config['evernote']['access'][access_type]
         try:
@@ -212,8 +214,7 @@ class EvernoteBot(TelegramBot):
             text = 'Evernote account is connected.\nFrom now you can just send a message and a note will be created.'
             self.api.sendMessage(chat_id, text)
             default_notebook = self.evernote.get_default_notebook(user.evernote.access.token)
-            user.evernote.notebook.name = default_notebook['name']
-            user.evernote.notebook.guid = default_notebook['guid']
+            user.evernote.notebook = EvernoteNotebook(**default_notebook)
             self.storage.save(user.asdict())
             mode = user.bot_mode.replace('_', ' ').capitalize()
             self.api.sendMessage(chat_id, f'Current notebook: {user.evernote.notebook.name}\nCurrent mode: {mode}')

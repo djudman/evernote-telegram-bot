@@ -20,6 +20,7 @@ class TelegramApiMock:
     def __init__(self):
         self.history = []
         self.sendMessage = MockMethod(result={"message_id": random.randint(1, 1000)})
+        self.editMessageText = MockMethod()
         self.editMessageReplyMarkup = MockMethod()
 
     def __getattr__(self, name):
@@ -35,3 +36,7 @@ class EvernoteClientMock:
             "callback_key": "callback_key",
         }
         self.get_oauth_data = MockMethod(result=default_oauth_data)
+        self.get_access_token = MockMethod(result="access_token")
+        default_notebook = {"guid": "guid", "name": "Default"}
+        self.get_default_notebook = MockMethod(result=default_notebook)
+        self.create_note = MockMethod()

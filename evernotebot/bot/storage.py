@@ -40,7 +40,10 @@ class Mongo:
             return data
 
     def get_all(self, query):
-        return self._collection.find(query)
+        for document in self._collection.find(query):
+            document["id"] = document["_id"]
+            del document["_id"]
+            yield document
 
     def save(self, data: dict):
         object_id = data.get("id")
