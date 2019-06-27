@@ -142,7 +142,8 @@ class EvernoteBot(TelegramBot):
             self.api.sendMessage(chat_id, text, json.dumps({'hide_keyboard': True}))
             message_text = 'Please tap on button below to give access to bot.'
             button_text = 'Allow read and update notes'
-            bot_user.evernote.oauth = self.get_evernote_oauth_data(bot_user.id, chat_id, message_text, button_text, access='full')
+            oauth_data = self.get_evernote_oauth_data(bot_user.id, chat_id, message_text, button_text, access='full')
+            bot_user.evernote.oauth = EvernoteOauthData(**oauth_data)
 
     def save_note(self, user: BotUser, text=None, title=None, html=None, files=None):
         if user.bot_mode == 'one_note':
@@ -174,7 +175,6 @@ class EvernoteBot(TelegramBot):
         auth_button['text'] = button_text
         auth_button['url'] = oauth_data['oauth_url']
         self.api.editMessageReplyMarkup(chat_id, status_message['message_id'], json.dumps(inline_keyboard))
-        keys = ('callback_key', 'oauth_token', 'oauth_token_secret')
         return {
             "callback_key": oauth_data["callback_key"],
             "token": oauth_data["oauth_token"],
