@@ -28,6 +28,7 @@ class TestStartCommad(unittest.TestCase):
             },
         }
         bot = EvernoteBot(bot_config)
+        bot.storage.delete(user_id)
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteClientMock()
         bot.process_update(update_data)

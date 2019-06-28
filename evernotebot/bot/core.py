@@ -166,16 +166,16 @@ class EvernoteBot(TelegramBot):
                 files=files
             )
 
-    def get_evernote_oauth_data(self, user_id: int, chat_id: int, message_text: str, button_text: str, access='basic'):
-        auth_button = {'text': 'Waiting for Evernote...', 'url': self.url}
-        inline_keyboard = {'inline_keyboard': [[auth_button]]}
+    def get_evernote_oauth_data(self, user_id: int, chat_id: int, message_text: str, button_text: str, access="basic"):
+        auth_button = {"text": "Waiting for Evernote...", "url": self.url}
+        inline_keyboard = {"inline_keyboard": [[auth_button]]}
         status_message = self.api.sendMessage(chat_id, message_text, json.dumps(inline_keyboard))
         symbols = string.ascii_letters + string.digits
-        session_key = ''.join([random.choice(symbols) for _ in range(32)])
-        oauth_data = self.evernote.get_oauth_data(user_id, session_key, self.config['evernote'], access)
-        auth_button['text'] = button_text
-        auth_button['url'] = oauth_data['oauth_url']
-        self.api.editMessageReplyMarkup(chat_id, status_message['message_id'], json.dumps(inline_keyboard))
+        session_key = "".join([random.choice(symbols) for _ in range(32)])
+        oauth_data = self.evernote.get_oauth_data(user_id, session_key, self.config["evernote"], access)
+        auth_button["text"] = button_text
+        auth_button["url"] = oauth_data["oauth_url"]
+        self.api.editMessageReplyMarkup(chat_id, status_message["message_id"], json.dumps(inline_keyboard))
         return {
             "callback_key": oauth_data["callback_key"],
             "token": oauth_data["oauth_token"],
@@ -184,19 +184,19 @@ class EvernoteBot(TelegramBot):
 
     def evernote_oauth_callback(self, callback_key, oauth_verifier, access_type):
         if not oauth_verifier:
-            raise TelegramBotError('We are sorry, but you have declined authorization.')
-        users = self.storage.get_all({'evernote.oauth.callback_key': callback_key})
+            raise TelegramBotError("We are sorry, but you have declined authorization.")
+        users = list(self.storage.get_all({"evernote.oauth.callback_key": callback_key}))
         if not users:
-            raise EvernoteBotException(f'User not found. callback_key = {callback_key}')
-        user_data = next(users)
+            raise EvernoteBotException(f"User not found. callback_key = {callback_key}")
+        user_data = next(iter(users))
         user = BotUser(**user_data)
         chat_id = user.telegram.chat_id
-        evernote_config = self.config['evernote']['access'][access_type]
+        evernote_config = self.config["evernote"]["access"][access_type]
         try:
             oauth = user.evernote.oauth
             user.evernote.access.token = self.evernote.get_access_token(
-                evernote_config['key'],
-                evernote_config['secret'],
+                evernote_config["key"],
+                evernote_config["secret"],
                 oauth.token,
                 oauth.secret,
                 oauth_verifier
@@ -206,20 +206,20 @@ class EvernoteBot(TelegramBot):
             self.storage.save(user.asdict())
         except TokenRequestDenied as e:
             # TODO: log original exception
-            raise TelegramBotError('We are sorry, but we have some problems with Evernote connection. Please try again later.')
+            raise TelegramBotError("We are sorry, but we have some problems with Evernote connection. Please try again later.")
         except Exception as e:
             # TODO: log original exception
-            raise TelegramBotError('Unknown error. Please, try again later.')
-        if access_type == 'basic':
-            text = 'Evernote account is connected.\nFrom now you can just send a message and a note will be created.'
+            raise TelegramBotError("Unknown error. Please, try again later.")
+        if access_type == "basic":
+            text = "Evernote account is connected.\nFrom now you can just send a message and a note will be created."
             self.api.sendMessage(chat_id, text)
             default_notebook = self.evernote.get_default_notebook(user.evernote.access.token)
             user.evernote.notebook = EvernoteNotebook(**default_notebook)
             self.storage.save(user.asdict())
-            mode = user.bot_mode.replace('_', ' ').capitalize()
-            self.api.sendMessage(chat_id, f'Current notebook: {user.evernote.notebook.name}\nCurrent mode: {mode}')
+            mode = user.bot_mode.replace("_", " ").capitalize()
+            self.api.sendMessage(chat_id, f"Current notebook: {user.evernote.notebook.name}\nCurrent mode: {mode}")
         else:
-            self.switch_mode(user, 'one_note')
+            self.switch_mode(user, "one_note")
             self.storage.save(user.asdict())
 
     def _download_file_from_telegram(self, file_id):
