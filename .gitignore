@@ -6,3 +6,5 @@ src/local.yaml
 .idea
 .vscode
 *.code-workspace
+.coverage
+htmlcov

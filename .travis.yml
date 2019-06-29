@@ -2,4 +2,9 @@ dist: xenial
 language: python
 python:
     - "3.7"
-script: make test
+install:
+    - pip install -r requirements.txt
+    - pip install python-coveralls
+script: make test-cov
+after_success:
+  - coveralls
