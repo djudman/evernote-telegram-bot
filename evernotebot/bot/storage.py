@@ -60,7 +60,7 @@ class Mongo:
             data["id"] = object_id
         return object_id
 
-    def delete(self, object_id):
+    def delete(self, object_id, check_deleted_count=True):
         result = self._collection.delete_one({"_id": object_id})
-        if result.deleted_count != 1:
+        if check_deleted_count and result.deleted_count != 1:
             raise MongoStorageException(f"Object `{object_id}` not found")

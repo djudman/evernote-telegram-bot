@@ -3,3 +3,5 @@ httpd:
 test:
 	@PWD=$(pwd)
 	@cd ./tests && PYTHONPATH="$(PWD)" python3 -m unittest -v
+build:
+	docker build .

@@ -24,17 +24,22 @@ class EvernoteBotException(Exception):
 
 
 class EvernoteBot(TelegramBot):
-    def __init__(self, config):
+    def __init__(self, config, storage=None):
         self.evernote = EvernoteClient(sandbox=config.get("debug", True))
         telegram_config = config["telegram"]
         token = telegram_config["token"]
         bot_url = telegram_config["bot_url"]
+        super().__init__(token, bot_url=bot_url, config=config)
+        self.storage = storage
+        if self.storage is None:
+            self.storage = self._get_default_storage(config)
+        self.register_handlers()
+
+    def _get_default_storage(self, config):
         storage_config = config["storage"]
         connection_string = storage_config["connection_string"]
         db_name = storage_config["db"]
-        super().__init__(token, bot_url=bot_url, config=config)
-        self.storage = Mongo(connection_string, db_name=db_name, collection_name="users")
-        self.register_handlers()
+        return Mongo(connection_string, db_name=db_name, collection_name="users")
 
     def register_handlers(self):
         self.set_update_handler("message", self.on_message)

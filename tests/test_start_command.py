@@ -1,8 +1,10 @@
 import unittest
 
 from evernotebot.bot.core import EvernoteBot
-from mocks import TelegramApiMock, EvernoteClientMock
+
 from config import bot_config
+from mocks import TelegramApiMock, EvernoteClientMock
+from storage import MemoryStorage
 
 
 class TestStartCommad(unittest.TestCase):
@@ -27,8 +29,7 @@ class TestStartCommad(unittest.TestCase):
                 "chat": {"id": 9, "type": ""},
             },
         }
-        bot = EvernoteBot(bot_config)
-        bot.storage.delete(user_id)
+        bot = EvernoteBot(bot_config, storage=MemoryStorage())
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteClientMock()
         bot.process_update(update_data)

@@ -2,17 +2,17 @@ import unittest
 from time import time
 
 from utelegram.models import Message
-
-from config import bot_config
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import start_command
+
+from config import bot_config
 from mocks import TelegramApiMock, EvernoteClientMock
+from storage import MemoryStorage
 
 
 class TestSaveToEvernote(unittest.TestCase):
     def setUp(self):
-        bot = EvernoteBot(bot_config)
-        bot.storage.delete(6)
+        bot = EvernoteBot(bot_config, storage=MemoryStorage())
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteClientMock()
         message = Message(

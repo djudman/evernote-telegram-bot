@@ -1,16 +1,22 @@
 import unittest
 from unittest import expectedFailure
+from unittest.case import SkipTest
+
+from pymongo.errors import ServerSelectionTimeoutError
 
 from evernotebot.bot.storage import Mongo
 
 
-connection_string = "mongodb://127.0.0.1:27017/"
-
 class TestMongoStorage(unittest.TestCase):
     def setUp(self):
         self.db_name = "test_mongo_storage"
-        self.client = Mongo(connection_string, db_name=self.db_name,
-                            collection_name="test")
+        connection_string = "mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=100"
+        try:
+            self.client = Mongo(connection_string, db_name=self.db_name,
+                                collection_name="test")
+            list(self.client.get_all({}))
+        except ServerSelectionTimeoutError as e:
+            raise SkipTest(e)
 
     def tearDown(self):
         self.client._driver.drop_database(self.db_name)

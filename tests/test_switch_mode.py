@@ -2,17 +2,17 @@ import unittest
 from time import time
 
 from utelegram.models import Message
-
-from config import bot_config
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import start_command
+
+from config import bot_config
 from mocks import TelegramApiMock, EvernoteClientMock
+from storage import MemoryStorage
 
 
 class TestSwitchMode(unittest.TestCase):
     def setUp(self):
-        bot = EvernoteBot(bot_config)
-        bot.storage.delete(8)
+        bot = EvernoteBot(bot_config, storage=MemoryStorage())
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteClientMock()
         message = Message(
@@ -70,9 +70,11 @@ class TestSwitchMode(unittest.TestCase):
                 "chat": {"id": 2, "type": "private"},
             },
         }
+        self.assertEqual(self.bot.evernote.create_note.call_count, 0)
         self.bot.process_update(update_data)
         call = self.bot.api.sendMessage.calls[1]
         self.assertTrue(call["args"][1].startswith('To enable "One note" mode you should allow'))
         oauth_data =  self.bot.evernote._oauth_data
         self.bot.evernote_oauth_callback(oauth_data["callback_key"], "oauth_verifier", "full")
+        self.assertEqual(self.bot.evernote.create_note.call_count, 1)
         self.assertEqual(self.bot.evernote.get_note_link.call_count, 1)
