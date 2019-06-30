@@ -31,9 +31,11 @@ class Mongo:
         del data["id"]
         return self._collection.insert_one(data).inserted_id
 
-    def get(self, object_id):
-        query = {"_id": object_id}
+    def get(self, object_id, fail_if_not_exists=False):
+        query = object_id if isinstance(object_id, dict) else {"_id": object_id}
         data = self._collection.find_one(query)
+        if fail_if_not_exists and not data:
+            raise MongoStorageException(f"Object not found. Query: {query}")
         if data:
             data['id'] = data['_id']
             del data['_id']

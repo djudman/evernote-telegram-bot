@@ -10,14 +10,13 @@ from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 
 def evernote_oauth_callback(bot, callback_key, oauth_verifier,
                             access_type="basic"):
-    users = list(bot.storage.get_all({"evernote.oauth.callback_key": callback_key}))
-    if not users:
-        raise Exception(f"User not found. callback_key = {callback_key}")
-    user_data = next(iter(users))
+    query = {"evernote.oauth.callback_key": callback_key}
+    user_data = bot.storage.get(query, fail_if_not_exists=True)
     user = BotUser(**user_data)
     chat_id = user.telegram.chat_id
     if not oauth_verifier:
-        bot.api.sendMessage(chat_id, "We are sorry, but you have declined authorization.")
+        bot.api.sendMessage(chat_id, "We are sorry, but you have declined "
+                                     "authorization.")
         return
     evernote_config = bot.config["evernote"]["access"][access_type]
     oauth = user.evernote.oauth
@@ -39,18 +38,17 @@ def evernote_oauth_callback(bot, callback_key, oauth_verifier,
         raise e
     user.evernote.access.permission = access_type
     user.evernote.oauth = None
-    bot.storage.save(user.asdict())
     if access_type == "basic":
-        text = "Evernote account is connected.\nFrom now you can just send a message and a note will be created."
-        bot.api.sendMessage(chat_id, text)
+        bot.api.sendMessage(chat_id, "Evernote account is connected.\nFrom now "
+            "you can just send a message and a note will be created.")
         default_notebook = bot.evernote(user).get_default_notebook()
         user.evernote.notebook = EvernoteNotebook(**default_notebook)
-        bot.storage.save(user.asdict())
         mode = user.bot_mode.replace("_", " ").capitalize()
-        bot.api.sendMessage(chat_id, f"Current notebook: {user.evernote.notebook.name}\nCurrent mode: {mode}")
+        bot.api.sendMessage(chat_id, "Current notebook: "
+            f"{user.evernote.notebook.name}\nCurrent mode: {mode}")
     else:
         bot.switch_mode(user, "one_note")
-        bot.storage.save(user.asdict())
+    bot.storage.save(user.asdict())
 
 
 def get_evernote_oauth_data(bot, user_id: int, chat_id: int, message_text: str,

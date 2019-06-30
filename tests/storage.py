@@ -13,8 +13,13 @@ class MemoryStorage:
         self._objects[object_id] = data
         return object_id
 
-    def get(self, object_id):
-        return self._objects.get(object_id)
+    def get(self, object_id, fail_if_not_exists=False):
+        query = object_id if isinstance(object_id, dict) else {"id": object_id}
+        objects = self.get_all(query)
+        result = list(objects)
+        if fail_if_not_exists and not result:
+            raise MemoryStorageException(f"Object not found. Query: {query}")
+        return result and result[0]
 
     def get_all(self, query=None):
         if query is None:
