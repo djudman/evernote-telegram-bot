@@ -120,20 +120,15 @@ class EvernoteApi:
         return sdk.get_access_token(oauth_token, oauth_token_secret,
                                     oauth_verifier)
 
-    def get_all_notebooks(self, query=None):
+    def get_all_notebooks(self, query: dict=None):
         notebooks = self._notes_store.listNotebooks()
-        notebooks = [{'guid': nb.guid, 'name': nb.name} for nb in notebooks]
+        notebooks = [{"guid": nb.guid, "name": nb.name} for nb in notebooks]
         if not query:
             return notebooks
-        # TODO: write better
-        result = []
-        for entry in notebooks:
-            for k, v in query.items():
-                if entry[k] != v:
-                    break
-            else:
-                result.append(entry)
-        return result
+        return list(
+            filter(lambda nb: nb["guid"] == query.get("guid") \
+                or nb["name"] == query["name"], notebooks)
+        )
 
     def get_default_notebook(self):
         notebook = self._notes_store.getDefaultNotebook()
