@@ -4,6 +4,7 @@ import random
 import string
 from os.path import basename
 from os.path import join
+from time import time
 from urllib.parse import urlparse
 
 from uhttp.client import make_request
@@ -16,7 +17,7 @@ from evernotebot.bot.commands import start_command, \
     switch_mode_command, switch_notebook_command, help_command
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 from evernotebot.bot.storage import Mongo
-from evernotebot.util.evernote.client import EvernoteClient
+from evernotebot.util.evernote.client import EvernoteApi
 
 
 class EvernoteBotException(Exception):
@@ -25,11 +26,14 @@ class EvernoteBotException(Exception):
 
 class EvernoteBot(TelegramBot):
     def __init__(self, config, storage=None):
-        self.evernote = EvernoteClient(sandbox=config.get("debug", True))
         telegram_config = config["telegram"]
         token = telegram_config["token"]
         bot_url = telegram_config["bot_url"]
         super().__init__(token, bot_url=bot_url, config=config)
+        self._evernote_clients_cache = {
+            "default": EvernoteApi(access_token=None,
+                sandbox=self.config.get("debug", True))
+        }
         self.storage = storage
         if self.storage is None:
             self.storage = self._get_default_storage(config)
@@ -40,6 +44,31 @@ class EvernoteBot(TelegramBot):
         connection_string = storage_config["connection_string"]
         db_name = storage_config["db"]
         return Mongo(connection_string, db_name=db_name, collection_name="users")
+
+    def evernote(self, bot_user: BotUser=None) -> EvernoteApi:
+        if bot_user is None:
+            return self._evernote_clients_cache["default"]
+        user_id = bot_user.id
+        entry = self._evernote_clients_cache.get(user_id)
+        if entry:
+            return entry["api"]
+        max_entries = 100
+        current_time = time()
+        if len(self._evernote_clients_cache) >= max_entries:
+            oldest_user_id = None
+            min_time = current_time
+            for user_id, v in self._evernote_clients_cache.items():
+                if v["created"] < min_time:
+                    oldest_user_id = user_id
+            del self._evernote_clients_cache[oldest_user_id]
+        new_entry = {
+            "created": current_time,
+            "api": EvernoteApi(access_token=bot_user.evernote.access_token,
+                               sandbox=self.config.get("debug", True))
+        }
+        self._evernote_clients_cache[user_id] = new_entry
+        return new_entry["api"]
+
 
     def register_handlers(self):
         self.set_update_handler("message", self.on_message)
@@ -82,7 +111,8 @@ class EvernoteBot(TelegramBot):
         self.storage.save(bot_user.asdict())
 
     def handle_message(self, message: Message):
-        message_attrs = ('text', 'photo', 'voice', 'audio', 'video', 'document', 'location')
+        message_attrs = ("text", "photo", "voice", "audio", "video",
+                         "document", "location")
         for attr_name in message_attrs:
             value = getattr(message, attr_name, None)
             if value is None:
@@ -90,9 +120,11 @@ class EvernoteBot(TelegramBot):
             handler = getattr(self, f"on_{attr_name}", None)
             if handler is None:
                 continue
-            status_message = self.api.sendMessage(message.chat.id, f"{attr_name.capitalize()} accepted")
+            status_message = self.api.sendMessage(
+                message.chat.id, f"{attr_name.capitalize()} accepted")
             handler(message)
-            self.api.editMessageText(message.chat.id, status_message['message_id'], 'Saved')
+            self.api.editMessageText(message.chat.id,
+                status_message["message_id"], "Saved")
 
     def switch_mode(self, bot_user: BotUser, new_mode: str):
         new_mode = new_mode.lower()
@@ -117,9 +149,8 @@ class EvernoteBot(TelegramBot):
     def switch_notebook(self, bot_user: BotUser, notebook_name: str):
         if notebook_name.startswith('> ') and notebook_name.endswith(' <'):
             notebook_name = notebook_name[2:-2]
-        token = bot_user.evernote.access.token
         query = {'name': notebook_name}
-        notebooks = self.evernote.get_all_notebooks(token, query)
+        notebooks = self.evernote(bot_user).get_all_notebooks(query)
         if not notebooks:
             raise TelegramBotError(f'Notebook "{notebook_name}" not found')
         # TODO: self.create_note(notebook) if bot_user.bot_mode == 'one_note'
@@ -133,14 +164,13 @@ class EvernoteBot(TelegramBot):
         chat_id = bot_user.telegram.chat_id
         evernote_data = bot_user.evernote
         if evernote_data.access.permission == 'full':
-            note = self.evernote.create_note(
-                evernote_data.access.token,
+            note = self.evernote(bot_user).create_note(
                 evernote_data.notebook.guid,
                 title='Telegram bot notes'
             )
             bot_user.bot_mode = 'one_note' # TODO: move up
             evernote_data.shared_note_id = note.guid
-            note_url = self.evernote.get_note_link(evernote_data.access.token, note.guid)
+            note_url = self.evernote(bot_user).get_note_link(note.guid)
             text = f'Your notes will be saved to <a href="{note_url}">this note</a>'
             self.api.sendMessage(chat_id, text, json.dumps({'hide_keyboard': True}), parse_mode='Html')
         else:
@@ -153,8 +183,7 @@ class EvernoteBot(TelegramBot):
 
     def save_note(self, user: BotUser, text=None, title=None, html=None, files=None):
         if user.bot_mode == 'one_note':
-            self.evernote.update_note(
-                user.evernote.access.token,
+            self.evernote(user).update_note(
                 user.evernote.shared_note_id,
                 text=text,
                 html=html,
@@ -162,8 +191,7 @@ class EvernoteBot(TelegramBot):
                 files=files
             )
         else:
-            self.evernote.create_note(
-                user.evernote.access.token,
+            self.evernote(user).create_note(
                 user.evernote.notebook.guid,
                 text=text,
                 html=html,
@@ -177,7 +205,8 @@ class EvernoteBot(TelegramBot):
         status_message = self.api.sendMessage(chat_id, message_text, json.dumps(inline_keyboard))
         symbols = string.ascii_letters + string.digits
         session_key = "".join([random.choice(symbols) for _ in range(32)])
-        oauth_data = self.evernote.get_oauth_data(user_id, session_key, self.config["evernote"], access)
+        oauth_data = self.evernote().get_oauth_data(user_id, session_key,
+            self.config["evernote"], access, self.config.get("debug"))
         auth_button["text"] = button_text
         auth_button["url"] = oauth_data["oauth_url"]
         self.api.editMessageReplyMarkup(chat_id, status_message["message_id"], json.dumps(inline_keyboard))
@@ -199,12 +228,13 @@ class EvernoteBot(TelegramBot):
         evernote_config = self.config["evernote"]["access"][access_type]
         try:
             oauth = user.evernote.oauth
-            user.evernote.access.token = self.evernote.get_access_token(
+            user.evernote.access.token = self.evernote().get_access_token(
                 evernote_config["key"],
                 evernote_config["secret"],
                 oauth.token,
                 oauth.secret,
-                oauth_verifier
+                oauth_verifier,
+                self.config.get("debug", True)
             )
             user.evernote.access.permission = access_type
             user.evernote.oauth = None
@@ -218,7 +248,7 @@ class EvernoteBot(TelegramBot):
         if access_type == "basic":
             text = "Evernote account is connected.\nFrom now you can just send a message and a note will be created."
             self.api.sendMessage(chat_id, text)
-            default_notebook = self.evernote.get_default_notebook(user.evernote.access.token)
+            default_notebook = self.evernote(user).get_default_notebook()
             user.evernote.notebook = EvernoteNotebook(**default_notebook)
             self.storage.save(user.asdict())
             mode = user.bot_mode.replace("_", " ").capitalize()
@@ -236,8 +266,8 @@ class EvernoteBot(TelegramBot):
             f.write(data)
         return filename, short_name
 
-    def _check_evernote_quota(self, evernote_access_token, file_size):
-        quota = self.evernote.get_quota_info(evernote_access_token)
+    def _check_evernote_quota(self, bot_user: BotUser, file_size):
+        quota = self.evernote(bot_user).get_quota_info()
         if quota["remaining"] < file_size:
             reset_date = quota["reset_date"].strftime("%Y-%m-%d %H:%M:%S")
             remain_bytes = quota['remaining']
@@ -250,7 +280,7 @@ class EvernoteBot(TelegramBot):
         filename, short_name = self._download_file_from_telegram(file_id)
         user_data = self.storage.get(message.from_user.id)
         user = BotUser(**user_data)
-        self._check_evernote_quota(user.evernote.access.token, file_size)
+        self._check_evernote_quota(user, file_size)
         title = message.caption or message.text[:20] or 'File'
         files = ({'path': filename, 'name': short_name},)
         self.save_note(user, text=message.text, title=title, files=files)

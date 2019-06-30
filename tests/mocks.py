@@ -30,7 +30,7 @@ class TelegramApiMock:
         self.history.append(name)
 
 
-class EvernoteClientMock:
+class EvernoteApiMock:
     def __init__(self):
         self._oauth_data = {
             "oauth_url": "oauth_url",
@@ -47,6 +47,9 @@ class EvernoteClientMock:
         quota_info = {"remaining": 1000}
         self.get_quota_info = MockMethod(result=quota_info)
         self.get_note_link = MockMethod()
+
+    def __call__(self, *args, **kwargs):
+        return self
 
     def __generate_secret_string(self):
         return "".join(s for s in random.choices(string.ascii_letters, k = 16))

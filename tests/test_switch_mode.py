@@ -6,7 +6,7 @@ from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import start_command
 
 from config import bot_config
-from mocks import TelegramApiMock, EvernoteClientMock
+from mocks import TelegramApiMock, EvernoteApiMock
 from storage import MemoryStorage
 
 
@@ -14,7 +14,7 @@ class TestSwitchMode(unittest.TestCase):
     def setUp(self):
         bot = EvernoteBot(bot_config, storage=MemoryStorage())
         bot.api = TelegramApiMock()
-        bot.evernote = EvernoteClientMock()
+        bot.evernote = EvernoteApiMock()
         message = Message(
             message_id=1,
             date=time(),
@@ -26,7 +26,7 @@ class TestSwitchMode(unittest.TestCase):
         bot.evernote_oauth_callback(oauth_data["callback_key"], "oauth_verifier", "basic")
         # creating new mocks because we want get a clean picture
         bot.api = TelegramApiMock()
-        bot.evernote = EvernoteClientMock()
+        bot.evernote = EvernoteApiMock()
         self.bot = bot
 
     def test_switch_to_one_note_mode(self):
