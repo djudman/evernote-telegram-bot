@@ -30,6 +30,9 @@ class EvernoteOauthData:
     callback_key: str
     api_key: str = None
 
+    def asdict(self):
+        return asdict(self)
+
 
 @dataclass
 class EvernoteData:

@@ -4,6 +4,7 @@ from time import time
 from utelegram.models import Message
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import start_command
+from evernotebot.bot.shortcuts import evernote_oauth_callback
 
 from config import bot_config
 from mocks import TelegramApiMock, EvernoteApiMock
@@ -23,7 +24,7 @@ class TestSaveToEvernote(unittest.TestCase):
         )
         start_command(bot, message)
         oauth_data =  bot.evernote._oauth_data
-        bot.evernote_oauth_callback(oauth_data["callback_key"], "oauth_verifier", "basic")
+        evernote_oauth_callback(bot, oauth_data["callback_key"], "oauth_verifier", "basic")
         # creating new mocks because we want get a clean picture
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteApiMock()

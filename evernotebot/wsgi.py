@@ -9,6 +9,7 @@ from utelegram.models import Update
 
 from evernotebot.config import load_config
 from evernotebot.bot.core import EvernoteBot
+from evernotebot.bot.shortcuts import evernote_oauth_callback
 
 
 def telegram_hook(request):
@@ -18,14 +19,13 @@ def telegram_hook(request):
 
 
 def evernote_oauth(request):
-    callback_key = request.GET['key']
-    oauth_verifier = request.GET.get('oauth_verifier')
-    access_type = request.GET.get('access', 'basic')
     bot = request.app.bot
-    try:
-        bot.evernote_oauth_callback(callback_key, oauth_verifier, access_type)
-    except TelegramBotError as e:
-        pass
+    evernote_oauth_callback(
+        bot,
+        callback_key=request.GET['key'],
+        oauth_verifier=request.GET.get('oauth_verifier'),
+        access_type=request.GET.get('access')
+    )
     return HTTPFound(bot.url)
 
 
