@@ -165,16 +165,14 @@ class EvernoteApi:
         note.content = str(content)
         return self._notes_store.updateNote(note)
 
-    def get_note(self, note_guid, with_content=True, with_resources_data=True,
-                 with_resources_recognition=False,
-                 with_resources_alternate_data=False):
-        return self._notes_store.getNote(
-            note_guid,
-            with_content,
-            with_resources_data,
-            with_resources_recognition,
-            with_resources_alternate_data
-        )
+    def get_note(self, note_guid, **kwargs):
+        with_content = True
+        with_resources_data = True,
+        with_resources_recognition = False,
+        with_resources_alternate_data = False
+        return self._notes_store.getNote(note_guid, with_content,
+            with_resources_data, with_resources_recognition,
+            with_resources_alternate_data)
 
     def get_note_link(self, note_guid, app_link=False):
         user = self.get_user()
