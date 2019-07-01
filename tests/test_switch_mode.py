@@ -74,7 +74,7 @@ class TestSwitchMode(unittest.TestCase):
         self.assertEqual(self.bot.evernote.create_note.call_count, 0)
         self.bot.process_update(update_data)
         call = self.bot.api.sendMessage.calls[1]
-        self.assertTrue(call["args"][1].startswith('To enable "One note" mode you should allow'))
+        self.assertTrue(call["args"][1].startswith('To enable "One note" mode you have to allow'))
         oauth_data =  self.bot.evernote._oauth_data
         evernote_oauth_callback(self.bot, oauth_data["callback_key"], "oauth_verifier", "full")
         self.assertEqual(self.bot.evernote.create_note.call_count, 1)

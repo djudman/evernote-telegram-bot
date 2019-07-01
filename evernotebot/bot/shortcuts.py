@@ -56,16 +56,17 @@ def evernote_oauth_callback(bot, callback_key, oauth_verifier,
     bot.storage.save(user.asdict())
 
 
-def get_evernote_oauth_data(bot, user_id: int, chat_id: int, message_text: str,
-                            button_text: str, access="basic") -> EvernoteOauthData:
+def get_evernote_oauth_data(bot, bot_user: BotUser, message_text: str,
+                            access="basic") -> EvernoteOauthData:
+    chat_id = bot_user.telegram.chat_id
     auth_button = {"text": "Waiting for Evernote...", "url": bot.url}
     inline_keyboard = json.dumps({"inline_keyboard": [[auth_button]]})
     status_message = bot.api.sendMessage(chat_id, message_text, inline_keyboard)
     symbols = string.ascii_letters + string.digits
     session_key = "".join([random.choice(symbols) for _ in range(32)])
-    oauth_data = bot.evernote().get_oauth_data(user_id, session_key,
+    oauth_data = bot.evernote().get_oauth_data(bot_user.id, session_key,
         bot.config["evernote"], access, bot.config.get("debug"))
-    auth_button["text"] = button_text
+    auth_button["text"] = "Sign in with Evernote"
     auth_button["url"] = oauth_data["oauth_url"]
     inline_keyboard = json.dumps({"inline_keyboard": [[auth_button]]})
     bot.api.editMessageReplyMarkup(chat_id, status_message["message_id"], inline_keyboard)

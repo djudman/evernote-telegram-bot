@@ -11,11 +11,6 @@ from evernotebot.bot.shortcuts import get_evernote_oauth_data
 
 def start_command(bot, message: Message):
     user_id = message.from_user.id
-    message_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
-Please tap on button below to link your Evernote account with bot.'''
-    button_text = 'Sign in to Evernote'
-    oauth_data = get_evernote_oauth_data(bot, user_id, message.chat.id,
-                                         message_text, button_text)
     user_data = bot.storage.get(user_id)
     if not user_data:
         current_time = time()
@@ -33,14 +28,16 @@ Please tap on button below to link your Evernote account with bot.'''
             },
             'evernote': {
                 'access': {'permission': 'basic'},
-                'oauth': oauth_data.asdict(),
             },
         }
         bot.storage.create(user_data)
-    else:
-        user = BotUser(**user_data)
-        user.evernote.oauth = oauth_data
-        bot.storage.save(user.asdict())
+
+    user = BotUser(**user_data)
+    message_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
+Please tap on button below to link your Evernote account with bot.'''
+    oauth_data = get_evernote_oauth_data(bot, user, message_text)
+    user.evernote.oauth = oauth_data
+    bot.storage.save(user.asdict())
 
 
 def switch_mode_command(bot, message: Message):

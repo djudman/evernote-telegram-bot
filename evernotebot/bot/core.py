@@ -158,12 +158,11 @@ class EvernoteBot(TelegramBot):
             text = f'Your notes will be saved to <a href="{note_url}">this note</a>'
             self.api.sendMessage(chat_id, text, json.dumps({'hide_keyboard': True}), parse_mode='Html')
         else:
-            text = 'To enable "One note" mode you should allow to the bot both reading and updating your notes'
+            text = 'To enable "One note" mode you have to allow to the bot both reading and updating your notes'
             self.api.sendMessage(chat_id, text, json.dumps({'hide_keyboard': True}))
-            message_text = 'Please tap on button below to give access to bot.'
-            button_text = 'Allow read and update notes'
-            bot_user.evernote.oauth = get_evernote_oauth_data(self, bot_user.id,
-                chat_id, message_text, button_text, access='full')
+            message_text = 'Please, sign in and give the permissions to the bot.'
+            bot_user.evernote.oauth = get_evernote_oauth_data(self, bot_user,
+                message_text, access='full')
 
     def save_note(self, user: BotUser, text=None, title=None, **kwargs):
         if user.bot_mode == 'one_note':
