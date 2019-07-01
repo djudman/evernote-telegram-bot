@@ -136,10 +136,10 @@ class EvernoteApi:
             'name': notebook.name,
         }
 
-    def create_note(self, notebook_guid, text=None, title="Telegram bot", **kwargs):
+    def create_note(self, notebook_id, text=None, title="Telegram bot", **kwargs):
         note = Types.Note()
         note.title = title.replace("\n", " ")  # Evernote doesn't support '\n' in titles
-        note.notebookGuid = notebook_guid
+        note.notebookGuid = notebook_id
         content = NoteContent()
         content.append(text=text, html=kwargs.get("html"))
         if "files" in kwargs:
@@ -148,15 +148,18 @@ class EvernoteApi:
         note.resources = content.resources
         return self._notes_store.createNote(note)
 
-    def update_note(self, token, note_guid, text=None, title=None, files=None, html=None):
-        note = self.get_note(note_guid)
+    def update_note(self, note_id, text=None, title="Telegram bot", **kwargs):
+        note = self.get_note(note_id)
         content = NoteContent(note.content)
-        content.append(text=text, html=html)
-        if files is not None:
+        content.append(text=text, html=kwargs.get("html"))
+        if "files" in kwargs:
+            files = kwargs["files"]
+            # We create new note for the files...
             attachments_note = self.create_note(note.notebookGuid, text="",
-                title="Uploaded by Telegram bot", files=files)
+                title=title, files=files)
+            # ...and put a link to this note into original note
             for file in files:
-                url = self.get_note_link(token, attachments_note.guid)
+                url = self.get_note_link(attachments_note.guid)
                 link = f"<a href=\"{url}\">{file['name']}</a>"
                 content.append(html=link)
         note.content = str(content)
