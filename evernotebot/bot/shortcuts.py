@@ -22,13 +22,14 @@ def evernote_oauth_callback(bot, callback_key, oauth_verifier,
     evernote_config = bot.config["evernote"]["access"][access_type]
     oauth = user.evernote.oauth
     try:
+        oauth_params = {
+            "token": oauth.token,
+            "secret": oauth.secret,
+            "verifier": oauth_verifier,
+        }
         user.evernote.access.token = bot.evernote().get_access_token(
-            evernote_config["key"],
-            evernote_config["secret"],
-            oauth.token,
-            oauth.secret,
-            oauth_verifier,
-            bot.config.get("debug", True))
+            evernote_config["key"], evernote_config["secret"],
+            sandbox=bot.config.get("debug", True), **oauth_params)
     except TokenRequestDenied as e:
         bot.api.sendMessage(chat_id, "We are sorry, but we have some problems "
                                      "with Evernote connection. "

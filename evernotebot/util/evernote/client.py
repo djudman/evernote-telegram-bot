@@ -113,12 +113,11 @@ class EvernoteApi:
         return oauth_data
 
     @staticmethod
-    def get_access_token(api_key, api_secret, oauth_token,
-            oauth_token_secret, oauth_verifier, sandbox=False):
+    def get_access_token(api_key, api_secret, sandbox=False, **oauth_kwargs):
         sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret,
                           sandbox=sandbox)
-        return sdk.get_access_token(oauth_token, oauth_token_secret,
-                                    oauth_verifier)
+        return sdk.get_access_token(oauth_kwargs["token"],
+            oauth_kwargs["secret"], oauth_kwargs["verifier"])
 
     def get_all_notebooks(self, query: dict=None):
         notebooks = self._notes_store.listNotebooks()
