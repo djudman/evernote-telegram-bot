@@ -50,7 +50,7 @@ class TestSaveToEvernote(unittest.TestCase):
         self.assertEqual(self.bot.evernote.create_note.call_count, 1)
         call = self.bot.evernote.create_note.calls[0]
         self.assertEqual(call["args"][0], "guid")
-        self.assertEqual(call["kwargs"]["text"], "Hello, World!")
+        self.assertEqual(call["args"][1], "Hello, World!")
 
 
     def test_save_photo(self):
@@ -85,6 +85,6 @@ class TestSaveToEvernote(unittest.TestCase):
         self.assertEqual(self.bot.api.editMessageText.calls[0]["args"][2], "Saved")
         self.assertEqual(self.bot.evernote.create_note.call_count, 1)
         call = self.bot.evernote.create_note.calls[0]
-        self.assertEqual(call["kwargs"]["title"], "Selfie")
+        self.assertEqual(call["args"][2], "Selfie")
         self.assertEqual(len(call["kwargs"]["files"]), 1)
         self.assertEqual(call["kwargs"]["files"][0]["name"], "robots.txt")

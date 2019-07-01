@@ -163,23 +163,13 @@ class EvernoteBot(TelegramBot):
             bot_user.evernote.oauth = get_evernote_oauth_data(self, bot_user.id,
                 chat_id, message_text, button_text, access='full')
 
-    def save_note(self, user: BotUser, text=None, title=None, html=None, files=None):
+    def save_note(self, user: BotUser, text=None, title=None, **kwargs):
         if user.bot_mode == 'one_note':
-            self.evernote(user).update_note(
-                user.evernote.shared_note_id,
-                text=text,
-                html=html,
-                title=title,
-                files=files
-            )
+            note_id = user.evernote.shared_note_id
+            self.evernote(user).update_note(note_id, text, title, **kwargs)
         else:
-            self.evernote(user).create_note(
-                user.evernote.notebook.guid,
-                text=text,
-                html=html,
-                title=title,
-                files=files
-            )
+            notebook_id = user.evernote.notebook.guid
+            self.evernote(user).create_note(notebook_id, text, title, **kwargs)
 
     def _download_file_from_telegram(self, file_id):
         download_url = self.api.getFile(file_id)
