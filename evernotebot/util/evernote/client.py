@@ -79,45 +79,45 @@ class NoteContent:
         return str(self)
 
 
+def get_oauth_data(user_id, session_key, evernote_config, access="basic",
+                    sandbox=False):
+    access_config = evernote_config["access"][access]
+    api_key = access_config["key"]
+    api_secret = access_config["secret"]
+    bytes_key = f"{api_key}{api_secret}{user_id}".encode()
+    callback_key = hashlib.sha1(bytes_key).hexdigest()
+    url=evernote_config["oauth_callback_url"]
+    callback_url = f"{url}?access={access}&key={callback_key}&session_key={session_key}"
+    sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=sandbox)
+    oauth_data = {"callback_key": callback_key}
+    try:
+        request_token = sdk.get_request_token(callback_url)
+    except Exception as e:
+        raise EvernoteApiError() from e
+    if "oauth_token" not in request_token or "oauth_token_secret" not in request_token:
+        raise EvernoteApiError("Can't obtain oauth token from Evernote")
+    oauth_data["oauth_token"] = request_token["oauth_token"]
+    oauth_data["oauth_token_secret"] = request_token["oauth_token_secret"]
+    try:
+        oauth_data["oauth_url"] = sdk.get_authorize_url(request_token)
+    except Exception as e:
+        raise EvernoteApiError() from e
+    return oauth_data
+
+
+def get_access_token(api_key, api_secret, sandbox=False, **oauth_kwargs):
+    sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret,
+                        sandbox=sandbox)
+    return sdk.get_access_token(oauth_kwargs["token"],
+        oauth_kwargs["secret"], oauth_kwargs["verifier"])
+
+
 class EvernoteApi:
     def __init__(self, access_token, sandbox=True):
         if access_token:
             self._token = access_token
             self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
             self._notes_store = self._sdk.get_note_store()
-
-    @staticmethod
-    def get_oauth_data(user_id, session_key, evernote_config, access="basic",
-                       sandbox=False):
-        access_config = evernote_config["access"][access]
-        api_key = access_config["key"]
-        api_secret = access_config["secret"]
-        bytes_key = f"{api_key}{api_secret}{user_id}".encode()
-        callback_key = hashlib.sha1(bytes_key).hexdigest()
-        url=evernote_config["oauth_callback_url"]
-        callback_url = f"{url}?access={access}&key={callback_key}&session_key={session_key}"
-        sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=sandbox)
-        oauth_data = {"callback_key": callback_key}
-        try:
-            request_token = sdk.get_request_token(callback_url)
-        except Exception as e:
-            raise EvernoteApiError() from e
-        if "oauth_token" not in request_token or "oauth_token_secret" not in request_token:
-            raise EvernoteApiError("Can't obtain oauth token from Evernote")
-        oauth_data["oauth_token"] = request_token["oauth_token"]
-        oauth_data["oauth_token_secret"] = request_token["oauth_token_secret"]
-        try:
-            oauth_data["oauth_url"] = sdk.get_authorize_url(request_token)
-        except Exception as e:
-            raise EvernoteApiError() from e
-        return oauth_data
-
-    @staticmethod
-    def get_access_token(api_key, api_secret, sandbox=False, **oauth_kwargs):
-        sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret,
-                          sandbox=sandbox)
-        return sdk.get_access_token(oauth_kwargs["token"],
-            oauth_kwargs["secret"], oauth_kwargs["verifier"])
 
     def get_all_notebooks(self, query: dict=None):
         notebooks = self._notes_store.listNotebooks()

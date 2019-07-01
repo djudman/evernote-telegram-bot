@@ -12,8 +12,8 @@ from uhttp.client import make_request
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 
 
-def evernote_oauth_callback(bot, callback_key, oauth_verifier,
-                            access_type="basic"):
+def evernote_oauth_callback(bot, callback_key: str, oauth_verifier: str,
+                            access_type: str="basic"):
     query = {"evernote.oauth.callback_key": callback_key}
     user_data = bot.storage.get(query, fail_if_not_exists=True)
     user = BotUser(**user_data)

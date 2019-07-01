@@ -1,21 +1,24 @@
 import unittest
 from unittest import mock
 
-from evernotebot.util.evernote.client import EvernoteApi
+import evernotebot.util.evernote.client as evernote_api
+from evernotebot.util.evernote.client import EvernoteApiError
 from mocks import EvernoteSdkMock
 
 
 @mock.patch('evernotebot.util.evernote.client.EvernoteSdk',
             new_callable=EvernoteSdkMock)
 class TestEvernoteApi(unittest.TestCase):
-    def test_get_oauth_data(self, sdk):
-        config = {
+    def setUp(self):
+        self.config = {
             "access": {
                 "basic": {"key": "key", "secret": "secret"}
             },
             "oauth_callback_url": "http://callback.url",
         }
-        data = EvernoteApi.get_oauth_data(1, "session_key", config)
+
+    def test_get_oauth_data(self, sdk):
+        data = evernote_api.get_oauth_data(1, "session_key", self.config)
         self.assertEqual(data["oauth_token"], "test_oauth_token")
         self.assertEqual(data["oauth_token_secret"], "test_oauth_secret")
         self.assertEqual(data["oauth_url"], "auth_url")
@@ -30,8 +33,22 @@ class TestEvernoteApi(unittest.TestCase):
         }
         sdk().get_authorize_url.assert_called_once_with(request_token)
 
+    def test_get_oauth_data_when_get_request_token_failed(self, sdk):
+        sdk().get_request_token = mock.Mock(side_effect=Exception("some error"))
+        with self.assertRaises(EvernoteApiError) as ctx:
+            evernote_api.get_oauth_data(1, "session_key", self.config)
+        self.assertIsInstance(ctx.exception.__cause__, Exception)
+        self.assertEqual(str(ctx.exception.__cause__), "some error")
+
+    def test_get_oauth_data_when_get_authorize_url_failed(self, sdk):
+        sdk().get_authorize_url = mock.Mock(side_effect=Exception("D'oh"))
+        with self.assertRaises(EvernoteApiError) as ctx:
+            evernote_api.get_oauth_data(1, "session_key", self.config)
+        self.assertIsInstance(ctx.exception.__cause__, Exception)
+        self.assertEqual(str(ctx.exception.__cause__), "D'oh")
+
     def test_get_access_token(self, sdk):
-        token = EvernoteApi.get_access_token("api_key", "api_secret",
+        token = evernote_api.get_access_token("api_key", "api_secret",
             sandbox=True, token="ouath_token", secret="oauth_secret",
             verifier="oauth_verifier")
         self.assertEqual(token, "access_token")
