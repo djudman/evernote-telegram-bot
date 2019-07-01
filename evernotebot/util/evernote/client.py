@@ -137,15 +137,14 @@ class EvernoteApi:
             'name': notebook.name,
         }
 
-    def create_note(self, notebook_guid, text=None, title=None, files=None, html=None):
+    def create_note(self, notebook_guid, text=None, title="Telegram bot", **kwargs):
         note = Types.Note()
-        # Evernote doesn't support '\n' in titles
-        note.title = title and title.replace("\n", " ") or "Telegram bot"
+        note.title = title.replace("\n", " ")  # Evernote doesn't support '\n' in titles
         note.notebookGuid = notebook_guid
         content = NoteContent()
-        content.append(text=text, html=html)
-        if files is not None:
-            map(lambda f: content.append(file=f), files)
+        content.append(text=text, html=kwargs.get("html"))
+        if "files" in kwargs:
+            map(lambda f: content.append(file=f), kwargs["files"])
         note.content = str(content)
         note.resources = content.resources
         return self._notes_store.createNote(note)
