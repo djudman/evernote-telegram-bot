@@ -53,3 +53,13 @@ class EvernoteApiMock:
 
     def __generate_secret_string(self):
         return "".join(s for s in random.choices(string.ascii_letters, k = 16))
+
+
+class EvernoteSdkMock:
+    def __init__(self, **kwargs):
+        request_token = {
+            "oauth_token": "test",
+            "oauth_token_secret": "secret",
+        }
+        self.get_request_token = MockMethod(result=request_token)
+        self.get_authorize_url = MockMethod(result="https://")
