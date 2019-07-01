@@ -81,8 +81,8 @@ class EvernoteBot(TelegramBot):
     def handle_state(self, bot_user: BotUser, message: Message):
         state = bot_user.state
         handlers_map = {
-            "switch_mode": self.switch_mode,
-            "switch_notebook": self.switch_notebook,
+            "switch_mode": self.switch_mode,  # self.switch_mode()
+            "switch_notebook": self.switch_notebook,  # self.switch_notebook()
         }
         state_handler = handlers_map.get(state)
         if not state_handler:
@@ -107,40 +107,45 @@ class EvernoteBot(TelegramBot):
             self.api.editMessageText(message.chat.id,
                 status_message["message_id"], "Saved")
 
-    def switch_mode(self, bot_user: BotUser, new_mode: str):
-        new_mode = new_mode.lower()
-        if new_mode.startswith("> ") and new_mode.endswith(" <"):
-            new_mode = new_mode[2:-2]
-        new_mode = new_mode.replace(" ", "_")
-        if new_mode not in ("one_note", "multiple_notes"):
-            raise TelegramBotError(f"Unknown mode '{new_mode}'")
-        new_mode_title = new_mode.replace("_", " ").capitalize()
+    def switch_mode(self, bot_user: BotUser, selected_mode_str: str):
+        def validate(mode_str):
+            mode = mode_str
+            if mode_str.startswith("> ") and mode_str.endswith(" <"):
+                mode = mode_str[2:-2]
+            title = mode
+            mode = mode.lower().replace(" ", "_")
+            if mode not in ("one_note", "multiple_notes"):
+                raise TelegramBotError(f"Unknown mode '{title}'")
+            return mode, title
+
+        new_mode, new_mode_title = validate(selected_mode_str)
         chat_id = bot_user.telegram.chat_id
         if bot_user.bot_mode == new_mode:
             text = f"The Bot already in '{new_mode_title}' mode."
             self.api.sendMessage(chat_id, text, json.dumps({"hide_keyboard": True}))
-        elif new_mode == "one_note":
+            return
+        if new_mode == "one_note":
             self.switch_mode_one_note(bot_user)
-        else:
-            bot_user.evernote.shared_note_id = None
-            bot_user.bot_mode = new_mode
-            text = f"The Bot was switched to '{new_mode_title}' mode."
-            self.api.sendMessage(chat_id, text, json.dumps({"hide_keyboard": True}))
+            return
+        bot_user.evernote.shared_note_id = None
+        bot_user.bot_mode = new_mode
+        text = f"The Bot was switched to '{new_mode_title}' mode."
+        self.api.sendMessage(chat_id, text, json.dumps({"hide_keyboard": True}))
 
     def switch_notebook(self, bot_user: BotUser, notebook_name: str):
-        if notebook_name.startswith('> ') and notebook_name.endswith(' <'):
+        if notebook_name.startswith("> ") and notebook_name.endswith(" <"):
             notebook_name = notebook_name[2:-2]
-        query = {'name': notebook_name}
+        query = {"name": notebook_name}
         notebooks = self.evernote(bot_user).get_all_notebooks(query)
         if not notebooks:
-            raise TelegramBotError(f'Notebook "{notebook_name}" not found')
+            raise TelegramBotError(f"Notebook '{notebook_name}' not found")
         # TODO: self.create_note(notebook) if bot_user.bot_mode == 'one_note'
         notebook = notebooks[0]
-        bot_user.evernote.notebook.name = notebook['name']
-        bot_user.evernote.notebook.guid = notebook['guid']
+        bot_user.evernote.notebook.name = notebook["name"]
+        bot_user.evernote.notebook.guid = notebook["guid"]
         chat_id = bot_user.telegram.chat_id
-        self.api.sendMessage(chat_id, f'Current notebook: {notebook["name"]}',
-                             json.dumps({'hide_keyboard': True}))
+        self.api.sendMessage(chat_id, f"Current notebook: {notebook['name']}",
+                             json.dumps({"hide_keyboard": True}))
 
     def switch_mode_one_note(self, bot_user: BotUser):
         chat_id = bot_user.telegram.chat_id
