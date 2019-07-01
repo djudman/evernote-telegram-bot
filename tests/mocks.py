@@ -1,5 +1,6 @@
 import random
 import string
+from unittest.mock import Mock
 from collections import namedtuple
 
 
@@ -55,11 +56,12 @@ class EvernoteApiMock:
         return "".join(s for s in random.choices(string.ascii_letters, k = 16))
 
 
-class EvernoteSdkMock:
-    def __init__(self, **kwargs):
-        request_token = {
-            "oauth_token": "test",
-            "oauth_token_secret": "secret",
-        }
-        self.get_request_token = MockMethod(result=request_token)
-        self.get_authorize_url = MockMethod(result="https://")
+class EvernoteSdkMock(Mock):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.get_request_token = Mock(return_value={
+            "oauth_token": "test_oauth_token",
+            "oauth_token_secret": "test_oauth_secret",
+        })
+        self.get_authorize_url = Mock(return_value="auth_url")
+        self.get_access_token = Mock(return_value="access_token")
