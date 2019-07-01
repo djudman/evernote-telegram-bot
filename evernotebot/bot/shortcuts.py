@@ -1,10 +1,13 @@
 import json
 import string
 import random
+from os.path import basename, join
 from time import time
 from typing import Callable
+from urllib.parse import urlparse
 
 from requests_oauthlib.oauth1_session import TokenRequestDenied
+from uhttp.client import make_request
 
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 
@@ -101,3 +104,13 @@ def get_cached_object(cache: dict, key: object, *, constructor: Callable=None):
     }
     cache[key] = new_entry
     return new_entry["object"]
+
+
+def download_telegram_file(telegram_api, file_id, dirpath="/tmp"):
+    download_url = telegram_api.getFile(file_id)
+    data = make_request(download_url)
+    short_name = basename(urlparse(download_url).path)
+    filename = join(dirpath, f"{file_id}_{short_name}")
+    with open(filename, "wb") as f:
+        f.write(data)
+    return filename, short_name

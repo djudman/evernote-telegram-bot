@@ -2,12 +2,7 @@ import json
 import logging
 import random
 import string
-from os.path import basename
-from os.path import join
 from time import time
-from urllib.parse import urlparse
-
-from uhttp.client import make_request
 
 from utelegram import TelegramBot, TelegramBotError
 from utelegram.models import Message
@@ -15,7 +10,8 @@ from utelegram.models import Message
 from evernotebot.bot.commands import start_command, \
     switch_mode_command, switch_notebook_command, help_command
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
-from evernotebot.bot.shortcuts import get_evernote_oauth_data, get_cached_object
+from evernotebot.bot.shortcuts import get_evernote_oauth_data, \
+    get_cached_object, download_telegram_file
 from evernotebot.bot.storage import Mongo
 from evernotebot.util.evernote.client import EvernoteApi
 
@@ -177,15 +173,6 @@ class EvernoteBot(TelegramBot):
             notebook_id = user.evernote.notebook.guid
             self.evernote(user).create_note(notebook_id, text, title, **kwargs)
 
-    def _download_file_from_telegram(self, file_id):
-        download_url = self.api.getFile(file_id)
-        data = make_request(download_url)
-        short_name = basename(urlparse(download_url).path)
-        filename = join(self.config["tmp_root"], f"{file_id}_{short_name}")
-        with open(filename, "wb") as f:
-            f.write(data)
-        return filename, short_name
-
     def _check_evernote_quota(self, bot_user: BotUser, file_size):
         quota = self.evernote(bot_user).get_quota_info()
         if quota["remaining"] < file_size:
@@ -197,7 +184,7 @@ class EvernoteBot(TelegramBot):
         max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
         if file_size > max_size:
             raise EvernoteBotException('File too big. Telegram does not allow to the bot to download files over 20Mb.')
-        filename, short_name = self._download_file_from_telegram(file_id)
+        filename, short_name = download_telegram_file(self.api, file_id, self.config["tmp_root"])
         user_data = self.storage.get(message.from_user.id)
         user = BotUser(**user_data)
         self._check_evernote_quota(user, file_size)
