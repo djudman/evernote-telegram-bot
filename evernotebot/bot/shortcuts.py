@@ -1,8 +1,9 @@
 import json
 import string
 import random
+from time import time
+from typing import Callable
 
-from utelegram.bot import TelegramBotError
 from requests_oauthlib.oauth1_session import TokenRequestDenied
 
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
@@ -67,3 +68,35 @@ def get_evernote_oauth_data(bot, user_id: int, chat_id: int, message_text: str,
     return EvernoteOauthData(token=oauth_data["oauth_token"],
         secret=oauth_data["oauth_token_secret"],
         callback_key=oauth_data["callback_key"])
+
+
+def get_cached_object(cache: dict, key: object, *, constructor: Callable=None):
+    def create_object():
+        if constructor is None:
+            raise KeyError(f"Object with key `{key}` not found")
+        return constructor()
+
+    if key is None:
+        default = cache.get("default")
+        if default is None:
+            default = create_object()
+            cache["default"] = default
+        return default
+    entry = cache.get(key)
+    if entry:
+        return entry["object"]
+    max_entries = 100
+    current_time = time()
+    if len(cache) >= max_entries:
+        oldest_key = None
+        min_time = current_time
+        for k, v in cache.items():
+            if v["created"] < min_time:
+                oldest_key = k
+        del cache[oldest_key]
+    new_entry = {
+        "created": current_time,
+        "object": create_object(),
+    }
+    cache[key] = new_entry
+    return new_entry["object"]

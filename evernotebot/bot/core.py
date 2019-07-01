@@ -15,7 +15,7 @@ from utelegram.models import Message
 from evernotebot.bot.commands import start_command, \
     switch_mode_command, switch_notebook_command, help_command
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
-from evernotebot.bot.shortcuts import get_evernote_oauth_data
+from evernotebot.bot.shortcuts import get_evernote_oauth_data, get_cached_object
 from evernotebot.bot.storage import Mongo
 from evernotebot.util.evernote.client import EvernoteApi
 
@@ -30,10 +30,7 @@ class EvernoteBot(TelegramBot):
         token = telegram_config["token"]
         bot_url = telegram_config["bot_url"]
         super().__init__(token, bot_url=bot_url, config=config)
-        self._evernote_clients_cache = {
-            "default": EvernoteApi(access_token=None,
-                sandbox=self.config.get("debug", True))
-        }
+        self._evernote_clients_cache = {}
         self.storage = storage
         if self.storage is None:
             self.storage = self._get_default_storage(config)
@@ -46,29 +43,13 @@ class EvernoteBot(TelegramBot):
         return Mongo(connection_string, db_name=db_name, collection_name="users")
 
     def evernote(self, bot_user: BotUser=None) -> EvernoteApi:
-        if bot_user is None:
-            return self._evernote_clients_cache["default"]
-        user_id = bot_user.id
-        entry = self._evernote_clients_cache.get(user_id)
-        if entry:
-            return entry["api"]
-        max_entries = 100
-        current_time = time()
-        if len(self._evernote_clients_cache) >= max_entries:
-            oldest_user_id = None
-            min_time = current_time
-            for user_id, v in self._evernote_clients_cache.items():
-                if v["created"] < min_time:
-                    oldest_user_id = user_id
-            del self._evernote_clients_cache[oldest_user_id]
-        new_entry = {
-            "created": current_time,
-            "api": EvernoteApi(access_token=bot_user.evernote.access_token,
-                               sandbox=self.config.get("debug", True))
-        }
-        self._evernote_clients_cache[user_id] = new_entry
-        return new_entry["api"]
-
+        access_token = bot_user.evernote.access_token if bot_user else None
+        sandbox = self.config.get("debug", True)
+        return get_cached_object(
+            self._evernote_clients_cache,
+            bot_user.id,
+            constructor=lambda: EvernoteApi(access_token, sandbox)
+        )
 
     def register_handlers(self):
         self.set_update_handler("message", self.on_message)
