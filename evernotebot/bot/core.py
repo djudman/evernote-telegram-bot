@@ -30,7 +30,9 @@ class EvernoteBot(TelegramBot):
         self._evernote_apis_cache = {}
         self.storage = storage
         if self.storage is None:
-            self.storage = self._get_default_storage(config)
+            cfg = config["storage"]
+            self.storage = Mongo(cfg["connection_string"], db_name=cfg["db"],
+                                 collection_name="users")
         self.register_handlers()
 
     def stop(self):  # TODO: call at right place
@@ -41,12 +43,6 @@ ResourceWarning: unclosed <socket.socket fd=4, family=AddressFamily.AF_INET, typ
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
         '''
         self.storage.close()
-
-    def _get_default_storage(self, config):
-        storage_config = config["storage"]
-        connection_string = storage_config["connection_string"]
-        db_name = storage_config["db"]
-        return Mongo(connection_string, db_name=db_name, collection_name="users")
 
     def evernote(self, bot_user: BotUser=None) -> EvernoteApi:
         if bot_user is None:
