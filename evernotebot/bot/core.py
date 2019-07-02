@@ -2,7 +2,6 @@ import json
 import logging
 import random
 import string
-from functools import partial
 from time import time
 
 from utelegram import TelegramBot, TelegramBotError
@@ -34,6 +33,9 @@ class EvernoteBot(TelegramBot):
             self.storage = self._get_default_storage(config)
         self.register_handlers()
 
+    def stop(self):  # TODO: call at right place
+        self.storage.close()
+
     def _get_default_storage(self, config):
         storage_config = config["storage"]
         connection_string = storage_config["connection_string"]
@@ -41,13 +43,13 @@ class EvernoteBot(TelegramBot):
         return Mongo(connection_string, db_name=db_name, collection_name="users")
 
     def evernote(self, bot_user: BotUser=None) -> EvernoteApi:
-        partial_get_object = partial(get_cached_object,
-            self._evernote_apis_cache, bot_user.id)
         if bot_user is None:
-            return partial_get_object(constructor=lambda: evernote_api)
-        access_token = bot_user.evernote.access_token
+            return get_cached_object(self._evernote_apis_cache, None,
+                                     constructor=lambda: evernote_api)
+        access_token = bot_user.evernote.access.token
         sandbox = self.config.get("debug", True)
-        return partial_get_object(constructor=lambda: EvernoteApi(access_token, sandbox))
+        return get_cached_object(self._evernote_apis_cache, bot_user.id,
+            constructor=lambda: EvernoteApi(access_token, sandbox))
 
     def register_handlers(self):
         self.set_update_handler("message", self.on_message)

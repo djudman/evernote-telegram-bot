@@ -85,7 +85,10 @@ def get_cached_object(cache: dict, key: object, *, constructor: Callable=None):
         default = cache.get("default")
         if default is None:
             default = create_object()
-            cache["default"] = default
+            cache["default"] = {
+                "created": time(),
+                "object": default,
+            }
         return default
     entry = cache.get(key)
     if entry:
@@ -98,6 +101,7 @@ def get_cached_object(cache: dict, key: object, *, constructor: Callable=None):
         for k, v in cache.items():
             if v["created"] < min_time:
                 oldest_key = k
+                min_time = v["created"]
         del cache[oldest_key]
     new_entry = {
         "created": current_time,
