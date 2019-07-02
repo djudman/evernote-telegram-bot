@@ -13,17 +13,15 @@ class EvernoteApiError(Exception):
 
 
 class NoteContent:
-    def __init__(self, content=''):
-        if not isinstance(content, str):
-            raise Exception('Content must have `string` type')
+    def __init__(self, content: str=""):
         self.content = self.parse(content)
         self.resources = []
 
-    def parse(self, content):
-        matched = re.search(r'<en-note>(?P<content>.*)</en-note>', content)
+    def parse(self, content: str):
+        matched = re.search(r"<en-note>(?P<content>.*)</en-note>", content)
         if not matched:
-            return ''
-        return matched.group('content')
+            return ""
+        return matched.group("content")
 
     def make_resource(self, file_info):
         with open(file_info['path'], 'rb') as f:
@@ -175,11 +173,10 @@ class EvernoteApi:
     def get_note_link(self, note_guid, app_link=False):
         user_store = self._sdk.get_user_store()
         user = user_store.getUser(self._token)
-        user = {"id": user.id, "shard_id": user.shardId}
-        service = self._sdk.service_host,
-        shard = user["shard_id"],
-        user_id = user["id"],
-        note_guid = note_guid,
+        user_id = user.id
+        user = {"id": user_id, "shard_id": user.shardId}
+        service = self._sdk.service_host
+        shard = user["shard_id"]
         if app_link:
             return f"evernote:///view/{user_id}/{shard}/{note_guid}/{note_guid}/"
         return f"https://{service}/shard/{shard}/nl/{user_id}/{note_guid}/"

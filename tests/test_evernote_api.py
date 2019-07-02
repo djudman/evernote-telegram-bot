@@ -1,3 +1,5 @@
+import datetime
+import time
 import unittest
 from unittest import mock
 from collections import namedtuple
@@ -153,3 +155,30 @@ class TestEvernoteApi(unittest.TestCase):
                 '<br /><div>Merry Christmas</div><p>New Year</p><br />'
                 '<a href="http://evernote.com/123">santa.jpg</a>'
             '</en-note>')
+
+    def test_get_note_link(self, sdk):
+        User = namedtuple("User", ["id", "shardId"])
+        user = User(id="user_id:123", shardId="shardId:qwe")
+        sdk().get_user_store().getUser = mock.Mock(return_value=user)
+        sdk().service_host = "evernote.service.host"
+
+        api = EvernoteApi("access_token")
+        result = api.get_note_link("note_guid:xxx")
+        self.assertEqual(result, "https://evernote.service.host/shard/shardId:qwe/nl/user_id:123/note_guid:xxx/")
+        result = api.get_note_link("note_guid:zzz", app_link=True)
+        self.assertEqual(result, "evernote:///view/user_id:123/shardId:qwe/note_guid:zzz/note_guid:zzz/")
+
+    def test_get_quota_info(self, sdk):
+        User = namedtuple("User", ["accounting"])
+        Accounting = namedtuple("Accounting", ["uploadLimit", "uploadLimitEnd"])
+        ts = time.time()
+        now = datetime.datetime.fromtimestamp(ts)
+        user = User(accounting=Accounting(uploadLimit=1000,
+                                          uploadLimitEnd=ts * 1000))
+        sdk().get_user_store().getUser = mock.Mock(return_value=user)
+        self.note_store().getSyncState().uploaded = 100
+        sdk().get_note_store = self.note_store
+        api = EvernoteApi("access_token")
+        result = api.get_quota_info()
+        self.assertEqual(result["remaining"], 900)
+        self.assertEqual(result["reset_date"], now)
