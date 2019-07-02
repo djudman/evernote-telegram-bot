@@ -70,17 +70,16 @@ class NoteContent:
             self.content += '<br />{0}'.format(new_content)
 
     def __str__(self):
-        return '\
-<?xml version="1.0" encoding="UTF-8"?>\
-<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">\
-<en-note>{0}</en-note>'.format(self.content)
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"\
+               "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"\
+               f"<en-note>{self.content}</en-note>"
 
     def __unicode__(self):
         return str(self)
 
 
 def get_oauth_data(user_id, session_key, evernote_config, access="basic",
-                    sandbox=False):
+                   sandbox=False):
     access_config = evernote_config["access"][access]
     api_key = access_config["key"]
     api_secret = access_config["secret"]
@@ -114,10 +113,9 @@ def get_access_token(api_key, api_secret, sandbox=False, **oauth_kwargs):
 
 class EvernoteApi:
     def __init__(self, access_token, sandbox=True):
-        if access_token:
-            self._token = access_token
-            self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
-            self._notes_store = self._sdk.get_note_store()
+        self._token = access_token
+        self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
+        self._notes_store = self._sdk.get_note_store()
 
     def get_all_notebooks(self, query: dict=None):
         notebooks = self._notes_store.listNotebooks()
@@ -126,7 +124,7 @@ class EvernoteApi:
             return notebooks
         return list(
             filter(lambda nb: nb["guid"] == query.get("guid") \
-                or nb["name"] == query["name"], notebooks)
+                or nb["name"] == query.get("name"), notebooks)
         )
 
     def get_default_notebook(self):
@@ -143,7 +141,7 @@ class EvernoteApi:
         content = NoteContent()
         content.append(text=text, html=kwargs.get("html"))
         if "files" in kwargs:
-            map(lambda f: content.append(file=f), kwargs["files"])
+            list(map(lambda f: content.append(file=f), kwargs["files"]))
         note.content = str(content)
         note.resources = content.resources
         return self._notes_store.createNote(note)
@@ -175,9 +173,9 @@ class EvernoteApi:
             with_resources_alternate_data)
 
     def get_note_link(self, note_guid, app_link=False):
-        user = self.get_user()
-        if not user:
-            raise EvernoteApiError(f"User not found (token = {self._token})")
+        user_store = self._sdk.get_user_store()
+        user = user_store.getUser(self._token)
+        user = {"id": user.id, "shard_id": user.shardId}
         service = self._sdk.service_host,
         shard = user["shard_id"],
         user_id = user["id"],
@@ -185,14 +183,6 @@ class EvernoteApi:
         if app_link:
             return f"evernote:///view/{user_id}/{shard}/{note_guid}/{note_guid}/"
         return f"https://{service}/shard/{shard}/nl/{user_id}/{note_guid}/"
-
-    def get_user(self):
-        user_store = self._sdk.get_user_store()
-        user = user_store.getUser(self._token)
-        return {
-            "id": user.id,
-            "shard_id": user.shardId,
-        }
 
     def get_quota_info(self):
         user_store = self._sdk.get_user_store()
