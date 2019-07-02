@@ -6,9 +6,9 @@ from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import start_command
 from evernotebot.bot.shortcuts import evernote_oauth_callback
 
-from config import bot_config
-from mocks import TelegramApiMock, EvernoteApiMock
-from storage import MemoryStorage
+from util.config import bot_config
+from util.mocks import TelegramApiMock, EvernoteApiMock
+from util.storage import MemoryStorage
 
 
 class TestSaveToEvernote(unittest.TestCase):

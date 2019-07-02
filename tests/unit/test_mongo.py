@@ -3,7 +3,6 @@ from unittest import expectedFailure
 from unittest.case import SkipTest
 
 from pymongo.errors import ServerSelectionTimeoutError
-
 from evernotebot.bot.storage import Mongo
 
 

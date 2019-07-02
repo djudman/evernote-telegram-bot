@@ -8,7 +8,7 @@ import evernote.edam.type.ttypes as Types
 import evernotebot.util.evernote.client as evernote_api
 from evernotebot.util.evernote.client import EvernoteApi, EvernoteApiError
 
-from mocks import EvernoteSdkMock
+from util.mocks import EvernoteSdkMock
 
 
 Notebook = namedtuple("Notebook", ["guid", "name"])
