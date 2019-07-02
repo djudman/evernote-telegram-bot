@@ -1,6 +1,7 @@
 import copy
 import logging.config
 import yaml
+from yaml import SafeLoader
 from os import makedirs
 from os.path import dirname, exists, join, realpath
 
@@ -13,7 +14,7 @@ def load_config():
         if not exists(filepath):
             continue
         with open(filepath) as f:
-            data = yaml.load(f)
+            data = yaml.load(f, Loader=SafeLoader)
             config = copy.deepcopy({**config, **data})
     project_root = realpath(dirname(src_root))
     logs_root = join(project_root, "logs/")
@@ -36,25 +37,38 @@ def load_config():
 
 def get_logging_config(logs_root):
     return {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'default': {
-                'format': '%(asctime)s - PID:%(process)d - %(levelname)s - %(message)s (%(pathname)s:%(lineno)d)',
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - PID:%(process)d - %(levelname)s - %(message)s (%(pathname)s:%(lineno)d)",
             },
+            "message": {
+                "format": "%(message)s",
+            }
         },
-        'handlers': {
-            'file': {
-                'class': 'logging.handlers.TimedRotatingFileHandler',
-                'formatter': 'default',
-                'filename': join(logs_root, 'evernoterobot.log')
+        "handlers": {
+            "file": {
+                "class": "logging.handlers.TimedRotatingFileHandler",
+                "formatter": "message",
+                "filename": join(logs_root, "evernoterobot.log")
             },
+            "telegram": {
+                "class": "logging.handlers.TimedRotatingFileHandler",
+                "formatter": "default",
+                "filename": join(logs_root, 'telegram.api.log'),
+            }
         },
-        'loggers': {
-            '': {
-                'handlers': ['file'],
-                'level': 'DEBUG',
-                'propagate': True,
+        "loggers": {
+            "telegram.bot.api": {
+                "handlers": ["telegram"],
+                "level": "DEBUG",
+                "propagate": False,
+            },
+            "": {
+                "handlers": ["file"],
+                "level": "DEBUG",
+                "propagate": True,
             },
         },
     }

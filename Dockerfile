@@ -21,16 +21,17 @@ RUN set -ex; \
 		\) -exec rm -rf '{}' +; \
 	rm -f get-pip.py
 
-WORKDIR /srv/src/
+WORKDIR /evernotebot/src/
 RUN set -ex; \
 	pip3 install -r requirements.txt \
-	cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+	cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
+	mkdir /evernotebot/logs
 ENTRYPOINT [ \
 	"gunicorn", \
 	"--bind=0.0.0.0:8000", \
 	"--workers=2", \
 	"--preload", \
-	"--access-logfile=/srv/logs/gunicorn-access.log", \
-	"--error-logfile=/srv/logs/gunicorn-error.log", \
+	"--access-logfile=/evernotebot/logs/gunicorn-access.log", \
+	"--error-logfile=/evernotebot/logs/gunicorn-error.log", \
 	"evernotebot.wsgi:app"
 ]

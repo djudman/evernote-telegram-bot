@@ -37,8 +37,8 @@ class Mongo:
         if fail_if_not_exists and not data:
             raise MongoStorageException(f"Object not found. Query: {query}")
         if data:
-            data['id'] = data['_id']
-            del data['_id']
+            data["id"] = data["_id"]
+            del data["_id"]
             return data
 
     def get_all(self, query):
