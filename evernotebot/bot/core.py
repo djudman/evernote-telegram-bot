@@ -17,7 +17,7 @@ from evernotebot.bot.storage import Mongo
 from evernotebot.util.evernote.client import EvernoteApi
 
 
-class EvernoteBotException(Exception):
+class EvernoteBotException(TelegramBotError):
     pass
 
 
@@ -34,6 +34,12 @@ class EvernoteBot(TelegramBot):
         self.register_handlers()
 
     def stop(self):  # TODO: call at right place
+        '''
+        /usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/unittest/mock.py:2022:
+ResourceWarning: unclosed <socket.socket fd=4, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('127.0.0.1', 55742), raddr=('127.0.0.1', 27017)>
+  return tuple.__new__(cls, (name, args, kwargs))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+        '''
         self.storage.close()
 
     def _get_default_storage(self, config):
@@ -66,10 +72,10 @@ class EvernoteBot(TelegramBot):
     def on_message(self, bot, message: Message):
         user_id = message.from_user.id
         user_data = self.storage.get(user_id)
-        bot_user = BotUser(**user_data)
-        if not bot_user:
+        if not user_data:
             raise EvernoteBotException(f"Unregistered user {user_id}. "
                                         "You've to send /start command to register")
+        bot_user = BotUser(**user_data)
         if not bot_user.evernote or not bot_user.evernote.access.token:
             raise EvernoteBotException("You have to sign in to Evernote first. "
                                        "Send /start and press the button")
@@ -114,7 +120,7 @@ class EvernoteBot(TelegramBot):
         title = mode
         mode = mode.lower().replace(" ", "_")
         if mode not in ("one_note", "multiple_notes"):
-            raise TelegramBotError(f"Unknown mode '{title}'")
+            raise EvernoteBotException(f"Unknown mode '{title}'")
         return mode, title
 
     def switch_mode(self, bot_user: BotUser, selected_mode_str: str):
@@ -139,7 +145,7 @@ class EvernoteBot(TelegramBot):
         query = {"name": notebook_name}
         notebooks = self.evernote(bot_user).get_all_notebooks(query)
         if not notebooks:
-            raise TelegramBotError(f"Notebook '{notebook_name}' not found")
+            raise EvernoteBotException(f"Notebook '{notebook_name}' not found")
         # TODO: self.create_note(notebook) if bot_user.bot_mode == 'one_note'
         notebook = notebooks[0]
         bot_user.evernote.notebook.name = notebook["name"]

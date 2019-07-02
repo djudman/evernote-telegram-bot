@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-from evernotebot.bot.core import EvernoteBot
+from evernotebot.bot.core import EvernoteBot, EvernoteBotException
 from evernotebot.bot.models import BotUser
 
 from config import bot_config
@@ -47,3 +47,26 @@ class TestCore(unittest.TestCase):
         self.assertEqual(len(bot._evernote_apis_cache), 100)
         self.assertFalse("default" in bot._evernote_apis_cache)
         self.assertFalse(1 in bot._evernote_apis_cache)
+
+    def test_switch_notebook(self):
+        bot_user = BotUser(**self.default_user_data)
+        bot = EvernoteBot(bot_config)
+        bot.api = mock.Mock()
+        bot.api.sendMessage = mock.Mock()
+        bot.evernote = mock.Mock()
+        all_notebooks = [
+            {"guid": "xxx", "name": "xxx"},
+            {"guid": "zzz", "name": "zzz"},
+        ]
+        bot.evernote().get_all_notebooks = lambda query: list(filter(lambda nb: nb["name"] == query["name"], all_notebooks))
+        with self.assertRaises(EvernoteBotException) as ctx:
+            bot.switch_notebook(bot_user, "> www <")
+        self.assertEqual(str(ctx.exception), "Notebook 'www' not found")
+        bot.switch_notebook(bot_user, "zzz")
+        self.assertEqual(bot_user.evernote.notebook.name, "zzz")
+        self.assertEqual(bot_user.evernote.notebook.guid, "zzz")
+        bot.api.sendMessage.assert_called_once()
+        bot.switch_notebook(bot_user, "xxx")
+        self.assertEqual(bot_user.evernote.notebook.guid, "xxx")
+        bot.switch_notebook(bot_user, "xxx")
+        self.assertEqual(bot_user.evernote.notebook.guid, "xxx")
