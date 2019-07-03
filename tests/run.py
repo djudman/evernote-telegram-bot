@@ -39,3 +39,5 @@ if __name__ == '__main__':
         suite.addTests(loader.loadTestsFromModule(module))
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
+    if result.failures:
+        sys.exit(1)
