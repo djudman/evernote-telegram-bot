@@ -1,7 +1,6 @@
 import datetime
 import hashlib
 import mimetypes
-import logging
 import re
 
 import evernote.edam.type.ttypes as Types
@@ -83,15 +82,18 @@ def get_oauth_data(user_id, session_key, evernote_config, access="basic",
     api_secret = access_config["secret"]
     bytes_key = f"{api_key}{api_secret}{user_id}".encode()
     callback_key = hashlib.sha1(bytes_key).hexdigest()
-    url=evernote_config["oauth_callback_url"]
-    callback_url = f"{url}?access={access}&key={callback_key}&session_key={session_key}"
-    sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=sandbox)
+    url = evernote_config["oauth_callback_url"]
+    callback_url = f"{url}?access={access}&key={callback_key}&"\
+                   f"session_key={session_key}"
+    sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret,
+                      sandbox=sandbox)
     oauth_data = {"callback_key": callback_key}
     try:
         request_token = sdk.get_request_token(callback_url)
     except Exception as e:
         raise EvernoteApiError() from e
-    if "oauth_token" not in request_token or "oauth_token_secret" not in request_token:
+    if "oauth_token" not in request_token \
+       or "oauth_token_secret" not in request_token:
         raise EvernoteApiError("Can't obtain oauth token from Evernote")
     oauth_data["oauth_token"] = request_token["oauth_token"]
     oauth_data["oauth_token_secret"] = request_token["oauth_token_secret"]
@@ -104,9 +106,10 @@ def get_oauth_data(user_id, session_key, evernote_config, access="basic",
 
 def get_access_token(api_key, api_secret, sandbox=False, **oauth_kwargs):
     sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret,
-                        sandbox=sandbox)
-    return sdk.get_access_token(oauth_kwargs["token"],
-        oauth_kwargs["secret"], oauth_kwargs["verifier"])
+                      sandbox=sandbox)
+    return sdk.get_access_token(
+        oauth_kwargs["token"], oauth_kwargs["secret"],
+        oauth_kwargs["verifier"])
 
 
 class EvernoteApi:
@@ -151,8 +154,8 @@ class EvernoteApi:
         if "files" in kwargs:
             files = kwargs["files"]
             # We create new note for the files...
-            attachments_note = self.create_note(note.notebookGuid, text="",
-                title=title, files=files)
+            attachments_note = self.create_note(
+                note.notebookGuid, text="", title=title, files=files)
             # ...and put a link to this note into original note
             for file in files:
                 url = self.get_note_link(attachments_note.guid)
@@ -166,7 +169,8 @@ class EvernoteApi:
         with_resources_data = True,
         with_resources_recognition = False,
         with_resources_alternate_data = False
-        return self._notes_store.getNote(note_guid, with_content,
+        return self._notes_store.getNote(
+            note_guid, with_content,
             with_resources_data, with_resources_recognition,
             with_resources_alternate_data)
 

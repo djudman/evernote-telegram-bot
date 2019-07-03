@@ -22,32 +22,31 @@ def evernote_oauth(request):
     bot = request.app.bot
     evernote_oauth_callback(
         bot,
-        callback_key=request.GET['key'],
-        oauth_verifier=request.GET.get('oauth_verifier'),
-        access_type=request.GET.get('access')
+        callback_key=request.GET["key"],
+        oauth_verifier=request.GET.get("oauth_verifier"),
+        access_type=request.GET.get("access")
     )
     return HTTPFound(bot.url)
 
 
 def create_app():
     config = load_config()
-    webhook_url = config['webhook_url']
+    webhook_url = config["webhook_url"]
     webhook_path = urlparse(webhook_url).path
     src_root = realpath(dirname(__file__))
     app = WsgiApplication(src_root, config=config, urls=(
-        ('POST', webhook_path, telegram_hook),
-        ('GET', r'^/evernote/oauth$', evernote_oauth),
+        ("POST", webhook_path, telegram_hook),
+        ("GET", r"^/evernote/oauth$", evernote_oauth),
     ))
     app.bot = EvernoteBot(config)
     return app
 
 
 app = create_app()
-webhook_url = app.config['webhook_url']
+webhook_url = app.config["webhook_url"]
 try:
     app.bot.api.setWebhook(webhook_url)
-except Exception as e:
-    str_traceback = ''.join(traceback.format_tb(e.__traceback__))
-    message = f"Can't set up webhook url `{webhook_url}`. "\
-              f"Exception:\n{str_traceback}"
-    app.log(level='error', message=message)
+except Exception:
+    e = traceback.format_exc()
+    message = f"Can't set up webhook url `{webhook_url}`.\n{e}"
+    app.log(level="error", message=message)

@@ -18,14 +18,15 @@ build:
 	docker push djudman/evernote-telegram-bot:latest
 start:
 	docker run \
-	-e TELEGRAM_API_TOKEN \
-	-e EVERNOTE_BASIC_ACCESS_KEY \
-	-e EVERNOTE_BASIC_ACCESS_SECRET \
-	-e EVERNOTE_FULL_ACCESS_KEY \
-	-e EVERNOTE_FULL_ACCESS_SECRET \
+	-e MONGO_HOST="${MONGO_HOST}" \
+	-e TELEGRAM_API_TOKEN="${TELEGRAM_API_TOKEN}" \
+	-e EVERNOTE_BASIC_ACCESS_KEY="${EVERNOTE_BASIC_ACCESS_KEY}" \
+	-e EVERNOTE_BASIC_ACCESS_SECRET="${EVERNOTE_BASIC_ACCESS_SECRET}" \
+	-e EVERNOTE_FULL_ACCESS_KEY="${EVERNOTE_FULL_ACCESS_KEY}" \
+	-e EVERNOTE_FULL_ACCESS_SECRET="${EVERNOTE_FULL_ACCESS_SECRET}" \
 	--rm \
 	--name=evernotebot \
 	-it \
 	-p 127.0.0.1:8000:8000 \
-	-v evernotebot-logs:/evernotebot/logs \
+	-v evernotebot-logs:/app/logs:rw \
 	"djudman/evernote-telegram-bot:latest"
