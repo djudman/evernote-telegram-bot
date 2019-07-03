@@ -9,3 +9,14 @@ This bot can save everything that you send to Evernote account.
 
 
 You can use this bot in Telegram: https://t.me/evernoterobot
+
+Environment variables
+=====================
+| Variable name                | Default value | Description |
+|------------------------------|---------------|-------------|
+| MONGO_HOST                   | 127.0.0.1     | Hostname for mongodb host|
+| TELEGRAM_API_TOKEN           | -             | Access token for telegram API. You can obtain this by BotFather |
+| EVERNOTE_BASIC_ACCESS_KEY    | -             | appKey for your Evernote app (with readonly permissions) |
+| EVERNOTE_BASIC_ACCESS_SECRET | -             | secret for your Evernote app (with readonly permissions) |
+| EVERNOTE_FULL_ACCESS_KEY     | -             | appKey for your Evernote app (with read/write permissions) |
+| EVERNOTE_FULL_ACCESS_SECRET  | -             | secret for your Evernote app (with read/write permissions) |

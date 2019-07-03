@@ -1,21 +1,41 @@
 import copy
 import logging.config
-import yaml
-from yaml import SafeLoader
+import os
 from os import makedirs
 from os.path import dirname, exists, join, realpath
 
 
+def base_config():
+    return {
+        "debug": os.environ.get("EVERNOTEBOT_DEBUG", False),
+        "host": "evernotebot.djudman.info",
+        "telegram": {
+            "bot_url": "http://telegram.me/evernoterobot",
+            "token": os.environ["TELEGRAM_API_TOKEN"],
+        },
+        "evernote": {
+            "access": {
+                "basic": {
+                    "key": os.environ["EVERNOTE_BASIC_ACCESS_KEY"],
+                    "secret": os.environ["EVERNOTE_BASIC_ACCESS_SECRET"],
+                },
+                "full": {
+                    "key": os.environ["EVERNOTE_FULL_ACCESS_KEY"],
+                    "secret": os.environ["EVERNOTE_FULL_ACCESS_SECRET"],
+                },
+            },
+        },
+        "storage": {
+            "connection_string": f"mongodb://{os.environ.get('MONGO_HOST', '127.0.0.1')}:27017/",
+            "db": "evernotebot",
+            "collection": "users",
+        }
+    }
+
+
 def load_config():
     src_root = realpath(dirname(__file__))
-    config = {}
-    for name in ("config.yaml", "local.yaml"):
-        filepath = join(src_root, name)
-        if not exists(filepath):
-            continue
-        with open(filepath) as f:
-            data = yaml.load(f, Loader=SafeLoader)
-            config = copy.deepcopy({**config, **data})
+    config = base_config()
     project_root = realpath(dirname(src_root))
     logs_root = join(project_root, "logs/")
     config.update({
@@ -26,8 +46,7 @@ def load_config():
     hostname = config["host"]
     token = config["telegram"]["token"]
     config["webhook_url"] = f"https://{hostname}/{token}"
-    oauth_url_path = config["evernote"]["oauth_path"]
-    config["evernote"]["oauth_callback_url"] = f"https://{hostname}{oauth_url_path}"
+    config["evernote"]["oauth_callback_url"] = f"https://{hostname}/evernote/oauth"
     logging_config = get_logging_config(logs_root)
     makedirs(logs_root, exist_ok=True)
     makedirs(config["tmp_root"], exist_ok=True)

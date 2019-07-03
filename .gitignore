@@ -8,3 +8,4 @@ src/local.yaml
 *.code-workspace
 .coverage
 htmlcov
+tmp

@@ -33,7 +33,7 @@ class EvernoteBot(TelegramBot):
         if self.storage is None:
             cfg = config["storage"]
             self.storage = Mongo(cfg["connection_string"], db_name=cfg["db"],
-                                 collection_name="users")
+                collection_name=cfg["collection"])
         self.register_handlers()
 
     def stop(self):  # TODO: call at right place

@@ -6,5 +6,6 @@ services:
         container_name: evernotebot
         ports:
             - "private_ip:8000:8000"
+        restart: on-failure
         volumes:
             - "./logs:/evernotebot/logs"

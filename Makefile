@@ -6,9 +6,6 @@ httpd:
 	--error-logfile ./logs/gunicorn-error.log \
 	evernotebot.wsgi:app
 test:
-	@PWD=$(pwd)
-	@cd ./tests && PYTHONPATH="$(PWD)" python3 -m unittest -v
-test-cov:
 	coverage run --include=evernotebot/* tests/run.py
 	coverage report
 build:
