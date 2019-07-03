@@ -1,6 +1,8 @@
 import datetime
+import tempfile
 import time
 import unittest
+from os.path import basename
 from unittest import mock
 from collections import namedtuple
 
@@ -95,9 +97,11 @@ class TestEvernoteApi(unittest.TestCase):
         self.note_store().createNote = mock.Mock(return_value="created")
         sdk().get_note_store = self.note_store
         api = EvernoteApi("access_token")
-        result = api.create_note("nb_guid", text="test text",
-            html="<p>Test</p>",
-            files=[{"path": "/etc/hosts", "name": "file.txt"}])
+        with tempfile.NamedTemporaryFile(mode="r+", suffix=".txt", dir="/tmp") as f:
+            f.write("Hello")
+            result = api.create_note("nb_guid", text="test text",
+                html="<p>Test</p>",
+                files=[{"path": f.name, "name": basename(f.name)}])
         self.assertEqual(result, "created")
         self.note_store().createNote.assert_called_once()
         call_args = self.note_store().createNote.call_args[0]
@@ -112,7 +116,7 @@ class TestEvernoteApi(unittest.TestCase):
             '<en-note><br />'
                 '<div>test text</div>'
                 '<p>Test</p><br />'
-                '<en-media type="text/plain" hash="3350366d8d53bf5fe92a21020ae33d5b" />'
+                '<en-media type="text/plain" hash="d41d8cd98f00b204e9800998ecf8427e" />'
             '</en-note>')
         self.assertEqual(len(call_args[0].resources), 1)
 
@@ -132,10 +136,14 @@ class TestEvernoteApi(unittest.TestCase):
         sdk().get_note_store = self.note_store
         api = EvernoteApi("access_token")
         api.get_note_link = mock.Mock(return_value="http://evernote.com/123")
-        result = api.update_note("123", text="Merry Christmas",
-            title="Santa Claus",
-            html="<p>New Year</p>",
-            files=[{"path": "/etc/hosts", "name": "santa.jpg"}])
+        tmp_filename = None
+        with tempfile.NamedTemporaryFile(mode="r+", suffix=".txt", dir="/tmp") as f:
+            f.write("Hello")
+            tmp_filename = basename(f.name)
+            result = api.update_note("123", text="Merry Christmas",
+                title="Santa Claus",
+                html="<p>New Year</p>",
+                files=[{"path": f.name, "name": tmp_filename}])
         self.assertEqual(result, "updated")
         self.note_store().createNote.assert_called_once()
         call_args = self.note_store().createNote.call_args[0]
@@ -153,7 +161,7 @@ class TestEvernoteApi(unittest.TestCase):
                 '<div>test text</div>'
                 '<p>Test</p><br />'
                 '<br /><div>Merry Christmas</div><p>New Year</p><br />'
-                '<a href="http://evernote.com/123">santa.jpg</a>'
+                f'<a href="http://evernote.com/123">{tmp_filename}</a>'
             '</en-note>')
 
     def test_get_note_link(self, sdk):

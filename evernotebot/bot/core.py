@@ -1,5 +1,6 @@
 import json
 import logging
+import math
 import random
 import string
 from time import time
@@ -206,13 +207,12 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
     def on_photo(self, message: Message):
         max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
         file_id = None
-        file_size = 0
+        file_size = math.inf
         for photo in message.photo: # pick the biggest file
-            if file_size < photo.file_size <= max_size:
+            if photo.file_size <= max_size and \
+                (file_size == math.inf or file_size < photo.file_size):
                 file_size = photo.file_size
                 file_id = photo.file_id
-        if not file_id:
-            raise EvernoteBotException("File too big. Telegram does not allow to the bot to download files over 20Mb.")
         self._save_file_to_evernote(file_id, file_size, message)
 
     def on_audio(self, message: Message):

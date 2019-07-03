@@ -1,10 +1,11 @@
+import datetime
 import unittest
 from unittest import mock
 
 from utelegram.models import Message
+
 from evernotebot.bot.core import EvernoteBot, EvernoteBotException
 from evernotebot.bot.models import BotUser
-
 from util.config import bot_config
 from util.mocks import EvernoteSdkMock
 
@@ -99,6 +100,48 @@ class TestCore(unittest.TestCase):
             "{\"hide_keyboard\": true}")
         self.assertIsNone(bot_user.evernote.shared_note_id)
         self.assertEqual(bot_user.bot_mode, "multiple_notes")
+
+    def test_evernote_quota(self):
+        bot = EvernoteBot(bot_config)
+        bot.api = mock.Mock()
+        bot.api.getFile = mock.Mock(return_value="https://google.com/robots.txt")
+        bot.storage = mock.Mock()
+        bot.storage.get = mock.Mock(return_value=self.default_user_data)
+        bot.evernote = mock.Mock()
+        now = datetime.datetime.now()
+        bot.evernote().get_quota_info = mock.Mock(return_value={"remaining": 99, "reset_date": now})
+        bot.save_note = mock.Mock()
+        message = Message(
+            message_id=1,
+            date=1,
+            document={"file_id": 123, "file_size": 100},
+            from_user={"id": 2, "is_bot": False, "first_name": "John"},
+            caption="My document",
+        )
+        with self.assertRaises(EvernoteBotException) as ctx:
+            bot.on_document(message)
+        self.assertTrue(str(ctx.exception).startswith("Your evernote quota is out"))
+
+    def test_audio(self):
+        bot = EvernoteBot(bot_config)
+        bot.api = mock.Mock()
+        bot.api.getFile = mock.Mock(return_value="https://google.com/robots.txt")
+        bot.storage = mock.Mock()
+        bot.storage.get = mock.Mock(return_value=self.default_user_data)
+        bot.evernote = mock.Mock()
+        bot.evernote().get_quota_info = mock.Mock(return_value={"remaining": 100})
+        bot.save_note = mock.Mock()
+        message = Message(
+            message_id=1,
+            date=1,
+            voice={"file_id": 123, "file_size": 100, "duration": 5},
+            from_user={"id": 2, "is_bot": False, "first_name": "John"},
+            caption="My voice",
+        )
+        bot.on_audio(message)
+        bot.api.getFile.assert_called_once()
+        bot.evernote().get_quota_info.assert_called_once()
+        bot.save_note.assert_called_once()
 
     def test_location(self):
         bot = EvernoteBot(bot_config)
