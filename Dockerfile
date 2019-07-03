@@ -22,10 +22,15 @@ RUN set -ex; \
 	rm -f get-pip.py
 
 WORKDIR /evernotebot/src/
+COPY requirements.txt requirements.txt
 RUN set -ex; \
-	pip3 install -r requirements.txt \
-	cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime \
+	pip3 install -r requirements.txt; \
+	cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime; \
 	mkdir /evernotebot/logs
+VOLUME /evernotebot/logs
+EXPOSE 8000
+COPY evernotebot /evernotebot/src/
+RUN ls -la
 ENTRYPOINT [ \
 	"gunicorn", \
 	"--bind=0.0.0.0:8000", \
@@ -33,5 +38,5 @@ ENTRYPOINT [ \
 	"--preload", \
 	"--access-logfile=/evernotebot/logs/gunicorn-access.log", \
 	"--error-logfile=/evernotebot/logs/gunicorn-error.log", \
-	"evernotebot.wsgi:app"
+	"evernotebot.wsgi:app" \
 ]

@@ -1,6 +1,11 @@
 httpd:
 	@if [ ! -d "./logs" ]; then mkdir logs; fi
 	gunicorn \
+	-e TELEGRAM_API_TOKEN="" \
+	-e EVERNOTE_BASIC_ACCESS_KEY="" \
+	-e EVERNOTE_BASIC_ACCESS_SECRET="" \
+	-e EVERNOTE_FULL_ACCESS_KEY="" \
+	-e EVERNOTE_FULL_ACCESS_SECRET="" \
 	--bind=127.0.0.1:8000 \
 	--access-logfile ./logs/gunicorn-access.log \
 	--error-logfile ./logs/gunicorn-error.log \
@@ -9,7 +14,18 @@ test:
 	coverage run --include=evernotebot/* tests/run.py
 	coverage report
 build:
-	@if [ ! -d "./logs" ]; then mkdir logs; fi
-	docker-compose build
-	# docker push
-# install:
+	docker build -t djudman/evernote-telegram-bot:latest .
+	docker push djudman/evernote-telegram-bot:latest
+start:
+	docker run \
+	-e TELEGRAM_API_TOKEN \
+	-e EVERNOTE_BASIC_ACCESS_KEY \
+	-e EVERNOTE_BASIC_ACCESS_SECRET \
+	-e EVERNOTE_FULL_ACCESS_KEY \
+	-e EVERNOTE_FULL_ACCESS_SECRET \
+	--rm \
+	--name=evernotebot \
+	-it \
+	-p 127.0.0.1:8000:8000 \
+	-v evernotebot-logs:/evernotebot/logs \
+	"djudman/evernote-telegram-bot:latest"
