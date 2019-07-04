@@ -14,8 +14,7 @@ from evernotebot.bot.shortcuts import evernote_oauth_callback
 
 def telegram_hook(request):
     data = request.json()
-    telegram_update = Update(**data)
-    request.app.bot.process_update(telegram_update)
+    request.app.bot.process_update(data)
 
 
 def evernote_oauth(request):
