@@ -70,7 +70,7 @@ def get_logging_config(logs_root):
             "file": {
                 "class": "logging.handlers.TimedRotatingFileHandler",
                 "formatter": "message",
-                "filename": join(logs_root, "evernoterobot.log")
+                "filename": join(logs_root, "evernotebot.log")
             },
             "telegram": {
                 "class": "logging.handlers.TimedRotatingFileHandler",
