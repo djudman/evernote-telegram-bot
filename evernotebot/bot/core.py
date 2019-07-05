@@ -6,7 +6,7 @@ import string
 from time import time
 
 from utelegram import TelegramBot, TelegramBotError
-from utelegram.models import Message
+from utelegram import Message
 
 import evernotebot.util.evernote.client as evernote_api
 from evernotebot.bot.commands import start_command, \

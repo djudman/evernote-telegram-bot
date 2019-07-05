@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 
-from utelegram.models import Message, User
+from utelegram import Message, User
 
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import switch_notebook_command, help_command

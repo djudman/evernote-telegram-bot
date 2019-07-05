@@ -5,8 +5,7 @@ from urllib.parse import urlparse
 
 from uhttp import WsgiApplication
 from uhttp.core import HTTPFound
-from utelegram.bot import TelegramBotError
-from utelegram.models import Update
+from utelegram import Update, TelegramBotError
 
 from evernotebot.config import load_config
 from evernotebot.bot.core import EvernoteBot

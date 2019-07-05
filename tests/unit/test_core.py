@@ -2,7 +2,7 @@ import datetime
 import unittest
 from unittest import mock
 
-from utelegram.models import Message
+from utelegram import Message
 
 from evernotebot.bot.core import EvernoteBot, EvernoteBotException
 from evernotebot.bot.models import BotUser

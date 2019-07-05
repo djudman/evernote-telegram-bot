@@ -1,7 +1,7 @@
 import unittest
 from time import time
 
-from utelegram.models import Message
+from utelegram import Message
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import start_command
 from evernotebot.bot.shortcuts import evernote_oauth_callback

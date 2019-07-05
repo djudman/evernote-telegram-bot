@@ -3,7 +3,7 @@ import random
 import string
 from time import time
 
-from utelegram.models import Message
+from utelegram import Message
 
 from evernotebot.bot.models import BotUser, EvernoteOauthData
 from evernotebot.bot.shortcuts import get_evernote_oauth_data
