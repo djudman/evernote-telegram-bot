@@ -1,3 +1,4 @@
+import logging
 import traceback
 from os.path import dirname, realpath
 from urllib.parse import urlparse
@@ -48,4 +49,4 @@ try:
 except Exception:
     e = traceback.format_exc()
     message = f"Can't set up webhook url `{webhook_url}`.\n{e}"
-    app.log(level="error", message=message)
+    logging.getLogger('evernotebot').fatal({"exception": message})

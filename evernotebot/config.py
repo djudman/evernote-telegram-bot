@@ -1,8 +1,20 @@
-import copy
-import logging.config
+import json
 import os
+import logging
+import sys
+from logging import config, Formatter
 from os import makedirs
 from os.path import dirname, exists, join, realpath
+
+
+class JsonFormatter(Formatter):
+    def format(self, record):
+        return json.dumps({
+            "logger": record.name,
+            "file": record.pathname,
+            "line": record.lineno,
+            "data": record.msg,
+        })
 
 
 def base_config():
@@ -59,35 +71,32 @@ def get_logging_config(logs_root):
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "default": {
-                "format": "%(asctime)s - PID:%(process)d - %(levelname)s - %(message)s (%(pathname)s:%(lineno)d)",
+            "json": {
+                "class": "evernotebot.config.JsonFormatter",
             },
-            "message": {
-                "format": "%(message)s",
-            }
         },
         "handlers": {
-            "file": {
-                "class": "logging.handlers.TimedRotatingFileHandler",
-                "formatter": "message",
-                "filename": join(logs_root, "evernotebot.log")
+            "evernotebot": {
+                "class": "logging.StreamHandler",
+                "stream": sys.stdout,
+                "formatter": "json",
             },
-            "telegram": {
-                "class": "logging.handlers.TimedRotatingFileHandler",
-                "formatter": "default",
-                "filename": join(logs_root, 'telegram.api.log'),
-            }
         },
         "loggers": {
-            "telegram.bot.api": {
-                "handlers": ["telegram"],
+            "uhttp": {
+                "handlers": ["evernotebot"],
                 "level": "DEBUG",
                 "propagate": False,
             },
-            "": {
-                "handlers": ["file"],
+            "utelegram": {
+                "handlers": ["evernotebot"],
                 "level": "DEBUG",
-                "propagate": True,
+                "propagate": False,
+            },
+            "evernotebot": {
+                "handlers": ["evernotebot"],
+                "level": "DEBUG",
+                "propagate": False,
             },
         },
     }

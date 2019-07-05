@@ -26,6 +26,7 @@ start:
 	-e EVERNOTE_FULL_ACCESS_SECRET="${EVERNOTE_FULL_ACCESS_SECRET}" \
 	--rm \
 	--name=evernotebot \
+	--network=evernotebot-net \
 	-it \
 	-p 127.0.0.1:8000:8000 \
 	-v evernotebot-logs:/app/logs:rw \
