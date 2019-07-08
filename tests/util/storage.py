@@ -1,3 +1,7 @@
+import hashlib
+from time import time
+
+
 class MemoryStorageException(Exception):
     pass
 
@@ -6,10 +10,14 @@ class MemoryStorage:
     def __init__(self):
         self._objects = {}
 
-    def create(self, data):
-        if "id" not in data:
+    def create(self, data, auto_generate_id=False):
+        if "id" in data:
+            object_id = data["id"]
+        elif not auto_generate_id:
             raise MemoryStorageException("`id` required")
-        object_id = data["id"]
+        else:
+            key = "{0}{1}".format(time(), data).encode()
+            object_id = hashlib.sha256(key).hexdigest()
         self._objects[object_id] = data
         return object_id
 

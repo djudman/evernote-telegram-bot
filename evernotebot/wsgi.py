@@ -15,20 +15,14 @@ from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.shortcuts import evernote_oauth_callback
 
 
-def _save_failed_update(dirpath: str, data: dict, str_exc: str):
+def _save_failed_update(storage, data: dict, str_exc: str):
     current_time = time()
-    key = f"{current_time}{data}".encode()
-    key_hash = hashlib.sha1(key).hexdigest()
-    filename = join(dirpath, f"{key_hash}.json")
     failed_update = {
         "created": current_time,
         "data": data,
         "exception": str_exc,
     }
-    if exists(filename):
-        raise FileExistsError(filename)
-    with open(filename, 'w') as f:
-        json.dump(failed_update, f)
+    storage.create(failed_update, auto_generate_id=True)
 
 
 def telegram_hook(request):
@@ -38,7 +32,7 @@ def telegram_hook(request):
         bot.process_update(data)
     except Exception:
         str_exc = traceback.format_exc()
-        _save_failed_update(bot.config["failed_updates_root"], data, str_exc)
+        _save_failed_update(bot.failed_updates, data, str_exc)
 
 
 def evernote_oauth(request):

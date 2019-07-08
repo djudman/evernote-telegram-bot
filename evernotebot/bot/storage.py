@@ -23,12 +23,13 @@ class Mongo:
                 "either in connection string or as `db_name` parameter")
         self._collection = db.get_collection(collection)
 
-    def create(self, data: dict):
-        if "id" not in data:
-            raise MongoStorageException("`id` required")
+    def create(self, data: dict, auto_generate_id=False):
         data = deepcopy(data)
-        data["_id"] = data["id"]
-        del data["id"]
+        if "id" in data:
+            data["_id"] = data["id"]
+            del data["id"]
+        elif not auto_generate_id:
+            raise MongoStorageException("`id` required")
         return self._collection.insert_one(data).inserted_id
 
     def get(self, object_id, fail_if_not_exists=False):

@@ -63,7 +63,6 @@ def load_config():
         "src_root": src_root,
         "tmp_root": join(project_root, "tmp/"),
         "logs_root": logs_root,
-        "failed_updates_root": join(project_root, "failed_updates/"),
     })
     hostname = config["host"]
     token = config["telegram"]["token"]
@@ -72,7 +71,6 @@ def load_config():
     logging_config = get_logging_config(logs_root)
     makedirs(logs_root, exist_ok=True)
     makedirs(config["tmp_root"], exist_ok=True)
-    makedirs(config["failed_updates_root"], exist_ok=True)
     logging.config.dictConfig(logging_config)
     return config
 
