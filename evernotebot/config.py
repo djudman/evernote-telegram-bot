@@ -3,7 +3,7 @@ import json
 import os
 import logging
 import sys
-from logging import config, Formatter
+from logging import Formatter
 from os import makedirs
 from os.path import dirname, exists, join, realpath
 
@@ -61,6 +61,7 @@ def load_config():
     logs_root = join(project_root, "logs/")
     config.update({
         "src_root": src_root,
+        "html_root": join(src_root, "web/html"),
         "tmp_root": join(project_root, "tmp/"),
         "logs_root": logs_root,
     })
