@@ -3,7 +3,7 @@ import json
 import os
 import logging
 import sys
-from logging import Formatter
+from logging import config, Formatter
 from os import makedirs
 from os.path import dirname, exists, join, realpath
 
