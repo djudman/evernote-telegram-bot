@@ -10,3 +10,4 @@ src/local.yaml
 htmlcov
 tmp
 logs
+failed_updates

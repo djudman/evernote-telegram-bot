@@ -1,6 +1,9 @@
+import json
+import hashlib
 import logging
 import traceback
-from os.path import dirname, realpath
+from time import time
+from os.path import dirname, realpath, join
 from urllib.parse import urlparse
 
 from uhttp import WsgiApplication
@@ -12,9 +15,27 @@ from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.shortcuts import evernote_oauth_callback
 
 
+def _save_failed_update(dirpath: str, data: dict):
+    current_time = time()
+    key = "{time}{data}".format(time=current_time, data=data).encode()
+    key_hash = hashlib.sha1(key).hexdigest()
+    filename = join(dirpath, "{hash}.json".format(hash=key_hash))
+    failed_update = {
+        "created": current_time,
+        "data": data,
+        "exception": traceback.format_exc(),
+    }
+    with open(filename, 'w') as f:
+        json.dump(failed_update, f)
+
+
 def telegram_hook(request):
     data = request.json()
-    request.app.bot.process_update(data)
+    bot = request.app.bot
+    try:
+        bot.process_update(data)
+    except Exception as e:
+        _save_failed_update(bot.config["failed_updates_root"], data)
 
 
 def evernote_oauth(request):

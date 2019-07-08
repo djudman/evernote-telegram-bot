@@ -11,8 +11,7 @@ class JsonFormatter(Formatter):
     def format(self, record):
         return json.dumps({
             "logger": record.name,
-            "file": record.pathname,
-            "line": record.lineno,
+            "file": "{0}:{1}".format(record.pathname, record.lineno),
             "data": record.msg,
         })
 
@@ -38,7 +37,8 @@ def base_config():
             },
         },
         "storage": {
-            "connection_string": f"mongodb://{os.environ.get('MONGO_HOST', '127.0.0.1')}:27017/",
+            "connection_string": "mongodb://{host}:27017/".format(
+                host=os.environ.get("MONGO_HOST", "127.0.0.1")),
             "db": "evernotebot",
             "collection": "users",
         }
@@ -54,6 +54,7 @@ def load_config():
         "src_root": src_root,
         "tmp_root": join(project_root, "tmp/"),
         "logs_root": logs_root,
+        "failed_updates_root": join(project_root, "failed_updates/"),
     })
     hostname = config["host"]
     token = config["telegram"]["token"]
@@ -62,6 +63,7 @@ def load_config():
     logging_config = get_logging_config(logs_root)
     makedirs(logs_root, exist_ok=True)
     makedirs(config["tmp_root"], exist_ok=True)
+    makedirs(config["failed_updates_root"], exist_ok=True)
     logging.config.dictConfig(logging_config)
     return config
 

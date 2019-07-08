@@ -14,6 +14,7 @@ Environment variables
 =====================
 | Variable name                | Default value | Description |
 |------------------------------|---------------|-------------|
+| EVERNOTEBOT_DEBUG            | 0             | Enable debug mode (additional logging enabled) |
 | MONGO_HOST                   | 127.0.0.1     | Hostname for mongodb host|
 | TELEGRAM_API_TOKEN           | -             | Access token for telegram API. You can obtain this by BotFather |
 | EVERNOTE_BASIC_ACCESS_KEY    | -             | appKey for your Evernote app (with readonly permissions) |
