@@ -30,20 +30,20 @@ class TestCommands(unittest.TestCase):
                 "notebook": {"name": "xxx", "guid": "xxx"}
             },
         }
-        bot.storage = Mock()
-        bot.storage.get = Mock(return_value=user_data)
+        bot.users = Mock()
+        bot.users.get = Mock(return_value=user_data)
         bot.evernote = Mock()
         bot.evernote.get_all_notebooks = Mock(return_value=[{"name": "xxx", "guid": "xxx"}])
         bot.api = Mock()
         bot.api.sendMessage = Mock()
-        bot.storage.save = Mock()
+        bot.users.save = Mock()
         switch_notebook_command(bot, message)
-        bot.storage.get.assert_called_once_with(2)
+        bot.users.get.assert_called_once_with(2)
         bot.evernote.get_all_notebooks.assert_called_once_with("access_token")
         bot.api.sendMessage.assert_called_once_with(1, "Please, select notebook",
             '{"keyboard": [[{"text": "> xxx <"}]], "resize_keyboard": true, "one_time_keyboard": true}')
-        bot.storage.save.assert_called_once()
-        save_data = bot.storage.save.call_args[0][0]
+        bot.users.save.assert_called_once()
+        save_data = bot.users.save.call_args[0][0]
         self.assertEqual(save_data["state"], "switch_notebook")
 
     def test_help(self):

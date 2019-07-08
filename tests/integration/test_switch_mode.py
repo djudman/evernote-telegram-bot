@@ -13,7 +13,7 @@ from util.storage import MemoryStorage
 
 class TestSwitchMode(unittest.TestCase):
     def setUp(self):
-        bot = EvernoteBot(bot_config, storage=MemoryStorage())
+        bot = EvernoteBot(bot_config)
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteApiMock()
         message = Message(
@@ -52,7 +52,7 @@ class TestSwitchMode(unittest.TestCase):
             },
         }
         self.bot.process_update(update_data)
-        user_data = self.bot.storage.get(user_id)
+        user_data = self.bot.users.get(user_id)
         self.assertEqual(user_data["state"], "switch_mode")
         self.assertEqual(self.bot.api.sendMessage.call_count, 1)
         call = self.bot.api.sendMessage.calls[0]

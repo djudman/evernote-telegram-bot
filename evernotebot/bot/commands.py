@@ -11,7 +11,7 @@ from evernotebot.bot.shortcuts import get_evernote_oauth_data
 
 def start_command(bot, message: Message):
     user_id = message.from_user.id
-    user_data = bot.storage.get(user_id)
+    user_data = bot.users.get(user_id)
     if not user_data:
         current_time = time()
         telegram_user = message.from_user
@@ -30,20 +30,20 @@ def start_command(bot, message: Message):
                 'access': {'permission': 'basic'},
             },
         }
-        bot.storage.create(user_data)
+        bot.users.create(user_data)
 
     user = BotUser(**user_data)
     message_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
 Please tap on button below to link your Evernote account with bot.'''
     oauth_data = get_evernote_oauth_data(bot, user, message_text)
     user.evernote.oauth = oauth_data
-    bot.storage.save(user.asdict())
+    bot.users.save(user.asdict())
 
 
 def switch_mode_command(bot, message: Message):
     mode = message.text
     user_id = message.from_user.id
-    user_data = bot.storage.get(user_id)
+    user_data = bot.users.get(user_id)
     user = BotUser(**user_data)
     buttons = []
     for mode in ('one_note', 'multiple_notes'):
@@ -58,12 +58,12 @@ def switch_mode_command(bot, message: Message):
     }
     bot.api.sendMessage(user.telegram.chat_id, 'Please, select mode', json.dumps(keyboard))
     user.state = 'switch_mode'
-    bot.storage.save(user.asdict())
+    bot.users.save(user.asdict())
 
 
 def switch_notebook_command(bot, message: Message):
     user_id = message.from_user.id
-    user_data = bot.storage.get(user_id)
+    user_data = bot.users.get(user_id)
     user = BotUser(**user_data)
     all_notebooks = bot.evernote.get_all_notebooks(user.evernote.access.token)
     buttons = []
@@ -79,7 +79,7 @@ def switch_notebook_command(bot, message: Message):
     }
     bot.api.sendMessage(user.telegram.chat_id, "Please, select notebook", json.dumps(keyboard))
     user.state = "switch_notebook"
-    bot.storage.save(user.asdict())
+    bot.users.save(user.asdict())
 
 
 def help_command(bot, message: Message):

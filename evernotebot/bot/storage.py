@@ -10,9 +10,9 @@ class MongoStorageException(Exception):
 
 
 class Mongo:
-    def __init__(self, connection_string, *, collection_name=None, db_name=None):
-        if collection_name is None:
-            raise MongoStorageException("`collection_name` is required")
+    def __init__(self, connection_string, *, collection=None, db_name=None):
+        if collection is None:
+            raise MongoStorageException("`collection` is required")
         self._driver = MongoClient(connection_string)
         db = None
         with suppress(ConfigurationError):
@@ -21,7 +21,7 @@ class Mongo:
             raise MongoStorageException(
                 "You have to specify database name "
                 "either in connection string or as `db_name` parameter")
-        self._collection = db.get_collection(collection_name)
+        self._collection = db.get_collection(collection)
 
     def create(self, data: dict):
         if "id" not in data:

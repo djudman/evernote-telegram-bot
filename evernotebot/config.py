@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import logging
@@ -17,6 +18,16 @@ class JsonFormatter(Formatter):
 
 
 def base_config():
+    storage_config = {
+        "class": "evernotebot.bot.storage.Mongo",
+        "connection_string": "mongodb://{host}:27017/".format(
+            host=os.environ.get("MONGO_HOST", "127.0.0.1")),
+        "db_name": "evernotebot",
+    }
+    users_storage = copy.deepcopy(storage_config)
+    users_storage["collection"] = "users"
+    failed_updates_storage = copy.deepcopy(storage_config)
+    failed_updates_storage["collection"] = "failed_updates"
     return {
         "debug": os.environ.get("EVERNOTEBOT_DEBUG", False),
         "host": "evernotebot.djudman.info",
@@ -37,10 +48,8 @@ def base_config():
             },
         },
         "storage": {
-            "connection_string": "mongodb://{host}:27017/".format(
-                host=os.environ.get("MONGO_HOST", "127.0.0.1")),
-            "db": "evernotebot",
-            "collection": "users",
+            "users": users_storage,
+            "failed_updates": failed_updates_storage,
         }
     }
 

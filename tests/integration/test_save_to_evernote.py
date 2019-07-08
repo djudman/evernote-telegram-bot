@@ -13,7 +13,7 @@ from util.storage import MemoryStorage
 
 class TestSaveToEvernote(unittest.TestCase):
     def setUp(self):
-        bot = EvernoteBot(bot_config, storage=MemoryStorage())
+        bot = EvernoteBot(bot_config)
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteApiMock()
         message = Message(

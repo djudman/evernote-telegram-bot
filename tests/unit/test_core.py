@@ -105,8 +105,8 @@ class TestCore(unittest.TestCase):
         bot = EvernoteBot(bot_config)
         bot.api = mock.Mock()
         bot.api.getFile = mock.Mock(return_value="https://google.com/robots.txt")
-        bot.storage = mock.Mock()
-        bot.storage.get = mock.Mock(return_value=self.default_user_data)
+        bot.users = mock.Mock()
+        bot.users.get = mock.Mock(return_value=self.default_user_data)
         bot.evernote = mock.Mock()
         now = datetime.datetime.now()
         bot.evernote().get_quota_info = mock.Mock(return_value={"remaining": 99, "reset_date": now})
@@ -126,8 +126,8 @@ class TestCore(unittest.TestCase):
         bot = EvernoteBot(bot_config)
         bot.api = mock.Mock()
         bot.api.getFile = mock.Mock(return_value="https://google.com/robots.txt")
-        bot.storage = mock.Mock()
-        bot.storage.get = mock.Mock(return_value=self.default_user_data)
+        bot.users = mock.Mock()
+        bot.users.get = mock.Mock(return_value=self.default_user_data)
         bot.evernote = mock.Mock()
         bot.evernote().get_quota_info = mock.Mock(return_value={"remaining": 100})
         bot.save_note = mock.Mock()
@@ -145,8 +145,8 @@ class TestCore(unittest.TestCase):
 
     def test_location(self):
         bot = EvernoteBot(bot_config)
-        bot.storage = mock.Mock()
-        bot.storage.get = mock.Mock(return_value=self.default_user_data)
+        bot.users = mock.Mock()
+        bot.users.get = mock.Mock(return_value=self.default_user_data)
         bot.save_note = mock.Mock()
         message = Message(
             message_id=1,

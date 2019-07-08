@@ -1,4 +1,6 @@
+import copy
 import json
+import importlib
 import logging
 import math
 import random
@@ -14,7 +16,6 @@ from evernotebot.bot.commands import start_command, \
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 from evernotebot.bot.shortcuts import get_evernote_oauth_data, \
     get_cached_object, download_telegram_file
-from evernotebot.bot.storage import Mongo
 from evernotebot.util.evernote.client import EvernoteApi
 
 
@@ -23,18 +24,24 @@ class EvernoteBotException(TelegramBotError):
 
 
 class EvernoteBot(TelegramBot):
-    def __init__(self, config, storage=None):
+    def __init__(self, config):
         telegram_config = config["telegram"]
         token = telegram_config["token"]
         bot_url = telegram_config["bot_url"]
         super().__init__(token, bot_url=bot_url, config=config)
         self._evernote_apis_cache = {}
-        self.storage = storage
-        if self.storage is None:
-            cfg = config["storage"]
-            self.storage = Mongo(cfg["connection_string"], db_name=cfg["db"],
-                                 collection_name=cfg["collection"])
+        storage_config = config["storage"]
+        self.users = self._init_storage(storage_config["users"])
+        self.failed_updates = self._init_storage(storage_config["failed_updates"])
         self.register_handlers()
+
+    def _init_storage(self, config: dict):
+        module_name, classname = config["class"].rsplit(".", 1)
+        module = importlib.import_module(module_name)
+        config_copy = copy.deepcopy(config)
+        del config_copy["class"]
+        StorageClass = getattr(module, classname)
+        return StorageClass(**config_copy)
 
     def stop(self):  # TODO: call at right place
         '''
@@ -43,7 +50,8 @@ ResourceWarning: unclosed <socket.socket fd=4, family=AddressFamily.AF_INET, typ
   return tuple.__new__(cls, (name, args, kwargs))
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
         '''
-        self.storage.close()
+        self.users.close()
+        self.failed_updates.close()
 
     def evernote(self, bot_user: BotUser=None) -> EvernoteApi:
         if bot_user is None:
@@ -68,7 +76,7 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
 
     def on_message(self, bot, message: Message):
         user_id = message.from_user.id
-        user_data = self.storage.get(user_id)
+        user_data = self.users.get(user_id)
         if not user_data:
             raise EvernoteBotException(f"Unregistered user {user_id}. "
                                         "You've to send /start command to register")
@@ -92,7 +100,7 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
             raise EvernoteBotException(f"Invalid state: {state}")
         state_handler(bot_user, message.text)
         bot_user.state = None
-        self.storage.save(bot_user.asdict())
+        self.users.save(bot_user.asdict())
 
     def handle_message(self, message: Message):
         message_attrs = ("text", "photo", "voice", "audio", "video",
@@ -191,7 +199,7 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
         if file_size > max_size:
             raise EvernoteBotException('File too big. Telegram does not allow to the bot to download files over 20Mb.')
         filename, short_name = download_telegram_file(self.api, file_id, self.config["tmp_root"])
-        user_data = self.storage.get(message.from_user.id)
+        user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
         self._check_evernote_quota(user, file_size)
         title = message.caption or message.text[:20] or 'File'
@@ -199,7 +207,7 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
         self.save_note(user, text=message.text, title=title, files=files)
 
     def on_text(self, message: Message):
-        user_data = self.storage.get(message.from_user.id)
+        user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
         text = message.text
         self.save_note(user, text, title=text[:20])
@@ -245,6 +253,6 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
             if foursquare_id:
                 url = f"https://foursquare.com/v/{foursquare_id}"
                 html += f"<br /><a href='{url}'>{url}</a>"
-        user_data = self.storage.get(message.from_user.id)
+        user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
         self.save_note(user, title=title, html=html)

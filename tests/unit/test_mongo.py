@@ -12,7 +12,7 @@ class TestMongoStorage(unittest.TestCase):
         connection_string = "mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=100"
         try:
             self.client = Mongo(connection_string, db_name=self.db_name,
-                                collection_name="test")
+                                collection="test")
             list(self.client.get_all({}))
         except ServerSelectionTimeoutError as e:
             raise SkipTest(e)

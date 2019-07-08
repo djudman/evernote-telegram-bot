@@ -15,7 +15,7 @@ from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 def evernote_oauth_callback(bot, callback_key: str, oauth_verifier: str,
                             access_type: str="basic"):
     query = {"evernote.oauth.callback_key": callback_key}
-    user_data = bot.storage.get(query, fail_if_not_exists=True)
+    user_data = bot.users.get(query, fail_if_not_exists=True)
     user = BotUser(**user_data)
     chat_id = user.telegram.chat_id
     if not oauth_verifier:
@@ -53,7 +53,7 @@ def evernote_oauth_callback(bot, callback_key: str, oauth_verifier: str,
             f"{user.evernote.notebook.name}\nCurrent mode: {mode}")
     else:
         bot.switch_mode(user, "one_note")
-    bot.storage.save(user.asdict())
+    bot.users.save(user.asdict())
 
 
 def get_evernote_oauth_data(bot, bot_user: BotUser, message_text: str,

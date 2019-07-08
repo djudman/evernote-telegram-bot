@@ -29,11 +29,11 @@ class TestStartCommad(unittest.TestCase):
                 "chat": {"id": 9, "type": ""},
             },
         }
-        bot = EvernoteBot(bot_config, storage=MemoryStorage())
+        bot = EvernoteBot(bot_config)
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteApiMock()
         bot.process_update(update_data)
-        user_data = bot.storage.get(user_id)
+        user_data = bot.users.get(user_id)
         self.assertIsNotNone(user_data)
         self.assertEqual(user_data["id"], 5)
         self.assertEqual(user_data["evernote"]["oauth"]["token"], "token")
