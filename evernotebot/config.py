@@ -8,16 +8,13 @@ from os import makedirs
 from os.path import dirname, exists, join, realpath
 
 
-class JsonFormatter(Formatter):
-    def format(self, record):
-        return json.dumps({
-            "logger": record.name,
-            "file": "{0}:{1}".format(record.pathname, record.lineno),
-            "data": record.msg,
-        })
+_config_cache = None
 
 
-def base_config():
+def load_config():
+    global _config_cache
+    if _config_cache is not None:
+        return _config_cache
     storage_config = {
         "class": "evernotebot.bot.storage.Mongo",
         "connection_string": "mongodb://{host}:27017/".format(
@@ -28,14 +25,23 @@ def base_config():
     users_storage["collection"] = "users"
     failed_updates_storage = copy.deepcopy(storage_config)
     failed_updates_storage["collection"] = "failed_updates"
-    return {
+
+    src_root = realpath(dirname(__file__))
+    project_root = realpath(dirname(src_root))
+    logs_root = join(project_root, "logs/")
+    telegram_token = os.environ["TELEGRAM_API_TOKEN"]
+    hostname = "evernotebot.djudman.info"
+
+    config = {
         "debug": os.environ.get("EVERNOTEBOT_DEBUG", False),
-        "host": "evernotebot.djudman.info",
+        "host": hostname,
         "telegram": {
             "bot_url": "http://telegram.me/evernoterobot",
-            "token": os.environ["TELEGRAM_API_TOKEN"],
+            "token": telegram_token,
+            "webhook_url": f"https://{hostname}/{telegram_token}"
         },
         "evernote": {
+            "oauth_callback_url": f"https://{hostname}/evernote/oauth",
             "access": {
                 "basic": {
                     "key": os.environ["EVERNOTE_BASIC_ACCESS_KEY"],
@@ -50,30 +56,27 @@ def base_config():
         "storage": {
             "users": users_storage,
             "failed_updates": failed_updates_storage,
-        }
-    }
-
-
-def load_config():
-    src_root = realpath(dirname(__file__))
-    config = base_config()
-    project_root = realpath(dirname(src_root))
-    logs_root = join(project_root, "logs/")
-    config.update({
+        },
         "src_root": src_root,
         "html_root": join(src_root, "web/html"),
         "tmp_root": join(project_root, "tmp/"),
         "logs_root": logs_root,
-    })
-    hostname = config["host"]
-    token = config["telegram"]["token"]
-    config["webhook_url"] = f"https://{hostname}/{token}"
-    config["evernote"]["oauth_callback_url"] = f"https://{hostname}/evernote/oauth"
-    logging_config = get_logging_config(logs_root)
+    }
     makedirs(logs_root, exist_ok=True)
     makedirs(config["tmp_root"], exist_ok=True)
+    logging_config = get_logging_config(logs_root)
     logging.config.dictConfig(logging_config)
+    _config_cache = config
     return config
+
+
+class JsonFormatter(Formatter):
+    def format(self, record):
+        return json.dumps({
+            "logger": record.name,
+            "file": "{0}:{1}".format(record.pathname, record.lineno),
+            "data": record.msg,
+        })
 
 
 def get_logging_config(logs_root):
