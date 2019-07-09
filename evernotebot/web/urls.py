@@ -6,7 +6,7 @@ from evernotebot.web.views import telegram_hook, evernote_oauth, get_logs,\
 
 
 config = load_config()
-webhook_url = config["webhook_url"]
+webhook_url = config["telegram"]["webhook_url"]
 webhook_path = urlparse(webhook_url).path
 
 urls = (

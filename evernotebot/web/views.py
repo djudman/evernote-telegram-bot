@@ -2,7 +2,8 @@ import traceback
 from time import time
 from os.path import join
 
-from uhttp.core import HTTPFound, Response
+from uhttp.core import HTTPFound, Request, Response
+from uhttp.shortcuts import restricted
 
 from evernotebot.config import load_config
 from evernotebot.bot.shortcuts import evernote_oauth_callback
@@ -44,23 +45,16 @@ def html(filename):
         return Response(data, headers=[('Content-Type', 'text/html')])
     return handler
 
-
-def restricted(func):
-    def wrapper(request):
-        return func(request)
-    return wrapper
-
-
 @restricted
-def get_logs(request):
+def get_logs(request: Request):
     raise Exception("Not implemented")
 
 
 @restricted
-def retry_failed_update(request):
+def retry_failed_update(request: Request):
     raise Exception("Not implemented")
 
 
 @restricted
-def send_broadcast_message(request):  # to all users
+def send_broadcast_message(request: Request):  # to all users
     raise Exception("Not implemented")

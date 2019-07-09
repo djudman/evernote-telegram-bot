@@ -61,6 +61,9 @@ def load_config():
         "html_root": join(src_root, "web/html"),
         "tmp_root": join(project_root, "tmp/"),
         "logs_root": logs_root,
+        "uhttp": {
+            "admins": [line.split(":", 1) for line in os.environ.get("EVERNOTEBOT_ADMINS", "").split(",") if line],
+        },
     }
     makedirs(logs_root, exist_ok=True)
     makedirs(config["tmp_root"], exist_ok=True)

@@ -14,7 +14,7 @@ src_root = realpath(dirname(__file__))
 app = WsgiApplication(src_root, config=config, urls=urls)
 app.bot = EvernoteBot(config)
 
-webhook_url = config["webhook_url"]
+webhook_url = config["telegram"]["webhook_url"]
 try:
     app.bot.api.setWebhook(webhook_url)
 except Exception:
