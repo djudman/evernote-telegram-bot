@@ -36,6 +36,7 @@ def evernote_oauth(request):
 
 
 def html(filename):
+    @restricted
     def handler(request):
         config = load_config()
         nonlocal filename
@@ -45,16 +46,28 @@ def html(filename):
         return Response(data, headers=[('Content-Type', 'text/html')])
     return handler
 
+
 @restricted
-def get_logs(request: Request):
+def api_get_logs(request: Request):
+    page = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 10)
+    query = request.GET.get("query")
+    bot = request.app.bot
     raise Exception("Not implemented")
 
 
 @restricted
-def retry_failed_update(request: Request):
+def api_list_failed_updates(request: Request):
+    bot = request.app.bot
+    bot.failed_updates.get_all()
     raise Exception("Not implemented")
 
 
 @restricted
-def send_broadcast_message(request: Request):  # to all users
+def api_retry_failed_update(request: Request):
+    raise Exception("Not implemented")
+
+
+@restricted
+def api_send_broadcast_message(request: Request):  # to all users
     raise Exception("Not implemented")
