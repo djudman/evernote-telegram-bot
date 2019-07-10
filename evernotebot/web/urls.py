@@ -8,13 +8,14 @@ from evernotebot.web.views import (
 
 
 config = load_config()
+secret = config["secret"]
 webhook_url = config["telegram"]["webhook_url"]
 webhook_path = urlparse(webhook_url).path
 
 urls = (
     # Bot hooks
     ("POST", r"^{}$".format(webhook_path), telegram_hook),
-    ("GET", r"^/evernote/oauth$", evernote_oauth),
+    ("GET", r"^/evernote/oauth/{}$".format(secret), evernote_oauth),
     # View
     ("GET", r"^/$", html("dashboard.html")),
     ("GET", r"^/logs$", html("logs.html")),

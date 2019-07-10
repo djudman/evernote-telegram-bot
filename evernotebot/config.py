@@ -2,6 +2,8 @@ import copy
 import json
 import os
 import logging
+import random
+import string
 import sys
 from logging import config, Formatter
 from os import makedirs
@@ -31,8 +33,11 @@ def load_config():
     logs_root = join(project_root, "logs/")
     telegram_token = os.environ["TELEGRAM_API_TOKEN"]
     hostname = "evernotebot.djudman.info"
+    symbols = string.ascii_lowercase + string.ascii_uppercase + string.digits
+    secret = "".join([random.choice(symbols) for _ in range(40)])
 
     config = {
+        "secret": secret,
         "debug": os.environ.get("EVERNOTEBOT_DEBUG", False),
         "host": hostname,
         "telegram": {
@@ -41,7 +46,7 @@ def load_config():
             "webhook_url": f"https://{hostname}/{telegram_token}"
         },
         "evernote": {
-            "oauth_callback_url": f"https://{hostname}/evernote/oauth",
+            "oauth_callback_url": f"https://{hostname}/evernote/oauth/{secret}",
             "access": {
                 "basic": {
                     "key": os.environ["EVERNOTE_BASIC_ACCESS_KEY"],

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import unittest
 import tempfile
@@ -64,13 +65,14 @@ class TestWebViews(unittest.TestCase):
         self.assertEqual(failed_updates[0]["data"]["test"], "abc")
 
     def test_evernote_oauth_declined_auth(self):
-        request = self.create_request({"key": "xxx"})
+        callback_key = hashlib.sha1(b"xxx").hexdigest()
+        request = self.create_request({"key": callback_key, "access": "basic"})
         bot = request.app.bot
         bot.api = mock.Mock()
         bot.api.sendMessage = mock.Mock()
         bot_user = BotUser(**self.default_user_data)
         bot_user.evernote.oauth = EvernoteOauthData(token="token",
-            secret="secret", callback_key="xxx")
+            secret="secret", callback_key=callback_key)
         bot.users.create(bot_user.asdict())
         evernote_oauth(request)
         bot.api.sendMessage.assert_called_once()
