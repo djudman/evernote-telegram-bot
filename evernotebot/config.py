@@ -35,6 +35,8 @@ def load_config():
     hostname = "evernotebot.djudman.info"
     symbols = string.ascii_lowercase + string.ascii_uppercase + string.digits
     secret = "".join([random.choice(symbols) for _ in range(40)])
+    admins = os.environ.get("EVERNOTEBOT_ADMINS", "").split(",")
+    admins = [line.split(":", 1) for line in admins if line]
 
     config = {
         "secret": secret,
@@ -66,14 +68,12 @@ def load_config():
         "html_root": join(src_root, "web/html"),
         "tmp_root": join(project_root, "tmp/"),
         "logs_root": logs_root,
-        "uhttp": {
-            "admins": [line.split(":", 1) for line in os.environ.get("EVERNOTEBOT_ADMINS", "").split(",") if line],
-        },
+        "uhttp": {"admins": admins},
+        "logging": get_logging_config(logs_root),
     }
     makedirs(logs_root, exist_ok=True)
     makedirs(config["tmp_root"], exist_ok=True)
-    logging_config = get_logging_config(logs_root)
-    logging.config.dictConfig(logging_config)
+    logging.config.dictConfig(config["logging"])
     _config_cache = config
     return config
 

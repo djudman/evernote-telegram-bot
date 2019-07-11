@@ -1,4 +1,5 @@
 import logging
+import math
 import re
 import traceback
 from time import time
@@ -29,7 +30,6 @@ def telegram_hook(request):
             "exception": str_exc,
             "failed_update_id": entry_id,
         })
-
 
 
 def evernote_oauth(request):
@@ -66,9 +66,17 @@ def html(filename):
 def api_get_logs(request: Request):
     page = int(request.GET.get("page", 1))
     page_size = int(request.GET.get("page_size", 10))
-    query = request.GET.get("query")
-    bot = request.app.bot
-    raise Exception("Not implemented")
+    filename = config["logging"]["handlers"]["evernotebot"]["filename"]
+    with open(filename, "r") as f:
+        lines = reversed(f.readlines())
+    total_cnt = len(lines)
+    num_pages = math.ceil(total_cnt / page_size)
+    index = page_size * page
+    return {
+        "total": total_cnt,
+        "num_pages": num_pages,
+        "data": lines[index:index + page_size],
+    }
 
 
 @restricted
