@@ -1,3 +1,5 @@
+import hashlib
+import json
 import logging
 import math
 import re
@@ -62,20 +64,41 @@ def html(filename):
     return handler
 
 
+def api_login(request: Request):
+    username = request.GET("username")
+    password = request.GET("password")
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+    config = request.app.config
+    admins = request.app.config["uhttp"]["admins"]
+    secret = config["secret"]
+    for admin_username, admin_password_hash in admins:
+        if admin_username == username and admin_password_hash == password_hash:
+            key = f"{time()}{secret}{password_hash}"
+            auth_token = hashlib.sha1(key.encode()).hexdigest()
+            headers = [
+                ("Location", "/"),
+                ("Set-Cookie", f"auth_token={auth_token}; Secure; SameSite=Strict")
+            ]
+            return Response(None, headers=headers)
+
 @restricted
 def api_get_logs(request: Request):
-    page = int(request.GET.get("page", 1))
-    page_size = int(request.GET.get("page_size", 10))
-    filename = config["logging"]["handlers"]["evernotebot"]["filename"]
+    request.no_log = True
+    config = request.app.config
+    filename = str(config["logging"]["handlers"]["evernotebot"]["filename"])
+    data = []
     with open(filename, "r") as f:
-        lines = reversed(f.readlines())
-    total_cnt = len(lines)
+        for line in f:
+            data.insert(0, json.loads(line))
+    total_cnt = len(data)
+    page = int(request.GET.get("page", 1)) - 1
+    page_size = int(request.GET.get("page_size", 10))
     num_pages = math.ceil(total_cnt / page_size)
-    index = page_size * page
+    start = page_size * page
     return {
         "total": total_cnt,
         "num_pages": num_pages,
-        "data": lines[index:index + page_size],
+        "data": data[start:(start + page_size)],
     }
 
 

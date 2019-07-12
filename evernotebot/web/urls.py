@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 from evernotebot.config import load_config
 from evernotebot.web.views import (
     telegram_hook, evernote_oauth, api_get_logs, api_retry_failed_update,
-    api_send_broadcast_message, api_list_failed_updates, html
+    api_login, api_send_broadcast_message, api_list_failed_updates, html
 )
 
 
@@ -21,6 +21,7 @@ urls = (
     ("GET", r"^/logs$", html("logs.html")),
     ("GET", r"^/retry$", html("retrying.html")),
     # API
+    ("GET", r"^/api/login$", api_login),
     ("GET", r"^/api/logs$", api_get_logs),
     ("GET", r"^/api/failed_updates", api_list_failed_updates),
     ("POST", r"^/api/retry$", api_retry_failed_update),

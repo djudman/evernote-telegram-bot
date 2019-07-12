@@ -6,6 +6,7 @@ import random
 import string
 import sys
 from logging import config, Formatter
+from pathlib import Path
 from os import makedirs
 from os.path import dirname, exists, join, realpath
 
@@ -97,9 +98,16 @@ def get_logging_config(logs_root):
             },
         },
         "handlers": {
-            "evernotebot": {
+            "stdout": {
                 "class": "logging.StreamHandler",
                 "stream": sys.stdout,
+                "formatter": "json",
+            },
+            "evernotebot": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": Path(logs_root, "evernotebot.log"),
+                "maxBytes": 1024 * 1024 * 10,
+                "backupCount": 1,
                 "formatter": "json",
             },
         },
