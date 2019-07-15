@@ -1,0 +1,23 @@
+* {
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-size: 12px;
+}
+
+div.loginForm {
+	border: solid #dadada 1px;
+	background: #dadada;
+	display: flex;
+	justify-content: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+}
+
+.loginForm table {
+	align-self: center;
+}
+
+.loginForm table tr {
+	text-align: center;
+}

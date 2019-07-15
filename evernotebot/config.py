@@ -66,7 +66,7 @@ def load_config():
             "failed_updates": failed_updates_storage,
         },
         "src_root": src_root,
-        "html_root": join(src_root, "web/html"),
+        "html_root": join(src_root, "web/admin/html"),
         "tmp_root": join(project_root, "tmp/"),
         "logs_root": logs_root,
         "uhttp": {"admins": admins},
