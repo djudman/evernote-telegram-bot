@@ -8,7 +8,7 @@ from time import time
 from os.path import join
 
 from uhttp.core import HTTPFound, Request, Response
-from uhttp.shortcuts import restricted
+from uhttp.shortcuts import auth_required
 
 from evernotebot.config import load_config
 from evernotebot.bot.core import EvernoteBotException
@@ -52,18 +52,6 @@ def evernote_oauth(request):
     return HTTPFound(bot.url)
 
 
-def html(filename):
-    @restricted
-    def handler(request):
-        config = load_config()
-        nonlocal filename
-        filename = join(config["html_root"], filename)
-        with open(filename, "r") as f:
-            data = f.read().encode()
-        return Response(data, headers=[('Content-Type', 'text/html')])
-    return handler
-
-
 def api_login(request: Request):
     username = request.GET("username")
     password = request.GET("password")
@@ -81,7 +69,7 @@ def api_login(request: Request):
             ]
             return Response(None, headers=headers)
 
-@restricted
+@auth_required
 def api_get_logs(request: Request):
     request.no_log = True
     config = request.app.config
@@ -102,18 +90,18 @@ def api_get_logs(request: Request):
     }
 
 
-@restricted
+@auth_required
 def api_list_failed_updates(request: Request):
     bot = request.app.bot
     bot.failed_updates.get_all()
     raise Exception("Not implemented")
 
 
-@restricted
+@auth_required
 def api_retry_failed_update(request: Request):
     raise Exception("Not implemented")
 
 
-@restricted
+@auth_required
 def api_send_broadcast_message(request: Request):  # to all users
     raise Exception("Not implemented")
