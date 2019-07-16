@@ -4,7 +4,7 @@
 		<script src="/evernotebot.js"></script>
 		<script type="text/javascript">
 			(function() {
-				onLoadLoginPage();
+				window.onload = onLoadLoginPage;
 			})()
 		</script>
 	</head>
@@ -21,7 +21,7 @@
 				</tr>
 				<tr>
 					<td colspan="2">
-						<button id="loginButton" type="submit" onclick="onLogin(this)">Login</button>
+						<button id="loginButton" type="submit">Login</button>
 					</td>
 				</tr>
 			</table>

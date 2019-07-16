@@ -21,7 +21,7 @@ urls = (
     ("GET", r"^/logs$", authenticated_html("logs.html")),
     ("GET", r"^/retry$", authenticated_html("retrying.html")),
     # API
-    ("GET", r"^/api/login$", api_login),
+    ("POST", r"^/api/login$", api_login),
     ("GET", r"^/api/logs$", api_get_logs),
     ("GET", r"^/api/failed_updates", api_list_failed_updates),
     ("POST", r"^/api/retry$", api_retry_failed_update),
