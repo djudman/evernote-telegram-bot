@@ -18,12 +18,13 @@ def api_response(status=True, data=None, error=None, headers=None):
     if error is not None:
         response["error"] = error
     body = json.dumps(response)
-    return Response(body, headers)
+    return Response(body, headers=headers)
 
 
 def api_login(request: Request):
-    username = request.GET["username"]
-    password = request.GET["password"]
+    data = json.loads(request.body)
+    username = data["username"]
+    password = data["password"]
     password_hash = hashlib.sha256(password.encode()).hexdigest()
     config = request.app.config
     admins = config["uhttp"]["admins"]

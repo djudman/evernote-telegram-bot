@@ -17,19 +17,26 @@
 		}
 
 		httpRequest(method, url, data) {
-			if (this.token) {
-				data.token = this.token;
-			}
 			var xhr = new XMLHttpRequest();
+			xhr.withCredentials = true;
 			xhr.open(method, url);
 			if (this.token) {
 				xhr.setRequestHeader("AUTH_TOKEN", this.token);
 			}
 			xhr.onload = function(e) {
-				let response = this.response;
-				console.log(response);
+				let response = JSON.parse(this.response);
+				if (!response.status) {
+					console.log(response);
+					return;
+				}
+				window.location = "/";
 			}
-			xhr.send();
+			if (data) {
+				let body = JSON.stringify(data);
+				xhr.send(body);
+			} else {
+				xhr.send();
+			}
 		}
 	}
 

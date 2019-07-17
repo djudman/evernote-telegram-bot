@@ -6,6 +6,7 @@ httpd:
 	-e EVERNOTE_BASIC_ACCESS_SECRET="" \
 	-e EVERNOTE_FULL_ACCESS_KEY="" \
 	-e EVERNOTE_FULL_ACCESS_SECRET="" \
+	-e EVERNOTEBOT_ADMINS="root:4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2" \
 	--bind=127.0.0.1:8000 \
 	--access-logfile ./logs/gunicorn-access.log \
 	--error-logfile ./logs/gunicorn-error.log \
