@@ -7,30 +7,44 @@
 			this.token = token;
 		}
 
+		buildQueryString(params) {
+			return Object
+				.keys(params)
+				.map(k => `${k}=${encodeURI(params[k])}`)
+				.join("&");
+		}
+
 		login(username, password) {
 			let url = this.apiUrl + "/login";
 			let data = {
 				username: username,
 				password: password,
 			}
-			this.httpRequest("POST", url, data);
+			this.httpRequest("POST", url, data, function(e) {
+				let response = JSON.parse(this.response);
+				if (!response.status) {
+					console.log(response);
+					return;
+				}
+				document.cookie = response.data.token;
+				window.location = "/";
+			});
 		}
 
-		httpRequest(method, url, data) {
+		getLogs(page, pageSize, callback) {
+			let qs = this.buildQueryString({page: page, page_size: pageSize});
+			let url = this.apiUrl + "/logs?" + qs;
+			return this.httpRequest("GET", url, null, callback);
+		}
+
+		httpRequest(method, url, data, onload) {
 			var xhr = new XMLHttpRequest();
 			xhr.withCredentials = true;
 			xhr.open(method, url);
 			if (this.token) {
 				xhr.setRequestHeader("AUTH_TOKEN", this.token);
 			}
-			xhr.onload = function(e) {
-				let response = JSON.parse(this.response);
-				if (!response.status) {
-					console.log(response);
-					return;
-				}
-				window.location = "/";
-			}
+			xhr.onload = onload;
 			if (data) {
 				let body = JSON.stringify(data);
 				xhr.send(body);
@@ -65,6 +79,42 @@
 		};
 	}
 
+	function onLoadLogsPage() {
+		let getAttr = function(obj, path) {
+			let val = obj;
+			for (name of path.split(".")) {
+				val = val[name];
+			}
+			return val || "";
+		};
+		let createCell = function(value, path) {
+			let td = document.createElement("td");
+			let v = getAttr(value, path);
+			if (v instanceof Object) {
+				v = JSON.stringify(v, null, 4);
+			}
+			td.innerHTML = "<pre>" + v + "</pre>";
+			return td;
+		};
+		let createRow = function(data) {
+			let row = document.createElement("tr");
+			row.appendChild(createCell(data, "data.request.REQUEST_METHOD"));
+			row.appendChild(createCell(data, "data.request.RAW_URI"));
+			row.appendChild(createCell(data, "data.request.body"));
+			row.appendChild(createCell(data, "data.response.status"));
+			row.appendChild(createCell(data, "data.exception"));
+			return row
+		};
+		api.getLogs(1, 10, function(e) {
+			let response = JSON.parse(this.response);
+			let tableLogs = document.getElementsByClassName("logs")[0];
+			let tbody = tableLogs.getElementsByTagName("tbody")[0];
+			for (let entry of response.data.data) {
+				tbody.appendChild(createRow(entry));
+			}
+		});
+	}
+
 	function onLoad() {
 		loadCss("/evernotebot.css")
 	}
@@ -72,5 +122,6 @@
 	var token = "";
 	window.api = new EvernotebotAdminApi(token);
 	window.onLoadLoginPage = onLoadLoginPage;
+	window.onLoadLogsPage = onLoadLogsPage;
 	window.onload = onLoad();
 })()

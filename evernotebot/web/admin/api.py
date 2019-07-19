@@ -5,10 +5,8 @@ import random
 import string
 from time import time
 
+from uhttp.auth import login, auth_required
 from uhttp.core import HTTPFound, Request, Response
-from uhttp.shortcuts import auth_required
-
-from evernotebot.web.admin.jwt import create_token
 
 
 def api_response(status=True, data=None, error=None, headers=None):
@@ -22,23 +20,9 @@ def api_response(status=True, data=None, error=None, headers=None):
 
 
 def api_login(request: Request):
-    data = json.loads(request.body)
-    username = data["username"]
-    password = data["password"]
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
-    config = request.app.config
-    admins = config["uhttp"]["admins"]
-    for admin_username, admin_password_hash in admins:
-        if admin_username == username and admin_password_hash == password_hash:
-            alphabet = "".join([string.ascii_letters + string.digits])
-            salt = "".join([random.choice(alphabet) for _ in range(16)])
-            sid = f"{salt}{username}{password_hash}"
-            sid = "{0}.{1}".format(salt, hashlib.sha256(sid.encode()).hexdigest())
-            jwt_token = create_token({"sid": sid}, config["secret"])
-            headers = [
-                ("Set-Cookie", f"token={jwt_token}; Secure; SameSite=Strict"),
-            ]
-            return api_response(data={"token": jwt_token}, headers=headers)
+    response = login(request)
+    if response:
+            return api_response(data={"token": response.body.decode()}, headers=response.headers)
     return api_response(False, error="Access denied")
 
 

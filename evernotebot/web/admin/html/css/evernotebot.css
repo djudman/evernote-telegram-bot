@@ -21,3 +21,25 @@ div.loginForm {
 .loginForm table tr {
 	text-align: center;
 }
+
+table.logs {
+	width: 100%;
+	max-width: 100% !important;
+	border: solid black 1px;
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+
+table.logs thead {
+	font-weight: bold;
+	text-align: center;
+}
+
+table.logs td {
+	border: solid black 1px;
+}
+
+table.logs td div {
+	overflow-x: scroll;
+	width: 100%;
+}

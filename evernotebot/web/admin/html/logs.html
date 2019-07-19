@@ -1,1 +1,25 @@
-<html><head><title>Logs</title></head><body>Logs will be here</body></html>
+<html>
+	<head>
+		<title>Logs</title>
+		<script src="/evernotebot.js"></script>
+		<script type="text/javascript">
+			(function() {
+				window.onload = onLoadLogsPage;
+			})()
+		</script>
+	</head>
+	<body>
+		<table class="logs">
+			<thead>
+				<tr>
+					<td>HTTP method</td>
+					<td>URL</td>
+					<td>Request</td>
+					<td>Response</td>
+					<td>Exception</td>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</body>
+</html>
