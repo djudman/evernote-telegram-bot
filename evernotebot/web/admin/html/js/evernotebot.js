@@ -26,7 +26,7 @@
 					console.log(response);
 					return;
 				}
-				document.cookie = response.data.token;
+				document.cookie = "token=" + response.data.token;
 				window.location = "/";
 			});
 		}

@@ -40,6 +40,7 @@ def load_config():
     admins = [line.split(":", 1) for line in admins if line]
 
     config = {
+        "admins": admins,
         "secret": secret,
         "debug": os.environ.get("EVERNOTEBOT_DEBUG", False),
         "host": hostname,
@@ -69,7 +70,6 @@ def load_config():
         "html_root": join(src_root, "web/admin/html"),
         "tmp_root": join(project_root, "tmp/"),
         "logs_root": logs_root,
-        "uhttp": {"admins": admins},
         "logging": get_logging_config(logs_root),
     }
     makedirs(logs_root, exist_ok=True)

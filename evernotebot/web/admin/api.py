@@ -26,7 +26,7 @@ def api_login(request: Request):
     return api_response(False, error="Access denied")
 
 
-@auth_required
+@auth_required(login_url="/login")
 def api_get_logs(request: Request):
     request.no_log = True
     config = request.app.config
@@ -48,18 +48,18 @@ def api_get_logs(request: Request):
     return api_response(data=data)
 
 
-@auth_required
+@auth_required(login_url="/login")
 def api_list_failed_updates(request: Request):
     bot = request.app.bot
     bot.failed_updates.get_all()
     return api_response(error="Not implemented")
 
 
-@auth_required
+@auth_required(login_url="/login")
 def api_retry_failed_update(request: Request):
     return api_response(error="Not implemented")
 
 
-@auth_required
+@auth_required(login_url="/login")
 def api_send_broadcast_message(request: Request):  # to all users
     return api_response(error="Not implemented")
