@@ -49,9 +49,9 @@ class EvernoteData:
 class BotUser:
     id: int
     created: float
-    last_request_ts: float
     telegram: TelegramData
     evernote: EvernoteData
+    last_request_ts: float = None
     bot_mode: str = 'multiple_notes'
     state: str = None
 
