@@ -67,7 +67,7 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
         commands = {
             "start": start_command,
             "switch_mode": switch_mode_command,
-            "switch_notebook": switch_notebook_command,
+            "notebook": switch_notebook_command,
             "help": help_command,
         }
         for name, handler in commands.items():
