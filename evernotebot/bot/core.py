@@ -222,7 +222,7 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
                 file_id = photo.file_id
         self._save_file_to_evernote(file_id, file_size, message)
 
-    def on_audio(self, message: Message):
+    def on_voice(self, message: Message):
         file_id = message.voice.file_id
         file_size = message.voice.file_size
         self._save_file_to_evernote(file_id, file_size, message)
