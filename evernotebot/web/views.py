@@ -26,6 +26,7 @@ def telegram_hook(request: Request):
             "exception": str_exc,
             "failed_update_id": entry_id,
         })
+    return ""
 
 
 def evernote_oauth(request: Request):
