@@ -1,6 +1,7 @@
 from copy import deepcopy
 from contextlib import suppress
 
+from bson.objectid import ObjectId
 from pymongo import MongoClient
 from pymongo.errors import ConfigurationError
 
@@ -30,7 +31,10 @@ class Mongo:
             del data["id"]
         elif not auto_generate_id:
             raise MongoStorageException("`id` required")
-        return self._collection.insert_one(data).inserted_id
+        object_id = self._collection.insert_one(data).inserted_id
+        if isinstance(object_id, ObjectId):
+            object_id = str(object_id)
+        return object_id
 
     def get(self, object_id, fail_if_not_exists=False):
         query = object_id if isinstance(object_id, dict) else {"_id": object_id}
@@ -59,7 +63,9 @@ class Mongo:
                 raise MongoStorageException(f"Object `{object_id}` not found")
             data["id"] = object_id
         else:
-            object_id = self._collection.insert_one(data).inserted_id
+            object_id = str(self._collection.insert_one(data).inserted_id)
+            if isinstance(object_id, ObjectId):
+                object_id = str(object_id)
             data["id"] = object_id
         return object_id
 

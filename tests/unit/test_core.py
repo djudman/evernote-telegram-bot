@@ -141,7 +141,7 @@ class TestCore(unittest.TestCase):
             from_user={"id": 2, "is_bot": False, "first_name": "John"},
             caption="My voice",
         )
-        bot.on_audio(message)
+        bot.on_voice(message)
         bot.api.getFile.assert_called_once()
         bot.evernote().get_quota_info.assert_called_once()
         bot.save_note.assert_called_once()

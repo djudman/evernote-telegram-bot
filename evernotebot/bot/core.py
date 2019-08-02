@@ -201,7 +201,7 @@ ResourceWarning: Enable tracemalloc to get the object allocation traceback
         user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
         self._check_evernote_quota(user, file_size)
-        title = message.caption or message.text[:20] or 'File'
+        title = message.caption or (message.text and message.text[:20]) or 'File'
         files = ({'path': filename, 'name': short_name},)
         self.save_note(user, text=message.text, title=title, files=files)
 
