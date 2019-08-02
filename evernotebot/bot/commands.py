@@ -65,7 +65,7 @@ def switch_notebook_command(bot, message: Message):
     user_id = message.from_user.id
     user_data = bot.users.get(user_id)
     user = BotUser(**user_data)
-    all_notebooks = bot.evernote(user).get_all_notebooks(user.evernote.access.token)
+    all_notebooks = bot.evernote(user).get_all_notebooks()
     buttons = []
     for notebook in all_notebooks:
         name = notebook["name"]
