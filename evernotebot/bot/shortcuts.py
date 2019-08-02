@@ -76,39 +76,21 @@ def get_evernote_oauth_data(bot, bot_user: BotUser, message_text: str,
 
 
 def get_cached_object(cache: dict, key: object, *, constructor: Callable=None):
-    def create_object():
-        if constructor is None:
-            raise KeyError(f"Object with key `{key}` not found")
-        return constructor()
-
-    if key is None:
-        default = cache.get("default")
-        if default is None:
-            default = create_object()
-            cache["default"] = {
-                "created": time(),
-                "object": default,
-            }
-        return default
-    entry = cache.get(key)
-    if entry:
-        return entry["object"]
-    max_entries = 100
-    current_time = time()
-    if len(cache) >= max_entries:
-        oldest_key = None
-        min_time = current_time
-        for k, v in cache.items():
-            if v["created"] < min_time:
-                oldest_key = k
-                min_time = v["created"]
-        del cache[oldest_key]
-    new_entry = {
-        "created": current_time,
-        "object": create_object(),
+    key = key or "default"
+    if key in cache:
+        return cache[key]["object"]
+    if constructor is None:
+        raise KeyError(f"Object with key `{key}` not found")
+    new_object = constructor()
+    cache[key] = {
+        "created": time(),
+        "object": new_object,
     }
-    cache[key] = new_entry
-    return new_entry["object"]
+    max_entries = 100
+    if len(cache) > max_entries:
+        oldest_key, _ = min(cache.items(), key=lambda entry: entry[1]["created"])
+        del cache[oldest_key]
+    return new_object
 
 
 def download_telegram_file(telegram_api, file_id, dirpath="/tmp"):
