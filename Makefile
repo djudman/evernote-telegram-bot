@@ -1,12 +1,15 @@
+install:
+	python3 -m venv ./venv/evernotebot
+	pip install -r requirements.txt
 httpd:
 	@if [ ! -d "./logs" ]; then mkdir logs; fi
 	gunicorn \
+		-e EVERNOTEBOT_DEBUG="true" \
 		-e TELEGRAM_API_TOKEN="" \
 		-e EVERNOTE_BASIC_ACCESS_KEY="" \
 		-e EVERNOTE_BASIC_ACCESS_SECRET="" \
 		-e EVERNOTE_FULL_ACCESS_KEY="" \
 		-e EVERNOTE_FULL_ACCESS_SECRET="" \
-		-e EVERNOTEBOT_ADMINS="root:4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2" \
 		--bind=127.0.0.1:8000 \
 		--access-logfile ./logs/gunicorn-access.log \
 		--error-logfile ./logs/gunicorn-error.log \
@@ -15,8 +18,8 @@ test:
 	coverage run --include=evernotebot/* tests/run.py
 	coverage report
 build:
-	docker build -t djudman/evernote-telegram-bot:latest .
-	docker push djudman/evernote-telegram-bot:latest
+	docker build -t djudman/evernote-telegram-bot .
+	docker push djudman/evernote-telegram-bot
 start:
 	docker run \
 		-e MONGO_HOST="${MONGO_HOST}" \

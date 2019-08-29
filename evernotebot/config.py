@@ -1,14 +1,9 @@
-import copy
 import json
-import os
 import logging
-import random
-import string
-import sys
-from logging import config, Formatter
-from pathlib import Path
-from os import makedirs
-from os.path import dirname, exists, join, realpath
+import logging.config
+import os
+import re
+from logging import Formatter
 
 
 _config_cache = None
@@ -18,63 +13,22 @@ def load_config():
     global _config_cache
     if _config_cache is not None:
         return _config_cache
-    storage_config = {
-        "class": "evernotebot.bot.storage.Mongo",
-        "connection_string": "mongodb://{host}:27017/".format(
-            host=os.environ.get("MONGO_HOST", "127.0.0.1")),
-        "db_name": "evernotebot",
+    defaults = {
+        'MONGO_HOST': '127.0.0.1',
+        'EVERNOTEBOT_DEBUG': False,
     }
-    users_storage = copy.deepcopy(storage_config)
-    users_storage["collection"] = "users"
-    failed_updates_storage = copy.deepcopy(storage_config)
-    failed_updates_storage["collection"] = "failed_updates"
-
-    src_root = realpath(dirname(__file__))
-    project_root = realpath(dirname(src_root))
-    logs_root = join(project_root, "logs/")
-    telegram_token = os.environ["TELEGRAM_API_TOKEN"]
-    hostname = "evernotebot.djudman.info"
-    symbols = string.ascii_lowercase + string.ascii_uppercase + string.digits
-    secret = "".join([random.choice(symbols) for _ in range(40)])
-    admins = os.environ.get("EVERNOTEBOT_ADMINS", "").split(",")
-    admins = [line.split(":", 1) for line in admins if line]
-
-    config = {
-        "admins": admins,
-        "secret": secret,
-        "debug": os.environ.get("EVERNOTEBOT_DEBUG", False),
-        "host": hostname,
-        "telegram": {
-            "bot_url": "http://telegram.me/evernoterobot",
-            "token": telegram_token,
-            "webhook_url": f"https://{hostname}/{telegram_token}"
-        },
-        "evernote": {
-            "oauth_callback_url": f"https://{hostname}/evernote/oauth/{secret}",
-            "access": {
-                "basic": {
-                    "key": os.environ["EVERNOTE_BASIC_ACCESS_KEY"],
-                    "secret": os.environ["EVERNOTE_BASIC_ACCESS_SECRET"],
-                },
-                "full": {
-                    "key": os.environ["EVERNOTE_FULL_ACCESS_KEY"],
-                    "secret": os.environ["EVERNOTE_FULL_ACCESS_SECRET"],
-                },
-            },
-        },
-        "storage": {
-            "users": users_storage,
-            "failed_updates": failed_updates_storage,
-        },
-        "src_root": src_root,
-        "html_root": join(src_root, "web/admin/html"),
-        "tmp_root": join(project_root, "tmp/"),
-        "logs_root": logs_root,
-        "logging": get_logging_config(logs_root),
-    }
-    makedirs(logs_root, exist_ok=True)
-    makedirs(config["tmp_root"], exist_ok=True)
-    logging.config.dictConfig(config["logging"])
+    filename = "evernotebot.config.json"
+    with open(filename, "r") as f:
+        config_str_data = f.read()
+    matches = re.findall(r'\$\{([0-9a-zA-Z_]+)\}', config_str_data)
+    for name in matches:
+        value = os.getenv(name, defaults.get(name))
+        if value is None:
+            raise Exception(f"Environment variable `{name}` isn't set")
+        if not isinstance(value, str):
+            value = str(value).lower()
+        config_str_data = config_str_data.replace(f'${{{name}}}', value)
+    config = json.loads(config_str_data)
     _config_cache = config
     return config
 
@@ -86,46 +40,3 @@ class JsonFormatter(Formatter):
             "file": "{0}:{1}".format(record.pathname, record.lineno),
             "data": record.msg,
         })
-
-
-def get_logging_config(logs_root):
-    return {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "json": {
-                "class": "evernotebot.config.JsonFormatter",
-            },
-        },
-        "handlers": {
-            "stdout": {
-                "class": "logging.StreamHandler",
-                "stream": sys.stdout,
-                "formatter": "json",
-            },
-            "evernotebot": {
-                "class": "logging.handlers.RotatingFileHandler",
-                "filename": Path(logs_root, "evernotebot.log"),
-                "maxBytes": 1024 * 1024 * 10,
-                "backupCount": 1,
-                "formatter": "json",
-            },
-        },
-        "loggers": {
-            "uhttp": {
-                "handlers": ["evernotebot"],
-                "level": "DEBUG",
-                "propagate": False,
-            },
-            "utelegram": {
-                "handlers": ["evernotebot"],
-                "level": "DEBUG",
-                "propagate": False,
-            },
-            "evernotebot": {
-                "handlers": ["evernotebot"],
-                "level": "DEBUG",
-                "propagate": False,
-            },
-        },
-    }

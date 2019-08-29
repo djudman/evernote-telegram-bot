@@ -11,3 +11,4 @@ htmlcov
 tmp
 logs
 failed_updates
+venv
