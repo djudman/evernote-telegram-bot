@@ -6,7 +6,7 @@ from uhttp import WsgiApplication
 
 from evernotebot.config import load_config
 from evernotebot.bot.core import EvernoteBot
-from evernotebot.web.urls import urls
+from evernotebot.web.views import telegram_hook, evernote_oauth
 
 
 class EvernoteBotApplication(WsgiApplication):
@@ -14,12 +14,19 @@ class EvernoteBotApplication(WsgiApplication):
         config = load_config()
         super().__init__(
             src_root=realpath(dirname(__file__)),
-            urls=urls,
+            urls=self.get_urls(),
             config=config
         )
         self.bot = EvernoteBot(config)
         webhook_url = config['telegram']['webhook_url']
         self.set_telegram_webhook(webhook_url)
+
+    def get_urls(self):
+        telegram_api_token = self.config['telegram']['token']
+        return (
+            ('POST', f'^/{telegram_api_token}$', telegram_hook),
+            ('GET', r'^/evernote/oauth$', evernote_oauth),
+        )
 
     def set_telegram_webhook(self, webhook_url):
         try:
