@@ -10,7 +10,7 @@ from uhttp import Request
 
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.models import BotUser, EvernoteOauthData
-from evernotebot.web.views import telegram_hook, evernote_oauth
+from evernotebot.views import telegram_hook, evernote_oauth
 from util.config import bot_config
 
 

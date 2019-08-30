@@ -6,7 +6,7 @@ from uhttp import WsgiApplication
 
 from evernotebot.config import load_config
 from evernotebot.bot.core import EvernoteBot
-from evernotebot.web.views import telegram_hook, evernote_oauth
+from evernotebot.views import telegram_hook, evernote_oauth
 
 
 class EvernoteBotApplication(WsgiApplication):
