@@ -2,9 +2,8 @@ import unittest
 
 from evernotebot.bot.core import EvernoteBot
 
-from util.config import bot_config
-from util.mocks import TelegramApiMock, EvernoteApiMock
-from util.storage import MemoryStorage
+from tests.util.config import bot_config
+from tests.util.mocks import TelegramApiMock, EvernoteApiMock
 
 
 class TestStartCommad(unittest.TestCase):

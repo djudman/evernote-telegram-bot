@@ -37,7 +37,7 @@ if __name__ == '__main__':
     os.environ["EVERNOTE_FULL_ACCESS_SECRET"] = "secret"
 
     project_dir = dirname(dirname(os.path.realpath(__file__)))
-    sys.path.append(project_dir)
+    sys.path.insert(0, project_dir)
     pattern = sys.argv[1].lower() if len(sys.argv) > 1 else ''
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()

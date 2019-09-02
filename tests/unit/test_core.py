@@ -6,8 +6,8 @@ from utelegram import Message
 
 from evernotebot.bot.core import EvernoteBot, EvernoteBotException
 from evernotebot.bot.models import BotUser
-from util.config import bot_config
-from util.mocks import EvernoteSdkMock
+from tests.util.config import bot_config
+from tests.util.mocks import EvernoteSdkMock
 
 
 class TestCore(unittest.TestCase):

@@ -5,7 +5,7 @@ from utelegram import Message, User
 
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import switch_notebook_command, help_command
-from util.config import bot_config
+from tests.util.config import bot_config
 
 
 class TestCommands(unittest.TestCase):
