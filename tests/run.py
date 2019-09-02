@@ -3,8 +3,25 @@ import importlib.util
 import os
 from os.path import dirname
 import sys
-import time
 import unittest
+import contextlib
+
+
+@contextlib.contextmanager
+def try_coverage(*args, **kwargs):
+    try:
+        import coverage
+        cov = coverage.Coverage()
+        cov.start()
+    except ImportError:
+        cov = None
+    try:
+        yield cov
+    finally:
+        if cov is None:
+            return
+        cov.stop()
+        cov.save()
 
 
 def import_module_by_path(path):
@@ -44,6 +61,9 @@ if __name__ == '__main__':
     for module in get_test_modules(pattern):
         suite.addTests(loader.loadTestsFromModule(module))
     runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(suite)
+    with try_coverage() as cov:
+        result = runner.run(suite)
     if result.failures:
         sys.exit(1)
+    elif cov:
+        cov.report(include='evernotebot/*')

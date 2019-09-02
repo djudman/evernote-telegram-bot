@@ -15,8 +15,7 @@ httpd:
 		--error-logfile ./logs/gunicorn-error.log \
 		evernotebot.wsgi:app
 test:
-	coverage run --include=evernotebot/* tests/run.py
-	coverage report
+	python3 tests/run.py
 build:
 	docker build -t djudman/evernote-telegram-bot .
 	docker push djudman/evernote-telegram-bot
