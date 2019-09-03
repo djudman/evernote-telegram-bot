@@ -4,7 +4,8 @@ python:
     - "3.7"
 install:
     - pip install -r requirements.txt
+    - pip install coverage
     - pip install python-coveralls
 script: make test
 after_success:
-  - coveralls
+  - coveralls --base_dir=evernotebot
