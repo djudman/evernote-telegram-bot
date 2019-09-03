@@ -1,5 +1,4 @@
 import atexit
-import functools
 import logging
 from os.path import dirname, realpath
 
