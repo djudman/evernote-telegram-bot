@@ -119,3 +119,37 @@ class TestSaveToEvernote(TestCase):
         self.assertEqual(call["args"][2], "File")
         self.assertEqual(len(call["kwargs"]["files"]), 1)
         self.assertEqual(call["kwargs"]["files"][0]["name"], "robots.txt")
+
+    def test_save_video(self):
+        user_id = 6
+        update_data = {
+            "update_id": 1,
+            "message": {
+                "message_id": 2,
+                "date": time(),
+                "from_user": {
+                    "id": user_id,
+                    "is_bot": False,
+                    "first_name": "test",
+                },
+                "chat": {"id": 2, "type": "private"},
+                "video": {
+                    "file_id": "AwADAgAD3wQAAncCKUpLSYvFZV5rixYE",
+                    "width": 100,
+                    "height": 100,
+                    "duration": 10,
+                    "file_size": 304,
+                },
+            },
+        }
+        self.bot.process_update(update_data)
+        self.assertEqual(self.bot.api.getFile.call_count, 1)
+        self.assertEqual(self.bot.api.sendMessage.call_count, 1)
+        self.assertEqual(self.bot.api.sendMessage.calls[0]["args"][1], "Video accepted")
+        self.assertEqual(self.bot.api.editMessageText.call_count, 1)
+        self.assertEqual(self.bot.api.editMessageText.calls[0]["args"][2], "Saved")
+        self.assertEqual(self.bot.evernote.create_note.call_count, 1)
+        call = self.bot.evernote.create_note.calls[0]
+        self.assertEqual(call["args"][2], "File")
+        self.assertEqual(len(call["kwargs"]["files"]), 1)
+        self.assertEqual(call["kwargs"]["files"][0]["name"], "robots.txt")
