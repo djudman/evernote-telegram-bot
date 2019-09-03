@@ -20,6 +20,7 @@ class EvernoteBotApplication(WsgiApplication):
             config=config
         )
         self.bot = EvernoteBot(config)
+        atexit.register(self.shutdown)
 
     def get_urls(self):
         telegram_api_token = self.config['telegram']['token']
@@ -35,13 +36,10 @@ class EvernoteBotApplication(WsgiApplication):
             message = f"Can't set up webhook url `{webhook_url}`"
             logging.getLogger('evernotebot').fatal(message, exc_info=True)
 
-
-def shutdown(app):
-    app.bot.stop()
+    def shutdown(self):
+        self.bot.stop()
 
 
 app = EvernoteBotApplication()
-atexit.register(functools.partial(shutdown, app))
-
 webhook_url = app.config['telegram']['webhook_url']
 app.set_telegram_webhook(webhook_url)
