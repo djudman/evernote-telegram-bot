@@ -11,7 +11,7 @@ import contextlib
 def try_coverage(*args, **kwargs):
     try:
         import coverage
-        cov = coverage.Coverage()
+        cov = coverage.Coverage(include='evernotebot/*')
         cov.start()
     except ImportError:
         cov = None
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=2)
     with try_coverage() as cov:
         result = runner.run(suite)
-    if result.failures:
+    if result.failures or result.errors:
         sys.exit(1)
     elif cov:
-        cov.report(include='evernotebot/*')
+        cov.report()

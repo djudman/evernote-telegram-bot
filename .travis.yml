@@ -8,4 +8,4 @@ install:
     - pip install python-coveralls
 script: make test
 after_success:
-  - coveralls --base_dir=evernotebot
+  - coveralls
