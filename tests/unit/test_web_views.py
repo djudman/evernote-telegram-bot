@@ -1,6 +1,5 @@
 import hashlib
 import json
-import unittest
 import tempfile
 from collections import namedtuple
 from urllib.parse import urlencode
@@ -11,10 +10,10 @@ from uhttp import Request
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.models import BotUser, EvernoteOauthData
 from evernotebot.views import telegram_hook, evernote_oauth
-from tests.util.config import bot_config
+from tests.util.base import TestCase
 
 
-class TestWebViews(unittest.TestCase):
+class TestWebViews(TestCase):
     def setUp(self):
         self._files = []
         self.default_user_data = {
@@ -39,7 +38,7 @@ class TestWebViews(unittest.TestCase):
         list(map(lambda f: f.close(), self._files))
 
     def create_request(self, data):
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         app = namedtuple("App", ["bot"])(bot=bot)
         bytes_data = json.dumps(data).encode()
         wsgi_input = tempfile.NamedTemporaryFile(mode="rb+", suffix=".txt",

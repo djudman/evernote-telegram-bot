@@ -1,4 +1,3 @@
-import unittest
 from time import time
 
 from utelegram import Message
@@ -6,13 +5,13 @@ from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import start_command
 from evernotebot.bot.shortcuts import evernote_oauth_callback, OauthParams
 
-from tests.util.config import bot_config
+from tests.util.base import TestCase
 from tests.util.mocks import TelegramApiMock, EvernoteApiMock
 
 
-class TestSwitchMode(unittest.TestCase):
+class TestSwitchMode(TestCase):
     def setUp(self):
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteApiMock()
         message = Message(

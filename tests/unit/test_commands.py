@@ -1,19 +1,18 @@
-import unittest
 from unittest.mock import Mock
 
 from utelegram import Message, User
 
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.commands import switch_notebook_command, help_command
-from tests.util.config import bot_config
+from tests.util.base import TestCase
 
 
-class TestCommands(unittest.TestCase):
+class TestCommands(TestCase):
     def test_switch_notebook(self):
         message = Message(message_id=1, date=1, from_user={
             "id": 2, "is_bot": False, "first_name": "John"
         })
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         user_data = {
             "id": 2,
             "created": 123,
@@ -47,7 +46,7 @@ class TestCommands(unittest.TestCase):
         self.assertEqual(save_data["state"], "switch_notebook")
 
     def test_help(self):
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         bot.api = Mock()
         bot.api.sendMessage = Mock()
         message = Message(message_id=1, date=1, chat={"id": 1, "type": "private"})

@@ -1,16 +1,15 @@
 import datetime
-import unittest
 from unittest import mock
 
 from utelegram import Message
 
 from evernotebot.bot.core import EvernoteBot, EvernoteBotException
 from evernotebot.bot.models import BotUser
-from tests.util.config import bot_config
+from tests.util.base import TestCase
 from tests.util.mocks import EvernoteSdkMock
 
 
-class TestCore(unittest.TestCase):
+class TestCore(TestCase):
     def setUp(self):
         self.default_user_data = {
             "id": 2,
@@ -32,7 +31,7 @@ class TestCore(unittest.TestCase):
     @mock.patch('evernotebot.util.evernote.client.EvernoteSdk',
                 new_callable=EvernoteSdkMock)
     def test_get_evernote_api_object(self, sdk):
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         api = bot.evernote()
         self.assertIsNotNone(api)
         self.assertTrue("default" in bot._evernote_apis_cache)
@@ -55,7 +54,7 @@ class TestCore(unittest.TestCase):
 
     def test_switch_notebook(self):
         bot_user = BotUser(**self.default_user_data)
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         bot.api = mock.Mock()
         bot.api.sendMessage = mock.Mock()
         bot.evernote = mock.Mock()
@@ -78,7 +77,7 @@ class TestCore(unittest.TestCase):
 
     def test_switch_mode(self):
         bot_user = BotUser(**self.default_user_data)
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         with self.assertRaises(EvernoteBotException) as ctx:
             bot.switch_mode(bot_user, "invalid")
         self.assertEqual(str(ctx.exception), "Unknown mode 'invalid'")
@@ -105,7 +104,7 @@ class TestCore(unittest.TestCase):
         self.assertEqual(bot_user.bot_mode, "multiple_notes")
 
     def test_evernote_quota(self):
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         bot.api = mock.Mock()
         bot.api.getFile = mock.Mock(return_value="https://google.com/robots.txt")
         bot.users = mock.Mock()
@@ -126,7 +125,7 @@ class TestCore(unittest.TestCase):
         self.assertTrue(str(ctx.exception).startswith("Your evernote quota is out"))
 
     def test_audio(self):
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         bot.api = mock.Mock()
         bot.api.getFile = mock.Mock(return_value="https://google.com/robots.txt")
         bot.users = mock.Mock()
@@ -147,7 +146,7 @@ class TestCore(unittest.TestCase):
         bot.save_note.assert_called_once()
 
     def test_location(self):
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         bot.users = mock.Mock()
         bot.users.get = mock.Mock(return_value=self.default_user_data)
         bot.save_note = mock.Mock()

@@ -1,12 +1,10 @@
-import unittest
-
 from evernotebot.bot.core import EvernoteBot
 
-from tests.util.config import bot_config
+from tests.util.base import TestCase
 from tests.util.mocks import TelegramApiMock, EvernoteApiMock
 
 
-class TestStartCommad(unittest.TestCase):
+class TestStartCommad(TestCase):
     def test_start(self):
         user_id = 5
         update_data = {
@@ -28,7 +26,7 @@ class TestStartCommad(unittest.TestCase):
                 "chat": {"id": 9, "type": ""},
             },
         }
-        bot = EvernoteBot(bot_config)
+        bot = EvernoteBot(self.config)
         bot.api = TelegramApiMock()
         bot.evernote = EvernoteApiMock()
         bot.process_update(update_data)

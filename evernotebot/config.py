@@ -1,6 +1,4 @@
 import json
-import logging
-import logging.config
 import os
 import re
 from logging import Formatter
@@ -17,8 +15,8 @@ def load_config():
         'MONGO_HOST': '127.0.0.1',
         'EVERNOTEBOT_DEBUG': False,
     }
-    filename = "evernotebot.config.json"
-    with open(filename, "r") as f:
+    filename = 'evernotebot.config.json'
+    with open(filename, 'r') as f:
         config_str_data = f.read()
     matches = re.findall(r'\$\{([0-9a-zA-Z_]+)\}', config_str_data)
     for name in matches:
@@ -36,7 +34,7 @@ def load_config():
 class JsonFormatter(Formatter):
     def format(self, record):
         return json.dumps({
-            "logger": record.name,
-            "file": "{0}:{1}".format(record.pathname, record.lineno),
-            "data": record.msg,
+            'logger': record.name,
+            'file': '{0}:{1}'.format(record.pathname, record.lineno),
+            'data': record.msg,
         })
