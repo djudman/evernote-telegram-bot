@@ -1,11 +1,9 @@
 import json
-import random
-import string
 from time import time
 
 from utelegram import Message
 
-from evernotebot.bot.models import BotUser, EvernoteOauthData
+from evernotebot.bot.models import BotUser
 from evernotebot.bot.shortcuts import get_evernote_oauth_data
 
 
@@ -19,7 +17,7 @@ def start_command(bot, message: Message):
             'id': user_id,
             'created': current_time,
             'last_request_ts': current_time,
-            'bot_mode': 'multiple_notes', # TODO: take from config
+            'bot_mode': bot.config.get('default_mode', 'multiple_notes'),
             'telegram': {
                 'first_name': telegram_user.first_name,
                 'last_name': telegram_user.last_name,
@@ -35,13 +33,11 @@ def start_command(bot, message: Message):
     user = BotUser(**user_data)
     message_text = '''Welcome! It's bot for saving your notes to Evernote on fly.
 Please tap on button below to link your Evernote account with bot.'''
-    oauth_data = get_evernote_oauth_data(bot, user, message_text)
-    user.evernote.oauth = oauth_data
+    user.evernote.oauth = get_evernote_oauth_data(bot, user, message_text)
     bot.users.save(user.asdict())
 
 
 def switch_mode_command(bot, message: Message):
-    mode = message.text
     user_id = message.from_user.id
     user_data = bot.users.get(user_id)
     user = BotUser(**user_data)
@@ -68,48 +64,46 @@ def switch_notebook_command(bot, message: Message):
     all_notebooks = bot.evernote(user).get_all_notebooks()
     buttons = []
     for notebook in all_notebooks:
-        name = notebook["name"]
+        name = notebook['name']
         if name == user.evernote.notebook.name:
-            name = f"> {name} <"
-        buttons.append({"text": name})
+            name = f'> {name} <'
+        buttons.append({'text': name})
     keyboard = {
-        "keyboard": [[b] for b in buttons],
-        "resize_keyboard": True,
-        "one_time_keyboard": True,
+        'keyboard': [[b] for b in buttons],
+        'resize_keyboard': True,
+        'one_time_keyboard': True,
     }
-    bot.api.sendMessage(user.telegram.chat_id, "Please, select notebook", json.dumps(keyboard))
-    user.state = "switch_notebook"
+    bot.api.sendMessage(user.telegram.chat_id, 'Please, select notebook', json.dumps(keyboard))
+    user.state = 'switch_notebook'
     bot.users.save(user.asdict())
 
 
 def help_command(bot, message: Message):
     help_text = '''This is bot for Evernote (https://evernote.com).
 
-Just send message to bot and it creates note in your Evernote notebook. 
+Just send message to bot and it will create note in your Evernote notebook. 
 
 You can send to bot:
 
 * text
-* photo (size < 12 Mb) - Telegram restriction
-* file (size < 12 Mb) - Telegram restriction
-* voice message (size < 12 Mb) - Telegram restriction
+* photo (size < 12 Mb, telegram restriction)
+* file (size < 12 Mb, telegram restriction)
+* voice message (size < 12 Mb, telegram restriction)
 * location
 
 There are modes:
 
 1) "One note" mode.
-On this mode there are just one note will be created in Evernote notebook. All messages that you will send, will be saved in this note.
+On this mode there is one note will be created in Evernote notebook. All messages you will send, be saved in this note.
 
-2) "Multiple notes" mode.
-On this mode for every message you sent there is separate note will be created in Evernote notebook.
+2) "Multiple notes" mode (default).
+On this mode for every message you sent, there will separate note be created in Evernote notebook.
 
 You can switch bot mode with command /switch_mode
-Note that every time you select "One note" mode, new note will be created and set as current note for this bot.
+Note, every time you select "One note" mode, new note will create and set as current note for this bot.
 
 Also, you can switch your current notebook with command /notebook
-Note that every time you switch notebook in mode "One note", new note will be created in selected notebook.
-
-We are sorry for low speed, but Evernote API are slow (about 1 sec per request).
+Note, if your bot is in "One note" mode and you are switching notebook, new note will create in newly selected notebook.
 
 Contacts: djudman@gmail.com
 '''
