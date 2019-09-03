@@ -1,7 +1,7 @@
 from time import time
 
 from utelegram import Message
-from evernotebot.bot.core import EvernoteBot
+from evernotebot.bot.core import EvernoteBot, EvernoteBotException
 from evernotebot.bot.commands import start_command
 from evernotebot.bot.shortcuts import evernote_oauth_callback, OauthParams
 
@@ -153,3 +153,33 @@ class TestSaveToEvernote(TestCase):
         self.assertEqual(call["args"][2], "File")
         self.assertEqual(len(call["kwargs"]["files"]), 1)
         self.assertEqual(call["kwargs"]["files"][0]["name"], "robots.txt")
+
+    def test_too_big_file(self):
+        user_id = 6
+        update_data = {
+            "update_id": 1,
+            "message": {
+                "message_id": 2,
+                "date": time(),
+                "from_user": {
+                    "id": user_id,
+                    "is_bot": False,
+                    "first_name": "test",
+                },
+                "chat": {"id": 2, "type": "private"},
+                "video": {
+                    "file_id": "AwADAgAD3wQAAncCKUpLSYvFZV5rixYE",
+                    "width": 100,
+                    "height": 100,
+                    "duration": 10,
+                    "file_size": 99999999,
+                },
+            },
+        }
+        with self.assertRaises(EvernoteBotException) as ctx:
+            self.bot.process_update(update_data)
+        self.assertEqual(str(ctx.exception), 'File too big. Telegram does not allow to the bot to download files over 20Mb.')
+        self.assertEqual(self.bot.api.getFile.call_count, 0)
+        self.assertEqual(self.bot.api.sendMessage.call_count, 2)
+        self.assertEqual(self.bot.api.sendMessage.calls[0]['args'][1], 'Video accepted')
+        self.assertEqual(self.bot.api.sendMessage.calls[1]['args'][1], '❌ Error. File too big. Telegram does not allow to the bot to download files over 20Mb.')
