@@ -41,13 +41,7 @@ class EvernoteBot(TelegramBot):
         StorageClass = getattr(module, classname)
         return StorageClass(**config_copy)
 
-    def stop(self):  # TODO: call at right place
-        '''
-        /usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/unittest/mock.py:2022:
-ResourceWarning: unclosed <socket.socket fd=4, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('127.0.0.1', 55742), raddr=('127.0.0.1', 27017)>
-  return tuple.__new__(cls, (name, args, kwargs))
-ResourceWarning: Enable tracemalloc to get the object allocation traceback
-        '''
+    def stop(self):
         self.users.close()
         self.failed_updates.close()
 

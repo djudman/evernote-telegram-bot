@@ -1,3 +1,5 @@
+import atexit
+import functools
 import logging
 from os.path import dirname, realpath
 
@@ -11,6 +13,7 @@ from evernotebot.views import telegram_hook, evernote_oauth
 class EvernoteBotApplication(WsgiApplication):
     def __init__(self):
         config = load_config()
+        self.config = config
         super().__init__(
             src_root=realpath(dirname(__file__)),
             urls=self.get_urls(),
@@ -33,6 +36,12 @@ class EvernoteBotApplication(WsgiApplication):
             logging.getLogger('evernotebot').fatal(message, exc_info=True)
 
 
+def shutdown(app):
+    app.bot.stop()
+
+
 app = EvernoteBotApplication()
+atexit.register(functools.partial(shutdown, app))
+
 webhook_url = app.config['telegram']['webhook_url']
 app.set_telegram_webhook(webhook_url)

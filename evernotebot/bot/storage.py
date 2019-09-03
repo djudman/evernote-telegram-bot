@@ -13,15 +13,14 @@ class MongoStorageException(Exception):
 class Mongo:
     def __init__(self, connection_string, *, collection=None, db_name=None):
         if collection is None:
-            raise MongoStorageException("`collection` is required")
+            raise MongoStorageException('`collection` is required')
         self._driver = MongoClient(connection_string)
-        db = None
         with suppress(ConfigurationError):
             db = self._driver.get_database(db_name)
         if db is None:
             raise MongoStorageException(
-                "You have to specify database name "
-                "either in connection string or as `db_name` parameter")
+                'You have to specify database name '
+                'either in connection string or as `db_name` parameter')
         self._collection = db.get_collection(collection)
 
     def create(self, data: dict, auto_generate_id=False):
@@ -73,3 +72,6 @@ class Mongo:
         result = self._collection.delete_one({"_id": object_id})
         if check_deleted_count and result.deleted_count != 1:
             raise MongoStorageException(f"Object `{object_id}` not found")
+
+    def close(self):
+        self._driver.close()
