@@ -93,20 +93,18 @@ class EvernoteBot(TelegramBot):
         self.users.save(bot_user.asdict())
 
     def handle_message(self, message: Message):
-        message_attrs = ("text", "photo", "voice", "audio", "video",
-                         "document", "location")
+        message_attrs = ('text', 'photo', 'voice', 'audio', 'video',
+                         'document', 'location')
         for attr_name in message_attrs:
             value = getattr(message, attr_name, None)
             if value is None:
                 continue
-            handler = getattr(self, f"on_{attr_name}", None)
-            if handler is None:
-                continue
             status_message = self.api.sendMessage(
-                message.chat.id, f"{attr_name.capitalize()} accepted")
+                message.chat.id, f'{attr_name.capitalize()} accepted')
+            handler = getattr(self, f'on_{attr_name}')
             handler(message)
             self.api.editMessageText(message.chat.id,
-                status_message["message_id"], "Saved")
+                status_message['message_id'], 'Saved')
 
     def _validate_mode(self, selected_mode_str):
         mode = selected_mode_str
