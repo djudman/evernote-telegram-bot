@@ -84,12 +84,10 @@ class EvernoteBot(TelegramBot):
     def handle_state(self, bot_user: BotUser, message: Message):
         state = bot_user.state
         handlers_map = {
-            "switch_mode": self.switch_mode,  # self.switch_mode()
-            "switch_notebook": self.switch_notebook,  # self.switch_notebook()
+            'switch_mode': self.switch_mode,  # self.switch_mode()
+            'switch_notebook': self.switch_notebook,  # self.switch_notebook()
         }
-        state_handler = handlers_map.get(state)
-        if not state_handler:
-            raise EvernoteBotException(f"Invalid state: {state}")
+        state_handler = handlers_map[state]
         state_handler(bot_user, message.text)
         bot_user.state = None
         self.users.save(bot_user.asdict())
