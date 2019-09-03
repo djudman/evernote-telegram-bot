@@ -183,3 +183,35 @@ class TestSaveToEvernote(TestCase):
         self.assertEqual(self.bot.api.sendMessage.call_count, 2)
         self.assertEqual(self.bot.api.sendMessage.calls[0]['args'][1], 'Video accepted')
         self.assertEqual(self.bot.api.sendMessage.calls[1]['args'][1], '❌ Error. File too big. Telegram does not allow to the bot to download files over 20Mb.')
+
+    def test_not_signed_in_evernote(self):
+        user_id = 42
+        message = Message(
+            message_id=1,
+            date=time(),
+            from_user={'id': user_id, 'is_bot': False, 'first_name': 'test'},
+            chat={'id': 1, 'type': 'private'}
+        )
+        start_command(self.bot, message)
+        oauth_data =  self.bot.evernote._oauth_data
+        evernote_oauth_callback(self.bot, OauthParams(oauth_data['callback_key'], '', 'basic'))
+        update_data = {
+            'update_id': 1,
+            'message': {
+                'message_id': 2,
+                'date': time(),
+                'text': 'Hello, World!',
+                'from_user': {
+                    'id': user_id,
+                    'is_bot': False,
+                    'first_name': 'test',
+                },
+                'chat': {'id': 1, 'type': 'private'},
+            },
+        }
+        with self.assertRaises(EvernoteBotException) as ctx:
+            self.bot.process_update(update_data)
+        self.assertEqual(str(ctx.exception), 'You have to sign in to Evernote first. Send /start and press the button')
+        self.assertEqual(self.bot.api.sendMessage.call_count, 3)
+        self.assertEqual(self.bot.api.sendMessage.calls[1]['args'][1], 'We are sorry, but you have declined authorization.')
+        self.assertEqual(self.bot.api.sendMessage.calls[2]['args'][1], '❌ Error. You have to sign in to Evernote first. Send /start and press the button')
