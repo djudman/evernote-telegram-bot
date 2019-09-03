@@ -2,9 +2,7 @@
 	"debug": "${EVERNOTEBOT_DEBUG}",
 	"host": "evernotebot.djudman.info",
 	"default_mode": "multiple_notes",
-	"src_root": "./evernotebot",
-	"tmp_root": "./tmp",
-	"logs_root": "./logs",
+	"tmp_root": "/tmp",
 
 	"telegram": {
 		"bot_url": "http://telegram.me/evernoterobot",
