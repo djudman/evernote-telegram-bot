@@ -1,27 +1,16 @@
 #!/usr/bin/env python3
+try:
+    import coverage as cvrg
+    coverage = cvrg.Coverage(include='evernotebot/*')
+    coverage.start()
+except ImportError:
+    coverage = None
+
 import importlib.util
 import os
 from os.path import dirname
 import sys
 import unittest
-import contextlib
-
-
-@contextlib.contextmanager
-def try_coverage(*args, **kwargs):
-    try:
-        import coverage
-        cov = coverage.Coverage(include='evernotebot/*')
-        cov.start()
-    except ImportError:
-        cov = None
-    try:
-        yield cov
-    finally:
-        if cov is None:
-            return
-        cov.stop()
-        cov.save()
 
 
 def import_module_by_path(path):
@@ -61,9 +50,10 @@ if __name__ == '__main__':
     for module in get_test_modules(pattern):
         suite.addTests(loader.loadTestsFromModule(module))
     runner = unittest.TextTestRunner(verbosity=2)
-    with try_coverage() as cov:
-        result = runner.run(suite)
+    result = runner.run(suite)
     if result.failures or result.errors:
         sys.exit(1)
-    elif cov:
-        cov.report()
+    elif coverage:
+        coverage.stop()
+        coverage.save()
+        coverage.report()
