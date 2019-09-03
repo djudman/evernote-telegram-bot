@@ -77,3 +77,49 @@ class TestSwitchMode(TestCase):
         evernote_oauth_callback(self.bot, OauthParams(oauth_data["callback_key"], "oauth_verifier", "full"))
         self.assertEqual(self.bot.evernote.create_note.call_count, 1)
         self.assertEqual(self.bot.evernote.get_note_link.call_count, 1)
+
+    def test_switch_to_selected_mode(self):
+        user_id = 8
+        update_data = {
+            "update_id": 1,
+            "message": {
+                "message_id": 1,
+                "date": 123,
+                "text": '/switch_mode',
+                "entities": [{
+                    "type": "bot_command",
+                    "offset": 0,
+                    "length": len("/switch_mode"),
+                }],
+                "from_user": {
+                    "id": user_id,
+                    "is_bot": False,
+                    "first_name": "test",
+                },
+                "chat": {"id": 9, "type": ""},
+            },
+        }
+        self.bot.process_update(update_data)
+        user_data = self.bot.users.get(user_id)
+        self.assertEqual(user_data["state"], "switch_mode")
+        self.assertEqual(self.bot.api.sendMessage.call_count, 1)
+        call = self.bot.api.sendMessage.calls[0]
+        self.assertEqual(call["args"][1], "Please, select mode")
+        update_data = {
+            "update_id": 1,
+            "message": {
+                "message_id": 2,
+                "date": time(),
+                "text": '> Multiple notes <',
+                "from_user": {
+                    "id": user_id,
+                    "is_bot": False,
+                    "first_name": "test",
+                },
+                "chat": {"id": 2, "type": "private"},
+            },
+        }
+        self.assertEqual(self.bot.evernote.create_note.call_count, 0)
+        self.bot.process_update(update_data)
+        call = self.bot.api.sendMessage.calls[1]
+        self.assertEqual(call['args'][1], "The bot already in 'Multiple notes' mode.")

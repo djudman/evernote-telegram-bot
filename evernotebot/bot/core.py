@@ -108,11 +108,11 @@ class EvernoteBot(TelegramBot):
 
     def _validate_mode(self, selected_mode_str):
         mode = selected_mode_str
-        if selected_mode_str.startswith("> ") and selected_mode_str.endswith(" <"):
+        if selected_mode_str.startswith('> ') and selected_mode_str.endswith(' <'):
             mode = selected_mode_str[2:-2]
         title = mode
-        mode = mode.lower().replace(" ", "_")
-        if mode not in ("one_note", "multiple_notes"):
+        mode = mode.lower().replace(' ', '_')
+        if mode not in {'one_note', 'multiple_notes'}:
             raise EvernoteBotException(f"Unknown mode '{title}'")
         return mode, title
 
