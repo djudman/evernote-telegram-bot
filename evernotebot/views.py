@@ -1,12 +1,10 @@
 import logging
-import re
 import traceback
 from time import time
 
 from uhttp.core import HTTPFound, Request
 
-from evernotebot.bot.core import EvernoteBotException
-from evernotebot.bot.shortcuts import evernote_oauth_callback
+from evernotebot.bot.shortcuts import evernote_oauth_callback, OauthParams
 
 
 def telegram_hook(request: Request):
@@ -15,33 +13,22 @@ def telegram_hook(request: Request):
     try:
         bot.process_update(data)
     except Exception:
-        str_exc = traceback.format_exc()
-        failed_update = {
-            "created": time(),
-            "data": data,
-            "exception": str_exc,
-        }
-        entry_id = bot.failed_updates.create(failed_update, auto_generate_id=True)
-        logging.getLogger("evernotebot").error({
-            "exception": str_exc,
-            "failed_update_id": entry_id,
-        })
-    return ""
+        message = f'Telegram update failed. Data: `{data}`'
+        logging.getLogger('evernotebot').error(message, exc_info=True)
+        bot.failed_updates.create({
+            'created': time(),
+            'data': data,
+            'exception': traceback.format_exc(),
+        }, auto_generate_id=True)
+    return ''
 
 
 def evernote_oauth(request: Request):
-    params = request.GET
     bot = request.app.bot
-    callback_key = params["key"]
-    if not re.match(r"^[a-z0-9]{40}$", callback_key):
-        raise EvernoteBotException("Invalid callback key")
-    access_type = params.get("access")
-    if access_type not in ("basic", "full"):
-        raise EvernoteBotException("Invalid access")
-    evernote_oauth_callback(
-        bot,
-        callback_key=callback_key,
-        oauth_verifier=params.get("oauth_verifier"),
-        access_type=access_type,
-    )
+    params = request.GET
+    callback_key = params['key']
+    access_type = params['access']
+    verifier = params.get('oauth_verifier')
+    oauth_params = OauthParams(callback_key, verifier, access_type)
+    evernote_oauth_callback(bot, oauth_params)
     return HTTPFound(bot.url)

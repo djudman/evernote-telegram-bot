@@ -2,19 +2,18 @@ import copy
 import json
 import importlib
 import math
-import random
-import string
-from time import time
 
 from utelegram import TelegramBot, TelegramBotError
 from utelegram import Message
 
 import evernotebot.util.evernote.client as evernote_api
-from evernotebot.bot.commands import start_command, \
-    switch_mode_command, switch_notebook_command, help_command
-from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
-from evernotebot.bot.shortcuts import get_evernote_oauth_data, \
-    get_cached_object, download_telegram_file
+from evernotebot.bot.commands import (
+    start_command, switch_mode_command, switch_notebook_command, help_command
+)
+from evernotebot.bot.models import BotUser
+from evernotebot.bot.shortcuts import (
+    get_evernote_oauth_data, get_cached_object, download_telegram_file
+)
 from evernotebot.util.evernote.client import EvernoteApi
 
 

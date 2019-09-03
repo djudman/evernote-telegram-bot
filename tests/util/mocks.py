@@ -53,7 +53,7 @@ class EvernoteApiMock:
         return self
 
     def __generate_secret_string(self):
-        return "".join(s for s in random.choices(string.ascii_letters, k = 16))
+        return "".join(s for s in random.choices(string.ascii_letters, k = 40))
 
 
 class EvernoteSdkMock(Mock):

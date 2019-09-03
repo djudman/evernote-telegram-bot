@@ -1,5 +1,4 @@
 import logging
-import traceback
 from os.path import dirname, realpath
 
 from uhttp import WsgiApplication
@@ -18,8 +17,6 @@ class EvernoteBotApplication(WsgiApplication):
             config=config
         )
         self.bot = EvernoteBot(config)
-        webhook_url = config['telegram']['webhook_url']
-        self.set_telegram_webhook(webhook_url)
 
     def get_urls(self):
         telegram_api_token = self.config['telegram']['token']
@@ -32,9 +29,10 @@ class EvernoteBotApplication(WsgiApplication):
         try:
             self.bot.api.setWebhook(webhook_url)
         except Exception:
-            e = traceback.format_exc()
-            message = f"Can't set up webhook url `{webhook_url}`.\n{e}"
-            logging.getLogger('evernotebot').fatal({'exception': message})
+            message = f"Can't set up webhook url `{webhook_url}`"
+            logging.getLogger('evernotebot').fatal(message, exc_info=True)
 
 
 app = EvernoteBotApplication()
+webhook_url = app.config['telegram']['webhook_url']
+app.set_telegram_webhook(webhook_url)

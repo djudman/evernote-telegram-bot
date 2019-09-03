@@ -1,6 +1,7 @@
 import json
 import string
 import random
+import re
 from os.path import basename, join
 from time import time
 from typing import Callable
@@ -12,23 +13,33 @@ from uhttp.client import make_request
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 
 
-def evernote_oauth_callback(bot, callback_key: str, oauth_verifier: str,
-                            access_type: str="basic"):
-    query = {"evernote.oauth.callback_key": callback_key}
+class OauthParams:
+    def __init__(self, callback_key: str, verifier: str, access_type: str):
+        if not re.match(r'^[a-zA-Z0-9]{40}$', callback_key):
+            raise Exception('Invalid callback key')  # TODO: raise custom exception
+        if access_type not in ('basic', 'full'):
+            raise Exception('Invalid access')
+        self.callback_key = callback_key
+        self.verifier = verifier
+        self.access_type = access_type
+
+
+def evernote_oauth_callback(bot, params: OauthParams):
+    query = {"evernote.oauth.callback_key": params.callback_key}
     user_data = bot.users.get(query, fail_if_not_exists=True)
     user = BotUser(**user_data)
     chat_id = user.telegram.chat_id
-    if not oauth_verifier:
+    if not params.verifier:
         bot.api.sendMessage(chat_id, "We are sorry, but you have declined "
                                      "authorization.")
         return
-    evernote_config = bot.config["evernote"]["access"][access_type]
+    evernote_config = bot.config["evernote"]["access"][params.access_type]
     oauth = user.evernote.oauth
     try:
         oauth_params = {
             "token": oauth.token,
             "secret": oauth.secret,
-            "verifier": oauth_verifier,
+            "verifier": params.verifier,
         }
         user.evernote.access.token = bot.evernote().get_access_token(
             evernote_config["key"], evernote_config["secret"],
@@ -41,9 +52,9 @@ def evernote_oauth_callback(bot, callback_key: str, oauth_verifier: str,
     except Exception as e:
         bot.api.sendMessage(chat_id, "Unknown error. Please, try again later.")
         raise e
-    user.evernote.access.permission = access_type
+    user.evernote.access.permission = params.access_type
     user.evernote.oauth = None
-    if access_type == "basic":
+    if params.access_type == "basic":
         bot.api.sendMessage(chat_id, "Evernote account is connected.\nFrom now "
             "you can just send a message and a note will be created.")
         default_notebook = bot.evernote(user).get_default_notebook()
