@@ -13,6 +13,15 @@ import sys
 import unittest
 
 
+def coverage_report(coverage):
+    coverage.stop()
+    coverage.save()
+    try:
+        coverage.report()
+    except cvrg.misc.CoverageException:
+        pass
+
+
 def import_module_by_path(path):
     spec = importlib.util.spec_from_file_location('test', path)
     module = importlib.util.module_from_spec(spec)
@@ -36,11 +45,11 @@ def get_test_modules(pattern):
 
 
 if __name__ == '__main__':
-    os.environ["TELEGRAM_API_TOKEN"] = "secret"
-    os.environ["EVERNOTE_BASIC_ACCESS_KEY"] = "secret"
-    os.environ["EVERNOTE_BASIC_ACCESS_SECRET"] = "secret"
-    os.environ["EVERNOTE_FULL_ACCESS_KEY"] = "secret"
-    os.environ["EVERNOTE_FULL_ACCESS_SECRET"] = "secret"
+    os.environ['TELEGRAM_API_TOKEN'] = 'secret'
+    os.environ['EVERNOTE_BASIC_ACCESS_KEY'] = 'secret'
+    os.environ['EVERNOTE_BASIC_ACCESS_SECRET'] = 'secret'
+    os.environ['EVERNOTE_FULL_ACCESS_KEY'] = 'secret'
+    os.environ['EVERNOTE_FULL_ACCESS_SECRET'] = 'secret'
 
     project_dir = dirname(dirname(os.path.realpath(__file__)))
     sys.path.insert(0, project_dir)
@@ -54,6 +63,4 @@ if __name__ == '__main__':
     if result.failures or result.errors:
         sys.exit(1)
     elif coverage:
-        coverage.stop()
-        coverage.save()
-        coverage.report()
+        coverage_report(coverage)

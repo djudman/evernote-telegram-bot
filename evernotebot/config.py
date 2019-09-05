@@ -1,11 +1,12 @@
 import json
 import os
 import re
+from os.path import dirname, join
 from logging import Formatter
 
 
 def load_config():
-    filename = 'evernotebot.config.json'
+    filename = join(dirname(dirname(__file__)), 'evernotebot.config.json')
     with open(filename, 'r') as f:
         config_str_data = f.read()
     matches = re.findall(r'\$\{([0-9a-zA-Z_]+)\}', config_str_data)
