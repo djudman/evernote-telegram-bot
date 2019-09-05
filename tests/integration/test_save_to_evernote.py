@@ -215,3 +215,30 @@ class TestSaveToEvernote(TestCase):
         self.assertEqual(self.bot.api.sendMessage.call_count, 3)
         self.assertEqual(self.bot.api.sendMessage.calls[1]['args'][1], 'We are sorry, but you have declined authorization.')
         self.assertEqual(self.bot.api.sendMessage.calls[2]['args'][1], '❌ Error. You have to sign in to Evernote first. Send /start and press the button')
+
+    def test_one_note_mode(self):
+        user_id = 6
+        user_data = self.bot.users.get(user_id)
+        user_data['bot_mode'] = 'one_note'
+        user_data['evernote']['shared_note_id'] = 'skw934u'
+        self.bot.users.save(user_data)
+        update_data = {
+            "update_id": 1,
+            "message": {
+                "message_id": 2,
+                "date": time(),
+                "text": 'Hello, World!',
+                "from_user": {
+                    "id": user_id,
+                    "is_bot": False,
+                    "first_name": "test",
+                },
+                "chat": {"id": 2, "type": "private"},
+            },
+        }
+        self.bot.process_update(update_data)
+        self.assertEqual(self.bot.evernote.update_note.call_count, 1)
+        call = self.bot.evernote.update_note.calls[0]
+        self.assertEqual(call['args'][0], 'skw934u')
+        self.assertEqual(call['args'][1], 'Hello, World!')
+        self.assertEqual(call['args'][2], 'Hello, World!')

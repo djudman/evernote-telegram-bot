@@ -45,6 +45,7 @@ class EvernoteApiMock:
         self.get_default_notebook = MockMethod(result=default_notebook)
         Note = namedtuple("Note", "guid")
         self.create_note = MockMethod(result=Note(guid=self.__generate_secret_string()))
+        self.update_note = MockMethod(result=Note(guid=self.__generate_secret_string()))
         quota_info = {"remaining": 1000}
         self.get_quota_info = MockMethod(result=quota_info)
         self.get_note_link = MockMethod()
