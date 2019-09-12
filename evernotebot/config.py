@@ -1,4 +1,5 @@
 import json
+import logging.config
 import os
 import re
 from os.path import dirname, join
@@ -21,7 +22,9 @@ def load_config():
         if not isinstance(value, str):
             value = str(value).lower()
         config_str_data = config_str_data.replace(f'${{{name}}}', value)
-    return json.loads(config_str_data)
+    config = json.loads(config_str_data)
+    logging.config.dictConfig(config['logging'])
+    return config
 
 
 class JsonFormatter(Formatter):
