@@ -2,12 +2,13 @@ import json
 import logging.config
 import os
 import re
-from os.path import dirname, join
+from os.path import dirname, join, realpath, exists
 from logging import Formatter
 
 
 def load_config():
     filename = join(dirname(dirname(__file__)), 'evernotebot.config.json')
+    dirpath = realpath(dirname(filename))
     with open(filename, 'r') as f:
         config_str_data = f.read()
     matches = re.findall(r'\$\{([0-9a-zA-Z_]+)\}', config_str_data)
@@ -23,6 +24,10 @@ def load_config():
             value = str(value).lower()
         config_str_data = config_str_data.replace(f'${{{name}}}', value)
     config = json.loads(config_str_data)
+    filepath = join(dirpath, config['logging']['handlers']['evernotebot']['filename'])
+    logdir = dirname(filepath)
+    if not exists(logdir):
+        os.makedirs(logdir, exist_ok=True)
     logging.config.dictConfig(config['logging'])
     return config
 

@@ -1,6 +1,6 @@
 -e git+https://github.com/djudman/uhttp.git#egg=uhttp
 -e git+https://github.com/djudman/utelegram.git#egg=utelegram
 gunicorn==19.9.0
-evernote3==1.25.12
+evernote3==1.25.13
 oauth2
-pymongo==3.7.2
+pymongo==3.9.0
