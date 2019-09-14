@@ -93,18 +93,29 @@ class EvernoteBot(TelegramBot):
         self.users.save(bot_user.asdict())
 
     def handle_message(self, message: Message):
-        message_attrs = ('text', 'photo', 'voice', 'audio', 'video',
-                         'document', 'location')
+        message_attrs = ('text', 'photo', 'voice', 'audio', 'video', 'document', 'location')
         for attr_name in message_attrs:
             value = getattr(message, attr_name, None)
             if value is None:
                 continue
-            status_message = self.api.sendMessage(
-                message.chat.id, f'{attr_name.capitalize()} accepted')
+            status_message = self.api.sendMessage(message.chat.id, f'{attr_name.capitalize()} accepted')
             handler = getattr(self, f'on_{attr_name}')
+            self.update_caption(message)
             handler(message)
             self.api.editMessageText(message.chat.id,
                 status_message['message_id'], 'Saved')
+
+    def update_caption(self, message: Message):
+        if message.forward_from:
+            user = message.forward_from
+            parts = filter(lambda x: x, (user.first_name, user.last_name))
+            name = ' '.join(parts) + f' ({user.username})'
+            message.caption = f'Forwarded from {name}'
+        if message.forward_from_chat:
+            chat = message.forward_from_chat
+            name = chat.title or chat.username
+            message.caption = f'Forwarded from {chat.type} "{name}"'
+
 
     def _validate_mode(self, selected_mode_str):
         mode = selected_mode_str
