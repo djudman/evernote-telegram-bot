@@ -17,24 +17,31 @@ your own installation.
 [BotFather](https://telegram.me/BotFather)
 (see https://core.telegram.org/bots#3-how-do-i-create-a-bot)  
 * Install a Docker to your server (see https://docs.docker.com/install/)
-* Define some [environment variables](#Environment variables) (for example `.bashrc`)
-* Build your own docker image 
+* Clone source code to your server
+    ```
+    git clone https://github.com/djudman/evernote-telegram-bot.git
+    ```
+* Build your own docker image
     ```
     docker build -t evernote-telegram-bot
     ```
+* Define [environment variables](#Environment) (for example, in `.bashrc`)
 * Run a container
     ```
-    docker run \  
-        -e MONGO_HOST="${MONGO_HOST}" \  
-        -e TELEGRAM_API_TOKEN="${TELEGRAM_API_TOKEN}" \  
-        -e EVERNOTE_BASIC_ACCESS_KEY="${EVERNOTE_BASIC_ACCESS_KEY}" \  
-        -e EVERNOTE_BASIC_ACCESS_SECRET="${EVERNOTE_BASIC_ACCESS_SECRET}" \  
-        -e EVERNOTE_FULL_ACCESS_KEY="${EVERNOTE_FULL_ACCESS_KEY}" \  
-        -e EVERNOTE_FULL_ACCESS_SECRET="${EVERNOTE_FULL_ACCESS_SECRET}" \  
-        --rm \  
-        --name=evernotebot \  
-        -it \  
-        -v evernotebot-logs:/app/logs:rw \  
+    docker run \
+        -e EVERNOTEBOT_DEBUG="${EVERNOTEBOT_DEBUG}" \
+        -e MONGO_HOST="${MONGO_HOST}" \
+        -e EVERNOTEBOT_HOSTNAME="${EVERNOTEBOT_HOSTNAME}" \
+        -e TELEGRAM_API_TOKEN="${TELEGRAM_API_TOKEN}" \
+        -e TELEGRAM_BOT_NAME="${TELEGRAM_BOT_NAME}" \
+        -e EVERNOTE_BASIC_ACCESS_KEY="${EVERNOTE_BASIC_ACCESS_KEY}" \
+        -e EVERNOTE_BASIC_ACCESS_SECRET="${EVERNOTE_BASIC_ACCESS_SECRET}" \
+        -e EVERNOTE_FULL_ACCESS_KEY="${EVERNOTE_FULL_ACCESS_KEY}" \
+        -e EVERNOTE_FULL_ACCESS_SECRET="${EVERNOTE_FULL_ACCESS_SECRET}" \
+        --rm \
+        --name=evernotebot \
+        -it \
+        -v ./logs:/app/logs:rw \
         evernote-telegram-bot
     ```
 

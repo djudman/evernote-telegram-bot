@@ -29,7 +29,6 @@ start:
 		-e EVERNOTE_FULL_ACCESS_SECRET="${EVERNOTE_FULL_ACCESS_SECRET}" \
 		--rm \
 		--name=evernotebot \
-		--network=nginx-net \
 		-it \
-		-v evernotebot-logs:/app/logs:rw \
+		-v ./logs:/app/logs:rw \
 		"djudman/evernote-telegram-bot:latest"
