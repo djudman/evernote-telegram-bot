@@ -43,7 +43,7 @@ your own installation.
 |------------------------------|---------------|-------------|
 | DEBUG                        | 0             | Enable debug mode (additional logging enabled) |
 | MONGO_HOST                   | 127.0.0.1     | Hostname for mongodb host|
-| HOSTNAME                     | evernotebot.djudman.info | DNS name of your host
+| EVERNOTEBOT_HOSTNAME         | evernotebot.djudman.info | DNS name of your host
 | TELEGRAM_API_TOKEN           | -             | Access token for telegram API. You can obtain this by BotFather |
 | TELEGRAM_BOT_NAME            | evernoterobot | Name of telegram bot. You used this in BotFather |
 | EVERNOTE_BASIC_ACCESS_KEY    | -             | appKey for your Evernote app (with readonly permissions) |

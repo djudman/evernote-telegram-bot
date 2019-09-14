@@ -45,7 +45,7 @@ def get_test_modules(pattern):
 
 
 if __name__ == '__main__':
-    os.environ['HOSTNAME'] = 'localhost'
+    os.environ['EVERNOTEBOT_HOSTNAME'] = 'localhost'
     os.environ['TELEGRAM_BOT_NAME'] = 'test'
     os.environ['TELEGRAM_API_TOKEN'] = 'secret'
     os.environ['EVERNOTE_BASIC_ACCESS_KEY'] = 'secret'

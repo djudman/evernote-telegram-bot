@@ -1,6 +1,6 @@
 {
 	"debug": "${DEBUG}",
-	"host": "${HOSTNAME}",
+	"host": "${EVERNOTEBOT_HOSTNAME}",
 	"default_mode": "multiple_notes",
 	"tmp_root": "/tmp",
 
