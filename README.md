@@ -25,7 +25,7 @@ your own installation.
     ```
     docker build -t evernote-telegram-bot
     ```
-* Define [environment variables](#Environment) (for example, in `.bashrc`)
+* Define [environment variables](#Environment-variables) (for example, in `.bashrc`)
 * Run a container
     ```
     docker run \
