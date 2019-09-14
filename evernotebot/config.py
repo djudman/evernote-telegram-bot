@@ -22,10 +22,10 @@ def load_config():
         value = os.getenv(name, defaults.get(name))
         if value is None:
             raise Exception(f"Environment variable `{name}` isn't set")
-        if not isinstance(value, str):
-            value = str(value).lower()
+        value = value or ''
         config_str_data = config_str_data.replace(f'${{{name}}}', value)
     config = json.loads(config_str_data)
+    config['debug'] = bool(config['debug'])
     filepath = join(dirpath, config['logging']['handlers']['evernotebot']['filename'])
     logdir = dirname(filepath)
     if not exists(logdir):
