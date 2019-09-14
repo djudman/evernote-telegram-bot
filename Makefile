@@ -1,7 +1,7 @@
 httpd:
 	@if [ ! -d "./logs" ]; then mkdir logs; fi
 	gunicorn \
-		-e DEBUG="true" \
+		-e EVERNOTEBOT_DEBUG="true" \
 		-e TELEGRAM_API_TOKEN="" \
 		-e EVERNOTE_BASIC_ACCESS_KEY="" \
 		-e EVERNOTE_BASIC_ACCESS_SECRET="" \
@@ -18,7 +18,7 @@ build:
 	docker push djudman/evernote-telegram-bot
 start:
 	docker run \
-		-e DEBUG="{DEBUG}" \
+		-e EVERNOTEBOT_DEBUG="${EVERNOTEBOT_DEBUG}" \
 		-e MONGO_HOST="${MONGO_HOST}" \
 		-e EVERNOTEBOT_HOSTNAME="${EVERNOTEBOT_HOSTNAME}" \
 		-e TELEGRAM_API_TOKEN="${TELEGRAM_API_TOKEN}" \

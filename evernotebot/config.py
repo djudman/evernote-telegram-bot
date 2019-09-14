@@ -14,7 +14,7 @@ def load_config():
     matches = re.findall(r'\$\{([0-9a-zA-Z_]+)\}', config_str_data)
     defaults = {
         'MONGO_HOST': '127.0.0.1',
-        'DEBUG': False,
+        'EVERNOTEBOT_DEBUG': False,
         'EVERNOTEBOT_HOSTNAME': 'evernotebot.djudman.info',
         'TELEGRAM_BOT_NAME': 'evernoterobot',
     }
