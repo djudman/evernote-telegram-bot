@@ -100,21 +100,25 @@ class EvernoteBot(TelegramBot):
                 continue
             status_message = self.api.sendMessage(message.chat.id, f'{attr_name.capitalize()} accepted')
             handler = getattr(self, f'on_{attr_name}')
-            self.update_caption(message)
+            message.caption = self.get_caption(message)
             handler(message)
-            self.api.editMessageText(message.chat.id,
-                status_message['message_id'], 'Saved')
+            self.api.editMessageText(message.chat.id, status_message['message_id'], 'Saved')
 
-    def update_caption(self, message: Message):
+    def get_caption(self, message: Message):
         if message.forward_from:
             user = message.forward_from
             parts = filter(lambda x: x, (user.first_name, user.last_name))
-            name = ' '.join(parts) + f' ({user.username})'
-            message.caption = f'Forwarded from {name}'
+            name = ' '.join(parts)
+            if user.username:
+                name += f' {user.username}'
+            return f'Forwarded from {name}'
         if message.forward_from_chat:
             chat = message.forward_from_chat
             name = chat.title or chat.username
-            message.caption = f'Forwarded from {chat.type} "{name}"'
+            return f'Forwarded from {chat.type} {name}'
+        if message.forward_sender_name:
+            return f'Forwarded from {message.forward_sender_name}'
+        return message.caption
 
 
     def _validate_mode(self, selected_mode_str):
@@ -209,7 +213,8 @@ class EvernoteBot(TelegramBot):
         user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
         text = message.text
-        self.save_note(user, text, title=text[:20])
+        title = message.caption or '[Telegram bot]'
+        self.save_note(user, text, title=title)
 
     def on_photo(self, message: Message):
         max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
@@ -240,18 +245,19 @@ class EvernoteBot(TelegramBot):
     def on_location(self, message: Message):
         latitude = message.location.latitude
         longitude = message.location.longitude
-        maps_url = f"https://maps.google.com/maps?q={latitude},{longitude}"
-        title = "Location"
-        html = f"<a href='{maps_url}'>{maps_url}</a>"
+        maps_url = f'https://maps.google.com/maps?q={latitude},{longitude}'
+        title = 'Location'
+        html = f'<a href="{maps_url}">{maps_url}</a>'
         if message.venue:
             venue = message.venue
             title=venue.title or title
             address=venue.address
-            html = f"{title}<br />{address}<br /><a href='{maps_url}'>{maps_url}</a>"
+            html = f'{title}<br />{address}<br /><a href="{maps_url}">{maps_url}</a>'
             foursquare_id = venue.foursquare_id
             if foursquare_id:
-                url = f"https://foursquare.com/v/{foursquare_id}"
-                html += f"<br /><a href='{url}'>{url}</a>"
+                url = f'https://foursquare.com/v/{foursquare_id}'
+                html += f'<br /><a href="{url}">{url}</a>'
         user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
+        title = message.caption or title
         self.save_note(user, title=title, html=html)

@@ -169,11 +169,11 @@ class TestCore(TestCase):
         title = bot.save_note.call_args[1]["title"]
         html = bot.save_note.call_args[1]["html"]
         self.assertEqual(title, "Kremlin")
-        self.assertEqual(html, "Kremlin<br />Red Square, 1<br />"
-        "<a href='https://maps.google.com/maps?q=3.4,1.2'>"
-            "https://maps.google.com/maps?q=3.4,1.2"
-        "</a><br />"
-        "<a href='https://foursquare.com/v/123'>https://foursquare.com/v/123</a>")
+        self.assertEqual(html, 'Kremlin<br />Red Square, 1<br />'
+        '<a href="https://maps.google.com/maps?q=3.4,1.2">'
+            'https://maps.google.com/maps?q=3.4,1.2'
+        '</a><br />'
+        '<a href="https://foursquare.com/v/123">https://foursquare.com/v/123</a>')
 
     def test_update_caption(self):
         bot = EvernoteBot(self.config)
@@ -183,8 +183,8 @@ class TestCore(TestCase):
             from_user={'id': 2, 'is_bot': False, 'first_name': 'John'},
             forward_from={'id': 3, 'is_bot': False, 'first_name': 'Jack', 'username': 'jack11'}
         )
-        bot.update_caption(message)
-        self.assertEqual(message.caption, 'Forwarded from Jack (jack11)')
+        message.caption = bot.get_caption(message)
+        self.assertEqual(message.caption, 'Forwarded from Jack jack11')
 
         message = Message(
             message_id=1,
@@ -192,5 +192,5 @@ class TestCore(TestCase):
             from_user={'id': 2, 'is_bot': False, 'first_name': 'John'},
             forward_from_chat={'id': 3, 'title': 'Testchat', 'type': 'channel', 'username': 'jack11'}
         )
-        bot.update_caption(message)
-        self.assertEqual(message.caption, 'Forwarded from channel "Testchat"')
+        message.caption = bot.get_caption(message)
+        self.assertEqual(message.caption, 'Forwarded from channel Testchat')

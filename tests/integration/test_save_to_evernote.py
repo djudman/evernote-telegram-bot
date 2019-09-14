@@ -241,4 +241,4 @@ class TestSaveToEvernote(TestCase):
         call = self.bot.evernote.update_note.calls[0]
         self.assertEqual(call['args'][0], 'skw934u')
         self.assertEqual(call['args'][1], 'Hello, World!')
-        self.assertEqual(call['args'][2], 'Hello, World!')
+        self.assertEqual(call['args'][2], '[Telegram bot]')
