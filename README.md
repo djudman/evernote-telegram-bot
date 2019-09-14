@@ -17,6 +17,8 @@ your own installation.
 [BotFather](https://telegram.me/BotFather)
 (see https://core.telegram.org/bots#3-how-do-i-create-a-bot)  
 * Install a Docker to your server (see https://docs.docker.com/install/)
+* Get and set up SSL certificate (see https://letsencrypt.org)
+* Set up nginx or another proxy server to work with your SSL certificate.
 * Clone source code to your server
     ```
     git clone https://github.com/djudman/evernote-telegram-bot.git
