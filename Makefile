@@ -1,10 +1,7 @@
-install:
-	python3 -m venv ./venv/evernotebot
-	pip install -r requirements.txt
 httpd:
 	@if [ ! -d "./logs" ]; then mkdir logs; fi
 	gunicorn \
-		-e EVERNOTEBOT_DEBUG="true" \
+		-e DEBUG="true" \
 		-e TELEGRAM_API_TOKEN="" \
 		-e EVERNOTE_BASIC_ACCESS_KEY="" \
 		-e EVERNOTE_BASIC_ACCESS_SECRET="" \
@@ -21,8 +18,11 @@ build:
 	docker push djudman/evernote-telegram-bot
 start:
 	docker run \
+		-e DEBUG="{DEBUG}" \
 		-e MONGO_HOST="${MONGO_HOST}" \
+		-e HOSTNAME="${HOSTNAME}" \
 		-e TELEGRAM_API_TOKEN="${TELEGRAM_API_TOKEN}" \
+		-e TELEGRAM_BOT_NAME="${TELEGRAM_BOT_NAME}" \
 		-e EVERNOTE_BASIC_ACCESS_KEY="${EVERNOTE_BASIC_ACCESS_KEY}" \
 		-e EVERNOTE_BASIC_ACCESS_SECRET="${EVERNOTE_BASIC_ACCESS_SECRET}" \
 		-e EVERNOTE_FULL_ACCESS_KEY="${EVERNOTE_FULL_ACCESS_KEY}" \

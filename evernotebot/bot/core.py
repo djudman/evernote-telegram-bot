@@ -23,14 +23,14 @@ class EvernoteBotException(TelegramBotError):
 
 class EvernoteBot(TelegramBot):
     def __init__(self, config):
-        telegram_config = config["telegram"]
-        token = telegram_config["token"]
-        bot_url = telegram_config["bot_url"]
+        telegram_config = config['telegram']
+        token = telegram_config['token']
+        bot_url = 'https://t.me/{}'.format(telegram_config['bot_name'])
         super().__init__(token, bot_url=bot_url, config=config)
         self._evernote_apis_cache = {}
-        storage_config = config["storage"]
-        self.users = self._init_storage(storage_config["users"])
-        self.failed_updates = self._init_storage(storage_config["failed_updates"])
+        storage_config = config['storage']
+        self.users = self._init_storage(storage_config['users'])
+        self.failed_updates = self._init_storage(storage_config['failed_updates'])
         self.register_handlers()
 
     def _init_storage(self, config: dict):

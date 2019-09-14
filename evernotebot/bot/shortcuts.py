@@ -76,7 +76,7 @@ def get_evernote_oauth_data(bot, bot_user: BotUser, message_text: str,
     symbols = string.ascii_letters + string.digits
     session_key = ''.join([random.choice(symbols) for _ in range(32)])
     oauth_data = bot.evernote().get_oauth_data(bot_user.id, session_key,
-        bot.config['evernote'], access, bot.config.get('debug'))
+        bot.config, access, bot.config.get('debug'))
     auth_button['text'] = 'Sign in with Evernote'
     auth_button['url'] = oauth_data['oauth_url']
     inline_keyboard = json.dumps({'inline_keyboard': [[auth_button]]})

@@ -1,17 +1,15 @@
 {
-	"debug": "${EVERNOTEBOT_DEBUG}",
-	"host": "evernotebot.djudman.info",
+	"debug": "${DEBUG}",
+	"host": "${HOSTNAME}",
 	"default_mode": "multiple_notes",
 	"tmp_root": "/tmp",
 
 	"telegram": {
-		"bot_url": "http://telegram.me/evernoterobot",
-		"token": "${TELEGRAM_API_TOKEN}",
-		"webhook_url": "https://evernotebot.djudman.info/${TELEGRAM_API_TOKEN}"
+		"bot_name": "${TELEGRAM_BOT_NAME}",
+		"token": "${TELEGRAM_API_TOKEN}"
 	},
 
 	"evernote": {
-		"oauth_callback_url": "https://evernotebot.djudman.info/evernote/oauth",
 		"access": {
 			"basic": {
 				"key": "${EVERNOTE_BASIC_ACCESS_KEY}",

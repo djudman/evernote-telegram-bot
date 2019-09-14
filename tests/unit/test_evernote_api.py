@@ -22,10 +22,12 @@ class TestEvernoteApi(unittest.TestCase):
     def setUp(self):
         self.note_store = mock.Mock()
         self.config = {
-            "access": {
-                "basic": {"key": "key", "secret": "secret"}
-            },
-            "oauth_callback_url": "http://callback.url",
+            'host': 'callback.url',
+            'evernote': {
+                'access': {
+                    'basic': {'key': 'key', 'secret': 'secret'}
+                },
+            }
         }
 
     def test_get_oauth_data(self, sdk):
@@ -35,7 +37,7 @@ class TestEvernoteApi(unittest.TestCase):
         self.assertEqual(data["oauth_url"], "auth_url")
         sdk.assert_called_once_with(consumer_key="key",
             consumer_secret="secret", sandbox=False)
-        callback_url = "http://callback.url?access=basic&key=2191f3da8abf9c31"\
+        callback_url = "https://callback.url/evernote/oauth?access=basic&key=2191f3da8abf9c31"\
                        "d9b64a887ffc5949ad0a35d4&session_key=session_key"
         sdk().get_request_token.assert_called_once_with(callback_url)
         request_token = {

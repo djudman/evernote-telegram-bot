@@ -40,5 +40,5 @@ class EvernoteBotApplication(WsgiApplication):
 
 
 app = EvernoteBotApplication()
-webhook_url = app.config['telegram']['webhook_url']
+webhook_url = 'https://{host}/{token}'.format(host=app.config['host'], token=app.config['telegram']['token'])
 app.set_telegram_webhook(webhook_url)
