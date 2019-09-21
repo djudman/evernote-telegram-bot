@@ -27,7 +27,9 @@ def load_config():
     config = json.loads(config_str_data)
     config['debug'] = bool(config['debug'])
     if config['debug']:
-        config['logging']['loggers']['evernotebot']['handlers'].append('stdout')
+        loggers = config['logging']['loggers'].keys()
+        for logger_name in loggers:
+            config['logging']['loggers'][logger_name]['handlers'].append('stdout')
     filepath = join(dirpath, config['logging']['handlers']['evernotebot']['filename'])
     logdir = dirname(filepath)
     if not exists(logdir):
