@@ -109,7 +109,7 @@ class TestEvernoteApi(unittest.TestCase):
         call_args = self.note_store().createNote.call_args[0]
         self.assertEqual(len(call_args), 1)
         self.assertIsInstance(call_args[0], Types.Note)
-        self.assertEqual(call_args[0].title, "Telegram bot")
+        self.assertEqual(call_args[0].title, '')
         self.assertEqual(call_args[0].notebookGuid, "nb_guid")
         self.assertEqual(
             call_args[0].content,
