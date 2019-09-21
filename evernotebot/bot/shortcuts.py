@@ -25,29 +25,29 @@ class OauthParams:
 
 
 def evernote_oauth_callback(bot, params: OauthParams):
-    query = {"evernote.oauth.callback_key": params.callback_key}
+    query = {'evernote.oauth.callback_key': params.callback_key}
     user_data = bot.users.get(query, fail_if_not_exists=True)
     user = BotUser(**user_data)
     chat_id = user.telegram.chat_id
     if not params.verifier:
-        bot.api.sendMessage(chat_id, "We are sorry, but you have declined "
-                                     "authorization.")
+        bot.api.sendMessage(chat_id, 'We are sorry, but you have declined '
+                                     'authorization.')
         return
-    evernote_config = bot.config["evernote"]["access"][params.access_type]
+    evernote_config = bot.config['evernote']['access'][params.access_type]
     oauth = user.evernote.oauth
     try:
         oauth_params = {
-            "token": oauth.token,
-            "secret": oauth.secret,
-            "verifier": params.verifier,
+            'token': oauth.token,
+            'secret': oauth.secret,
+            'verifier': params.verifier,
         }
         user.evernote.access.token = bot.evernote().get_access_token(
-            evernote_config["key"], evernote_config["secret"],
-            sandbox=bot.config.get("debug", True), **oauth_params)
+            evernote_config['key'], evernote_config['secret'],
+            sandbox=bot.config.get('debug', bot.config['debug']), **oauth_params)
     except TokenRequestDenied as e:
-        bot.api.sendMessage(chat_id, "We are sorry, but we have some problems "
-                                     "with Evernote connection. "
-                                     "Please try again later.")
+        bot.api.sendMessage(chat_id, 'We are sorry, but we have some problems '
+                                     'with Evernote connection. '
+                                     'Please try again later.')
         raise e
     except Exception as e:
         bot.api.sendMessage(chat_id, "Unknown error. Please, try again later.")

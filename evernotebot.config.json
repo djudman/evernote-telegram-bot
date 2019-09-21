@@ -74,7 +74,7 @@
 				"propagate": false
 			},
 			"evernotebot": {
-				"handlers": ["evernotebot", "stdout"],
+				"handlers": ["evernotebot"],
 				"level": "DEBUG",
 				"propagate": true
 			}

@@ -1,7 +1,7 @@
 import json
 from time import time
 
-from utelegram import Message
+from utelegram import Message, TelegramBotError
 
 from evernotebot.bot.models import BotUser
 from evernotebot.bot.shortcuts import get_evernote_oauth_data
@@ -40,6 +40,8 @@ Please tap on button below to link your Evernote account with bot.'''
 def switch_mode_command(bot, message: Message):
     user_id = message.from_user.id
     user_data = bot.users.get(user_id)
+    if not user_data:
+        raise TelegramBotError("Unregistered user {0}. You've to send /start to register.")
     user = BotUser(**user_data)
     buttons = []
     for mode in ('one_note', 'multiple_notes'):
@@ -60,6 +62,8 @@ def switch_mode_command(bot, message: Message):
 def switch_notebook_command(bot, message: Message):
     user_id = message.from_user.id
     user_data = bot.users.get(user_id)
+    if not user_data:
+        raise TelegramBotError("Unregistered user {0}. You've to send /start to register.")
     user = BotUser(**user_data)
     all_notebooks = bot.evernote(user).get_all_notebooks()
     buttons = []
