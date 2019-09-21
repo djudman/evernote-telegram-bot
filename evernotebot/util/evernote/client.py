@@ -5,6 +5,7 @@ import re
 import urllib.parse
 
 import evernote.edam.type.ttypes as Types
+from evernote.edam.error.ttypes import EDAMUserException
 from evernote.api.client import EvernoteClient as EvernoteSdk
 
 
@@ -121,8 +122,17 @@ class EvernoteApi:
         self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
         self._notes_store = self._sdk.get_note_store()
 
+    def _note_store_call(self, method, *args, **kwargs):
+        try:
+            method = getattr(self._notes_store, method)
+            return method(*args, **kwargs)
+        except Exception as e:
+            if isinstance(e, EDAMUserException) and e.errorCode == 3 and e.parameter == 'authenticationToken':
+                raise EvernoteApiError('Invalid auth token')
+            raise EvernoteApiError()
+
     def get_all_notebooks(self, query: dict=None):
-        notebooks = self._notes_store.listNotebooks()
+        notebooks = self._note_store_call('listNotebooks')
         notebooks = [{"guid": nb.guid, "name": nb.name} for nb in notebooks]
         if not query:
             return notebooks
@@ -132,15 +142,15 @@ class EvernoteApi:
         )
 
     def get_default_notebook(self):
-        notebook = self._notes_store.getDefaultNotebook()
+        notebook = self._note_store_call('getDefaultNotebook')
         return {
             'guid': notebook.guid,
             'name': notebook.name,
         }
 
-    def create_note(self, notebook_id, text=None, title="Telegram bot", **kwargs):
+    def create_note(self, notebook_id, text=None, title=None, **kwargs):
         note = Types.Note()
-        note.title = title.replace("\n", " ")  # Evernote doesn't support '\n' in titles
+        note.title = title and title.replace('\n', ' ') or ''  # Evernote doesn't support '\n' in titles
         note.notebookGuid = notebook_id
         content = NoteContent()
         content.append(text=text, html=kwargs.get("html"))
@@ -148,32 +158,30 @@ class EvernoteApi:
             list(map(lambda f: content.append(file=f), kwargs["files"]))
         note.content = str(content)
         note.resources = content.resources
-        return self._notes_store.createNote(note)
+        return self._note_store_call('createNote', note)
 
-    def update_note(self, note_id, text=None, title="Telegram bot", **kwargs):
+    def update_note(self, note_id, text=None, title=None, **kwargs):
         note = self.get_note(note_id)
         content = NoteContent(note.content)
-        content.append(text=text, html=kwargs.get("html"))
-        if "files" in kwargs:
-            files = kwargs["files"]
+        content.append(text=text, html=kwargs.get('html'))
+        if 'files' in kwargs:
+            files = kwargs['files']
             # We create new note for the files...
-            attachments_note = self.create_note(
-                note.notebookGuid, text="", title=title, files=files)
+            attachments_note = self.create_note(note.notebookGuid, text='', title=title, files=files)
             # ...and put a link to this note into original note
             for file in files:
                 url = self.get_note_link(attachments_note.guid)
-                link = f"<a href=\"{url}\">{file['name']}</a>"
+                link = f'<a href="{url}">{file["name"]}</a>'
                 content.append(html=link)
         note.content = str(content)
-        return self._notes_store.updateNote(note)
+        return self._note_store_call('updateNote', note)
 
     def get_note(self, note_guid, **kwargs):
         with_content = True
         with_resources_data = True,
         with_resources_recognition = False,
         with_resources_alternate_data = False
-        return self._notes_store.getNote(
-            note_guid, with_content,
+        return self._note_store_call('getNote', note_guid, with_content,
             with_resources_data, with_resources_recognition,
             with_resources_alternate_data)
 
@@ -191,13 +199,13 @@ class EvernoteApi:
     def get_quota_info(self):
         user_store = self._sdk.get_user_store()
         user = user_store.getUser()
-        state = self._notes_store.getSyncState()
+        state = self._note_store_call('getSyncState')
         total_monthly_quota = user.accounting.uploadLimit
         used_so_far = state.uploaded
         quota_remaining = total_monthly_quota - used_so_far
         reset_date = datetime.datetime.fromtimestamp(
             user.accounting.uploadLimitEnd / 1000.0)
         return {
-            "remaining": quota_remaining,
-            "reset_date": reset_date, 
+            'remaining': quota_remaining,
+            'reset_date': reset_date,
         }
