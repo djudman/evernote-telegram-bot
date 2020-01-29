@@ -24,14 +24,14 @@
 
 	"storage": {
 		"users": {
-			"class": "evernotebot.bot.storage.Mongo",
-			"connection_string": "mongodb://${MONGO_HOST}:27017/",
+			"class": "evernotebot.bot.storage.Sqlite",
+			"dirpath": "./data",
 			"db_name": "evernotebot",
 			"collection": "users"
 		},
 		"failed_updates": {
-			"class": "evernotebot.bot.storage.Mongo",
-			"connection_string": "mongodb://${MONGO_HOST}:27017/",
+			"class": "evernotebot.bot.storage.Sqlite",
+			"dirpath": "./data",
 			"db_name": "evernotebot",
 			"collection": "failed_updates"
 		}
