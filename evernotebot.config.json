@@ -25,13 +25,13 @@
 	"storage": {
 		"users": {
 			"class": "evernotebot.bot.storage.Sqlite",
-			"dirpath": "./data",
+			"dirpath": "/evernotebot-data",
 			"db_name": "evernotebot",
 			"collection": "users"
 		},
 		"failed_updates": {
 			"class": "evernotebot.bot.storage.Sqlite",
-			"dirpath": "./data",
+			"dirpath": "/evernotebot-data",
 			"db_name": "evernotebot",
 			"collection": "failed_updates"
 		}
