@@ -30,8 +30,6 @@ RUN set -ex; \
 COPY evernotebot /app/evernotebot
 COPY evernotebot.config.json /app/evernotebot.config.json
 
-VOLUME /evernotebot-data
-
 ENTRYPOINT [ \
 	"gunicorn", \
 	"--bind=0.0.0.0:8000", \
