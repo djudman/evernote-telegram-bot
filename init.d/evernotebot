@@ -1,0 +1,63 @@
+#!/bin/sh
+
+if [ ! "$EVERNOTEBOT_DIR" ]; then
+	EVERNOTEBOT_DIR="$HOME/evernotebot"
+	echo "Variable EVERNOTEBOT_DIR isn't set, so $EVERNOTEBOT_DIR used"
+fi
+
+ENV_FILE="$EVERNOTEBOT_DIR/.env"
+if [ ! -f "$ENV_FILE" ]; then
+	echo "FAILED: File $ENV_FILE not found"
+	exit 1
+fi
+
+source "$EVERNOTEBOT_DIR/.env"
+
+DOCKER_IMAGE_NAME="djudman/evernote-telegram-bot:latest"
+DOCKER_VOLUME_NAME="evernotebot-data"
+DOCKER_DATA_DIR="/evernotebot-data"
+DOCKER_CONTAINER_NAME="evernotebot"
+LOGS_DIR="$EVERNOTEBOT_DIR/logs"
+EVERNOTEBOT_PORT=8001
+
+start() {
+	docker run \
+		-e EVERNOTEBOT_DEBUG="$EVERNOTEBOT_DEBUG" \
+		-e MONGO_HOST="$MONGO_HOST" \
+		-e EVERNOTEBOT_HOSTNAME="$EVERNOTEBOT_HOSTNAME" \
+		-e TELEGRAM_API_TOKEN="$TELEGRAM_API_TOKEN" \
+		-e TELEGRAM_BOT_NAME="$TELEGRAM_BOT_NAME" \
+		-e EVERNOTE_BASIC_ACCESS_KEY="$EVERNOTE_BASIC_ACCESS_KEY" \
+		-e EVERNOTE_BASIC_ACCESS_SECRET="$EVERNOTE_BASIC_ACCESS_SECRET" \
+		-e EVERNOTE_FULL_ACCESS_KEY="$EVERNOTE_FULL_ACCESS_KEY" \
+		-e EVERNOTE_FULL_ACCESS_SECRET="$EVERNOTE_FULL_ACCESS_SECRET" \
+		--restart=always \
+		-p 127.0.0.1:$EVERNOTEBOT_PORT \
+		--name="$DOCKER_CONTAINER_NAME" \
+		-v "$LOGS_DIR":/app/logs:rw \
+		--mount source="$DOCKER_VOLUME_NAME",target="$DOCKER_DATA_DIR" \
+		"$DOCKER_IMAGE_NAME"
+	echo "Evernotebot started at http://127.0.0.1:$EVERNOTEBOT_PORT"
+}
+
+stop() {
+	docker stop "$DOCKER_CONTAINER_NAME"
+	docker rm "$DOCKER_CONTAINER_NAME"
+}
+
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		restart
+		;;
+esac
