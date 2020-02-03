@@ -11,14 +11,12 @@ if [ ! -f "$ENV_FILE" ]; then
 	exit 1
 fi
 
-source "$EVERNOTEBOT_DIR/.env"
-
 DOCKER_IMAGE_NAME="djudman/evernote-telegram-bot:latest"
 DOCKER_VOLUME_NAME="evernotebot-data"
 DOCKER_DATA_DIR="/evernotebot-data"
 DOCKER_CONTAINER_NAME="evernotebot"
 LOGS_DIR="$EVERNOTEBOT_DIR/logs"
-EVERNOTEBOT_PORT=8001
+EVERNOTEBOT_PORT=8000
 
 start() {
 	docker run \
@@ -32,11 +30,18 @@ start() {
 		-e EVERNOTE_FULL_ACCESS_KEY="$EVERNOTE_FULL_ACCESS_KEY" \
 		-e EVERNOTE_FULL_ACCESS_SECRET="$EVERNOTE_FULL_ACCESS_SECRET" \
 		--restart=always \
-		-p 127.0.0.1:$EVERNOTEBOT_PORT \
+		-d \
+		-p 127.0.0.1:$EVERNOTEBOT_PORT:8000 \
 		--name="$DOCKER_CONTAINER_NAME" \
 		-v "$LOGS_DIR":/app/logs:rw \
 		--mount source="$DOCKER_VOLUME_NAME",target="$DOCKER_DATA_DIR" \
 		"$DOCKER_IMAGE_NAME"
+	status=$?
+	if [ $status -ne 0 ]; then
+		echo "FAILED"
+		docker rm "$DOCKER_CONTAINER_NAME"
+		exit 1
+	fi
 	echo "Evernotebot started at http://127.0.0.1:$EVERNOTEBOT_PORT"
 }
 
