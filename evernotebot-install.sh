@@ -27,6 +27,11 @@ curl https://raw.githubusercontent.com/djudman/evernote-telegram-bot/master/init
 chown root: ./evernotebot-init.d
 chmod a+x ./evernotebot-init.d
 mv ./evernotebot-init.d /etc/init.d/evernotebot
+status=$?
+if [ $status -ne 0 ]; then
+	echo "Installation FAILED."
+	exit 1
+fi
 
 env_file="$install_dir/.env"
 if [ -f "$env_file" ]; then
