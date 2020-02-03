@@ -38,6 +38,8 @@ if [ -f "$env_file" ]; then
 	fi
 fi
 
+echo "export EVERNOTEBOT_DIR=\"$install_dir\"" >> "$env_file"
+
 read_env_variable() {
 	read -rp "$1=" value
 	echo "export $1=\"$value\"" >> "$env_file"
@@ -59,6 +61,9 @@ read -rp "Would you like to use mongodb as a storage (default: sqlite)? (y/N) " 
 if [ "$use_mongo" = "y" ]; then
 	read_env_variable "MONGO_HOST"
 fi
+
+echo "source $env_file" >> ~/.bashrc
+echo "A line \"source $env_file\" added to your .bashrc"
 
 echo "Evernote bot successfuly installed to $install_dir"
 echo "Use /etc/init.d/evernotebot start|stop|restart to start/stop/restart bot"
