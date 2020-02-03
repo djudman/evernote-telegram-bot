@@ -23,9 +23,10 @@ else
 	echo "Volume $VOLUME_NAME already exists"
 fi
 
-cp ./init.d/evernotebot /etc/init.d/
-chown root: /etc/init.d/evernotebot
-chmod a+x /etc/init.d/evernotebot
+curl https://raw.githubusercontent.com/djudman/evernote-telegram-bot/master/init.d/evernotebot --output ./evernotebot-init.d
+chown root: ./evernotebot-init.d
+chmod a+x ./evernotebot-init.d
+mv ./evernotebot-init.d /etc/init.d/evernotebot
 
 env_file="$install_dir/.env"
 if [ -f "$env_file" ]; then
