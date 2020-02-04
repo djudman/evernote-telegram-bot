@@ -55,6 +55,11 @@ restart() {
 	start
 }
 
+update() {
+	docker pull $DOCKER_IMAGE_NAME
+	restart
+}
+
 case "$1" in
 	start)
 		start
@@ -64,5 +69,8 @@ case "$1" in
 		;;
 	restart)
 		restart
+		;;
+	update)
+		update
 		;;
 esac
