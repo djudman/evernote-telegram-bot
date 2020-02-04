@@ -136,7 +136,7 @@ class TestCore(TestCase):
         message = Message(
             message_id=1,
             date=1,
-            voice={"file_id": 123, "file_size": 100, "duration": 5},
+            voice={"file_id": 123, "file_unique_id": 123, "file_size": 100, "duration": 5},
             from_user={"id": 2, "is_bot": False, "first_name": "John"},
             caption="My voice",
         )

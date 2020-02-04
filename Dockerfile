@@ -28,6 +28,7 @@ RUN set -ex; \
 	cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime; \
 	mkdir /app/logs
 COPY evernotebot /app/evernotebot
+COPY utelegram /app/utelegram
 COPY evernotebot.config.json /app/evernotebot.config.json
 
 ENTRYPOINT [ \
