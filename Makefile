@@ -14,6 +14,7 @@ httpd:
 test:
 	python3 tests/run.py
 build:
+	docker rmi djudman/evernote-telegram-bot
 	docker build -t djudman/evernote-telegram-bot .
 	docker push djudman/evernote-telegram-bot
 start:

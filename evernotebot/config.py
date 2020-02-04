@@ -25,6 +25,8 @@ def load_config():
         value = value or ''
         config_str_data = config_str_data.replace(f'${{{name}}}', value)
     config = json.loads(config_str_data)
+    if config['debug'] not in ('true', 'false'):
+        config['debug'] = int(config['debug'])
     config['debug'] = bool(config['debug'])
     if config['debug']:
         loggers = config['logging']['loggers'].keys()
