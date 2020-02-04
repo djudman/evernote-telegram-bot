@@ -1,5 +1,10 @@
 #!/bin/sh
 
+read_env_variable() {
+	read -rp "$1=" value
+	echo "export $1=\"$value\"" >> "$env_file"
+}
+
 current_dir=$(pwd)
 read -rp "Install directory (default: $current_dir): " install_dir
 if [ ! "$install_dir" ]; then
@@ -37,38 +42,35 @@ env_file="$install_dir/.env"
 if [ -f "$env_file" ]; then
 	read -rp "Env file $env_file already exists. Do you want to rewrite it? (Y/n) " delete
 	if [ ! "$delete" ] || [ "$delete" = "Y" ]; then
-		rm -f "$env_file"
-		echo "File $env_file deleted"
+		old_env_file="$env_file.bak"
+		mv "$env_file" "$old_env_file"
 		touch "$env_file"
+
+		echo "export EVERNOTEBOT_DIR=\"$install_dir\"" >> "$env_file"
+		read_env_variable "EVERNOTEBOT_DEBUG"
+		read_env_variable "EVERNOTEBOT_HOSTNAME"
+
+		read_env_variable "TELEGRAM_BOT_NAME"
+		read_env_variable "TELEGRAM_API_TOKEN"
+
+		read_env_variable "EVERNOTE_BASIC_ACCESS_KEY"
+		read_env_variable "EVERNOTE_BASIC_ACCESS_SECRET"
+
+		read_env_variable "EVERNOTE_FULL_ACCESS_KEY"
+		read_env_variable "EVERNOTE_FULL_ACCESS_SECRET"
+
+		read -rp "Would you like to use mongodb as a storage (default: sqlite)? (y/N) " use_mongo
+		if [ "$use_mongo" = "y" ]; then
+			read_env_variable "MONGO_HOST"
+		fi
+
+		echo "source $env_file" >> ~/.bashrc
+		echo "A line \"source $env_file\" added to your .bashrc"
+
+		rm -f "$old_env_file"
+		echo "File $old_env_file deleted"
 	fi
 fi
-
-echo "export EVERNOTEBOT_DIR=\"$install_dir\"" >> "$env_file"
-
-read_env_variable() {
-	read -rp "$1=" value
-	echo "export $1=\"$value\"" >> "$env_file"
-}
-
-read_env_variable "EVERNOTEBOT_DEBUG"
-read_env_variable "EVERNOTEBOT_HOSTNAME"
-
-read_env_variable "TELEGRAM_BOT_NAME"
-read_env_variable "TELEGRAM_API_TOKEN"
-
-read_env_variable "EVERNOTE_BASIC_ACCESS_KEY"
-read_env_variable "EVERNOTE_BASIC_ACCESS_SECRET"
-
-read_env_variable "EVERNOTE_FULL_ACCESS_KEY"
-read_env_variable "EVERNOTE_FULL_ACCESS_SECRET"
-
-read -rp "Would you like to use mongodb as a storage (default: sqlite)? (y/N) " use_mongo
-if [ "$use_mongo" = "y" ]; then
-	read_env_variable "MONGO_HOST"
-fi
-
-echo "source $env_file" >> ~/.bashrc
-echo "A line \"source $env_file\" added to your .bashrc"
 
 echo "Evernote bot successfuly installed to $install_dir"
 echo "Use /etc/init.d/evernotebot start|stop|restart to start/stop/restart bot"
