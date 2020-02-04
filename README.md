@@ -28,7 +28,7 @@ your own installation.
         * telegram api token
         * evernote access key
         * evernote access secret
-        * etc., see [Environment variables](#Environment variables)
+        * etc., see [Environment variables](#Environment-variables)
 * Execute `/etc/init.d/evernotebot start` to start bot
 
 ## How to build docker image manually
