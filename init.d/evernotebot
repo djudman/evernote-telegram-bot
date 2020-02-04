@@ -35,7 +35,7 @@ start() {
 		--name="$DOCKER_CONTAINER_NAME" \
 		-v "$LOGS_DIR":/app/logs:rw \
 		--mount source="$DOCKER_VOLUME_NAME",target="$DOCKER_DATA_DIR" \
-		"$DOCKER_IMAGE_NAME"
+		"$DOCKER_IMAGE_NAME" > /dev/null 2>&1
 	status=$?
 	if [ $status -ne 0 ]; then
 		echo "FAILED"
@@ -46,8 +46,8 @@ start() {
 }
 
 stop() {
-	docker stop "$DOCKER_CONTAINER_NAME"
-	docker rm "$DOCKER_CONTAINER_NAME"
+	docker stop "$DOCKER_CONTAINER_NAME" > /dev/null 2>&1
+	docker rm "$DOCKER_CONTAINER_NAME" > /dev/null 2>&1
 }
 
 restart() {
