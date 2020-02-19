@@ -7,7 +7,7 @@ ENV LANG C.UTF-8
 RUN apk add git tzdata
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
-ENV PYTHON_PIP_VERSION 19.2.3
+ENV PYTHON_PIP_VERSION 20.0.2
 RUN set -ex; \
 	wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py'; \
 	python get-pip.py --disable-pip-version-check --no-cache-dir "pip==$PYTHON_PIP_VERSION"; \
