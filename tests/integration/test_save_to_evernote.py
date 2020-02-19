@@ -48,7 +48,8 @@ class TestSaveToEvernote(TestCase):
         self.assertEqual(self.bot.evernote.create_note.call_count, 1)
         call = self.bot.evernote.create_note.calls[0]
         self.assertEqual(call["args"][0], "guid")
-        self.assertEqual(call["args"][1], "Hello, World!")
+        self.assertEqual(call["args"][1], '')
+        self.assertEqual(call['kwargs']['html'], 'Hello, World!')
 
 
     def test_save_photo(self):
@@ -240,5 +241,6 @@ class TestSaveToEvernote(TestCase):
         self.assertEqual(self.bot.evernote.update_note.call_count, 1)
         call = self.bot.evernote.update_note.calls[0]
         self.assertEqual(call['args'][0], 'skw934u')
-        self.assertEqual(call['args'][1], 'Hello, World!')
+        self.assertEqual(call['args'][1], '')
         self.assertEqual(call['args'][2], '[Telegram bot]')
+        self.assertEqual(call['kwargs']['html'], 'Hello, World!')
