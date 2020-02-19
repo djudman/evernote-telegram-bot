@@ -494,6 +494,11 @@ class Message:
     def __post_init__(self):
         init_dataclass_fields(self)
 
+    def get_telegram_link(self):
+        if self.forward_from_chat:
+            username = self.forward_from_chat.username
+            message_id = self.forward_from_message_id
+            return f'https://t.me/{username}/{message_id}'
 
 @dataclass
 class CallbackQuery:

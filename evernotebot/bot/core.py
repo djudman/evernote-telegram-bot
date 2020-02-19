@@ -100,7 +100,6 @@ class EvernoteBot(TelegramBot):
                 continue
             status_message = self.api.sendMessage(message.chat.id, f'{attr_name.capitalize()} accepted')
             handler = getattr(self, f'on_{attr_name}')
-            message.caption = self.get_caption(message)
             handler(message)
             self.api.editMessageText(message.chat.id, status_message['message_id'], 'Saved')
 
@@ -205,16 +204,23 @@ class EvernoteBot(TelegramBot):
         user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
         self._check_evernote_quota(user, file_size)
-        title = message.caption or (message.text and message.text[:20]) or 'File'
+        title = self.get_caption(message) or (message.text and message.text[:20]) or 'File'
         files = ({'path': filename, 'name': short_name},)
-        self.save_note(user, text=message.text, title=title, files=files)
+        text = ''
+        telegram_link = message.get_telegram_link()
+        if telegram_link:
+            text = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p><pre>{message.caption}</pre></div>'
+        self.save_note(user, '', title=title, files=files, html=text)
 
     def on_text(self, message: Message):
         user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
         text = message.text
-        title = message.caption or '[Telegram bot]'
-        self.save_note(user, text, title=title)
+        telegram_link = message.get_telegram_link()
+        if telegram_link:
+            text = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p><pre>{text}</pre></div>'
+        title = self.get_caption(message) or '[Telegram bot]'
+        self.save_note(user, '', title=title, html=text)
 
     def on_photo(self, message: Message):
         max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
@@ -259,5 +265,5 @@ class EvernoteBot(TelegramBot):
                 html += f'<br /><a href="{url}">{url}</a>'
         user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
-        title = message.caption or title
+        title = self.get_caption(message) or title
         self.save_note(user, title=title, html=html)
