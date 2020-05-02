@@ -367,8 +367,9 @@ class MessageEntity:
     type: str
     offset: int
     length: int
-    url: str = None
+    url: str = None  # For “text_link” only, url that will be opened after user taps on the text
     user: User = None
+    language: str = None  # For “pre” only, the programming language of the entity text
 
     def __post_init__(self):
         init_dataclass_fields(self)
@@ -499,6 +500,13 @@ class Message:
             username = self.forward_from_chat.username
             message_id = self.forward_from_message_id
             return f'https://t.me/{username}/{message_id}'
+
+    def get_text(self, start: int, end: int = None) -> str:
+        text = self.text.encode('utf-16')
+        text = text[2:]  # skip BOM
+        start = start * 2 if start is not None else None  # 2 bytes per symbol
+        end = end * 2 if end is not None else None
+        return text[start:end].decode('utf-16')
 
 @dataclass
 class CallbackQuery:

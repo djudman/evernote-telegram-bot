@@ -213,14 +213,47 @@ class EvernoteBot(TelegramBot):
         self.save_note(user, '', title=title, files=files, html=text)
 
     def on_text(self, message: Message):
+        def format_html(message: Message):
+            if not message.entities:
+                return message.text
+            pointer = 0
+            strings = []
+            for entity in message.entities:
+                strings.append(message.get_text(pointer, entity.offset))
+                start, end = entity.offset, entity.offset + entity.length
+                if start < pointer:
+                    continue
+                string = message.get_text(start, end)
+                if entity.type == 'text_link':
+                    url = entity.url
+                    html = f'<a href="{url}">{string}</a>'
+                elif entity.type == 'pre':
+                    html = f'<pre>{string}</pre>'
+                elif entity.type == 'bold':
+                    html = f'<b>{string}</b>'
+                elif entity.type == 'italic':
+                    html = f'<i>{string}</i>'
+                elif entity.type == 'underline':
+                    html = f'<u>{string}</u>'
+                elif entity.type == 'strikethrough':
+                    html = f'<s>{string}</s>'
+                else:
+                    html = string
+                strings.append(html)
+                pointer = end
+            strings.append(message.get_text(pointer))
+            text = ''.join(strings)
+            text = '<br />'.join(text.split('\n'))
+            return text
+
         user_data = self.users.get(message.from_user.id)
         user = BotUser(**user_data)
-        text = message.text
+        html = format_html(message)
         telegram_link = message.get_telegram_link()
         if telegram_link:
-            text = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p><pre>{text}</pre></div>'
+            html = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p>{html}</div>'
         title = self.get_caption(message) or '[Telegram bot]'
-        self.save_note(user, '', title=title, html=text)
+        self.save_note(user, '', title=title, html=html)
 
     def on_photo(self, message: Message):
         max_size = 20 * 1024 * 1024 # telegram restriction. We can't download any file that has size more than 20Mb
