@@ -501,12 +501,17 @@ class Message:
             message_id = self.forward_from_message_id
             return f'https://t.me/{username}/{message_id}'
 
-    def get_text(self, start: int, end: int = None) -> str:
+    def get_text(self, start: int = 0, end: int = None) -> str:
         text = self.text.encode('utf-16')
         text = text[2:]  # skip BOM
         start = start * 2 if start is not None else None  # 2 bytes per symbol
         end = end * 2 if end is not None else None
-        return text[start:end].decode('utf-16')
+        text = text[start:end].decode('utf-16')
+        text = text.replace('&', '&amp;')
+        text = text.replace('>', '&gt;')
+        text = text.replace('<', '&lt;')
+        text = text.replace('\n', '<br />')
+        return text
 
 @dataclass
 class CallbackQuery:

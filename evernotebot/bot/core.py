@@ -215,7 +215,7 @@ class EvernoteBot(TelegramBot):
     def on_text(self, message: Message):
         def format_html(message: Message):
             if not message.entities:
-                return message.text
+                return message.get_text()
             pointer = 0
             strings = []
             for entity in message.entities:
