@@ -204,6 +204,15 @@ class InlineKeyboardButton:
     def __post_init__(self):
         init_dataclass_fields(self)
 
+
+@dataclass
+class InlineKeyboardMarkup:
+    inline_keyboard: List[List[InlineKeyboardButton]]
+
+    def __post_init__(self):
+        init_dataclass_fields(self)
+
+
 @dataclass
 class PassportData:
     data: List[EncryptedPassportElement]
@@ -490,7 +499,7 @@ class Message:
 
     # Inline keyboard attached to the message. login_url buttons are represented
     # as ordinary url buttons.
-    reply_markup: List[List[InlineKeyboardButton]] = None
+    reply_markup: InlineKeyboardMarkup = None
 
     def __post_init__(self):
         init_dataclass_fields(self)
