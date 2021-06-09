@@ -1,5 +1,7 @@
 -e git+https://github.com/djudman/uhttp.git#egg=uhttp
-gunicorn==19.9.0
+gunicorn
 evernote3==1.25.14
 oauth2
-pymongo==3.9.0
+pymongo
+PyYAML>=5.4
+urllib3>=1.26.5
