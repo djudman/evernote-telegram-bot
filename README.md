@@ -70,7 +70,7 @@ your own installation.
 | Variable name                | Default value | Description |
 |------------------------------|---------------|-------------|
 | EVERNOTEBOT_DEBUG            | 0             | Enable debug mode (additional logging enabled) |
-| EVERNOTEBOT_HOSTNAME         | evernotebot.djudman.info | DNS name of your host
+| EVERNOTEBOT_HOSTNAME         | evernotebot.djud.me | DNS name of your host
 | TELEGRAM_API_TOKEN           | -             | Access token for telegram API. You can obtain this by BotFather |
 | TELEGRAM_BOT_NAME            | evernoterobot | Name of telegram bot. You used this in BotFather |
 | EVERNOTE_BASIC_ACCESS_KEY    | -             | appKey for your Evernote app (with readonly permissions) |

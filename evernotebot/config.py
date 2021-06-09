@@ -15,7 +15,7 @@ def load_config():
     defaults = {
         'MONGO_HOST': '127.0.0.1',
         'EVERNOTEBOT_DEBUG': False,
-        'EVERNOTEBOT_HOSTNAME': 'evernotebot.djudman.info',
+        'EVERNOTEBOT_HOSTNAME': 'evernotebot.djud.me',
         'TELEGRAM_BOT_NAME': 'evernoterobot',
     }
     for name in matches:
