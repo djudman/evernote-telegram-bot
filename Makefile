@@ -30,5 +30,5 @@ start:
 		--rm \
 		--name=evernotebot \
 		-it \
-		-v ./logs:/app/logs:rw \
+		-v logs:/app/logs:rw \
 		"djudman/evernote-telegram-bot:latest"

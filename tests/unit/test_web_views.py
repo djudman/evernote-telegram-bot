@@ -5,7 +5,7 @@ from collections import namedtuple
 from urllib.parse import urlencode
 from unittest import mock
 
-from uhttp import Request
+from util.http import Request
 
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.models import BotUser, EvernoteOauthData

@@ -8,7 +8,7 @@ from typing import Callable
 from urllib.parse import urlparse
 
 from requests_oauthlib.oauth1_session import TokenRequestDenied
-from uhttp.client import make_request
+from util.http import make_request
 
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
 

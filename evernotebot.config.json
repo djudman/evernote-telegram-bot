@@ -63,7 +63,7 @@
 			}
 		},
 		"loggers": {
-			"uhttp": {
+			"wsgi": {
 				"handlers": ["evernotebot"],
 				"level": "DEBUG",
 				"propagate": false

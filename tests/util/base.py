@@ -8,5 +8,5 @@ class TestCase(unittest.TestCase):
         super().__init__(*args, **kwargs)
         bot_config = load_config()
         for name in ('users', 'failed_updates'):
-            bot_config['storage'][name] = {'class': 'util.storage.MemoryStorage'}
+            bot_config['storage'][name] = {'class': 'tests.util.storage.MemoryStorage'}
         self.config = bot_config
