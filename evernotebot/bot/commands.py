@@ -1,7 +1,7 @@
 import json
 from time import time
 
-from utelegram import Message, TelegramBotError
+from evernotebot.telegram import Message, TelegramBotError
 
 from evernotebot.bot.models import BotUser
 from evernotebot.bot.shortcuts import get_evernote_oauth_data

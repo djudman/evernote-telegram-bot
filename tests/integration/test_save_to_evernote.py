@@ -1,6 +1,6 @@
 from time import time
 
-from utelegram import Message
+from evernotebot.telegram import Message
 from evernotebot.bot.core import EvernoteBot, EvernoteBotException
 from evernotebot.bot.commands import start_command
 from evernotebot.bot.shortcuts import evernote_oauth_callback, OauthParams

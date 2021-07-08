@@ -1,8 +1,8 @@
 import logging
 from typing import Optional, Callable
 
-from utelegram.api import BotApi
-from utelegram.models import Update, Message
+from .api import BotApi
+from .models import Update, Message
 
 
 class TelegramBotError(Exception):

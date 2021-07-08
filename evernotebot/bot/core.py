@@ -11,9 +11,8 @@ from evernotebot.bot.models import BotUser
 from evernotebot.bot.shortcuts import (
     get_evernote_oauth_data, get_cached_object, download_telegram_file
 )
+from evernotebot.telegram import Message, TelegramBot, TelegramBotError
 from evernotebot.util.evernote.client import EvernoteApi
-from utelegram import Message
-from utelegram import TelegramBot, TelegramBotError
 
 
 class EvernoteBotException(TelegramBotError):

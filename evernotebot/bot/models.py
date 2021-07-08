@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict
 
-from utelegram.models import init_dataclass_fields
+from evernotebot.telegram.models import init_dataclass_fields
 
 
 @dataclass
