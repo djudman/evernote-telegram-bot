@@ -30,7 +30,7 @@ RUN set -ex; \
 COPY evernotebot /app/evernotebot
 COPY utelegram /app/utelegram
 COPY util /app/util
-COPY evernotebot.config.json /app/evernotebot.config.json
+COPY config.yaml /app/config.yaml
 
 ENTRYPOINT [ \
 	"gunicorn", \

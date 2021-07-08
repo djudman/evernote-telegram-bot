@@ -1,0 +1,13 @@
+default_mode: multiple_notes
+tmp_root: /tmp/
+storage:
+    users:
+        class: evernotebot.bot.storage.Sqlite
+        dirpath: /tmp/evernotebot-data/
+        db_name: evernotebot
+        collection: users
+    failed_updates:
+        class: evernotebot.bot.storage.Sqlite
+        dirpath: /tmp/evernotebot-data/
+        db_name: evernotebot
+        collection: failed_updates
