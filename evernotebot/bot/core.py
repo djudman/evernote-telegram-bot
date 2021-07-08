@@ -1,10 +1,7 @@
 import copy
-import json
 import importlib
+import json
 import math
-
-from utelegram import TelegramBot, TelegramBotError
-from utelegram import Message
 
 import evernotebot.util.evernote.client as evernote_api
 from evernotebot.bot.commands import (
@@ -15,6 +12,8 @@ from evernotebot.bot.shortcuts import (
     get_evernote_oauth_data, get_cached_object, download_telegram_file
 )
 from evernotebot.util.evernote.client import EvernoteApi
+from utelegram import Message
+from utelegram import TelegramBot, TelegramBotError
 
 
 class EvernoteBotException(TelegramBotError):

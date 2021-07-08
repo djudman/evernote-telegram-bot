@@ -11,6 +11,9 @@ from util.wsgi import WsgiApplication
 class EvernoteBotApplication(WsgiApplication):
     def __init__(self):
         config = load_config()
+        webhook_url = 'https://{host}/{token}'.format(
+            host=config['host'], token=config['telegram']['token']
+        )
         self.config = config
         super().__init__(
             src_root=realpath(dirname(__file__)),
@@ -19,6 +22,7 @@ class EvernoteBotApplication(WsgiApplication):
         )
         self.bot = EvernoteBot(config)
         atexit.register(self.shutdown)
+        self.set_telegram_webhook(webhook_url)
 
     def get_urls(self):
         telegram_api_token = self.config['telegram']['token']
@@ -39,5 +43,3 @@ class EvernoteBotApplication(WsgiApplication):
 
 
 app = EvernoteBotApplication()
-webhook_url = 'https://{host}/{token}'.format(host=app.config['host'], token=app.config['telegram']['token'])
-app.set_telegram_webhook(webhook_url)

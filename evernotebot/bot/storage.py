@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 import typing
 from typing import Optional, Dict
@@ -8,6 +9,8 @@ from contextlib import suppress
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 from pymongo.errors import ConfigurationError
+
+from os.path import exists
 
 
 class MongoStorageException(Exception):
@@ -83,6 +86,8 @@ class Mongo:
 
 class Sqlite:
     def __init__(self, dirpath: str, *, collection: str = None, db_name: str = None) -> None:
+        if not exists(dirpath):
+            os.makedirs(dirpath)
         db_filepath = f'{dirpath}/{db_name}'
         self._connection = sqlite3.connect(db_filepath)
         self._table_name = collection
@@ -177,5 +182,9 @@ class Sqlite:
             raise Exception(f'Object `{object_id}` not found')
 
     def close(self) -> None:
-        self._connection.commit()
-        self._connection.close()
+        try:
+            self._connection.commit()
+        except Exception:
+            pass
+        finally:
+            self._connection.close()
