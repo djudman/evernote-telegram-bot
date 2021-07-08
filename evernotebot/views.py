@@ -2,7 +2,7 @@ import logging
 import traceback
 from time import time
 
-from util.http import HTTPFound, Request
+from evernotebot.util.http import HTTPFound, Request
 
 from evernotebot.bot.shortcuts import evernote_oauth_callback, OauthParams
 

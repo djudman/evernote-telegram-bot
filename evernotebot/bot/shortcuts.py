@@ -1,16 +1,16 @@
 import json
-import string
 import random
 import re
+import string
 from os.path import basename, join
 from time import time
 from typing import Callable
 from urllib.parse import urlparse
 
 from requests_oauthlib.oauth1_session import TokenRequestDenied
-from util.http import make_request
 
 from evernotebot.bot.models import BotUser, EvernoteOauthData, EvernoteNotebook
+from evernotebot.util.http import make_request
 
 
 class OauthParams:

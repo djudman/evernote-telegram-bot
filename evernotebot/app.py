@@ -5,7 +5,7 @@ from os.path import dirname, realpath
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.config import load_config
 from evernotebot.views import telegram_hook, evernote_oauth
-from util.wsgi import WsgiApplication
+from evernotebot.util.wsgi import WsgiApplication
 
 
 class EvernoteBotApplication(WsgiApplication):
