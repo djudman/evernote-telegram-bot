@@ -2,7 +2,7 @@ import atexit
 import logging
 from os.path import dirname, realpath
 
-from evernotebot.bot.core import EvernoteBot
+from evernotebot import EvernoteBot
 from evernotebot.config import load_config
 from evernotebot.views import telegram_hook, evernote_oauth
 from evernotebot.util.wsgi import WsgiApplication

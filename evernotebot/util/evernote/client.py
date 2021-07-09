@@ -1,7 +1,9 @@
 import datetime
 import hashlib
 import mimetypes
+import random
 import re
+import string
 import urllib.parse
 
 import evernote.edam.type.ttypes as Types
@@ -77,35 +79,38 @@ class NoteContent:
         return str(self)
 
 
-def get_oauth_data(user_id, session_key, config, access='basic', sandbox=False):
-    access_config = config['evernote']['access'][access]
-    api_key = access_config['key']
-    api_secret = access_config['secret']
-    bytes_key = f'{api_key}{api_secret}{user_id}'.encode()
+def get_oauth_data(
+        user_id: int,
+        key: str,
+        secret: str,
+        oauth_callback: str,
+        access='basic',
+        sandbox=False):
+
+    symbols = string.ascii_letters + string.digits
+    session_key = ''.join([random.choice(symbols) for _ in range(32)])
+    bytes_key = f'{key}{secret}{user_id}'.encode()
     callback_key = hashlib.sha1(bytes_key).hexdigest()
     qs = urllib.parse.urlencode({
         'access': access,
         'key': callback_key,
         'session_key': session_key,
     })
-    callback_url = 'https://{host}/evernote/oauth?{query_string}'.format(host=config['host'], query_string=qs)
-    sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret, sandbox=sandbox)
+    callback_url = f'{oauth_callback}?{qs}'
+    sdk = EvernoteSdk(consumer_key=key, consumer_secret=secret, sandbox=sandbox)
     try:
         request_token = sdk.get_request_token(callback_url)
+        if 'oauth_token' not in request_token or 'oauth_token_secret' not in request_token:
+            raise EvernoteApiError("Can't obtain oauth token from Evernote")
+        oauth_url = sdk.get_authorize_url(request_token)
     except Exception as e:
         raise EvernoteApiError() from e
-    if 'oauth_token' not in request_token or 'oauth_token_secret' not in request_token:
-        raise EvernoteApiError("Can't obtain oauth token from Evernote")
-    oauth_data = {
+    return {
         'callback_key': callback_key,
         'oauth_token': request_token['oauth_token'],
         'oauth_token_secret': request_token['oauth_token_secret'],
+        'oauth_url': oauth_url,
     }
-    try:
-        oauth_data['oauth_url'] = sdk.get_authorize_url(request_token)
-    except Exception as e:
-        raise EvernoteApiError() from e
-    return oauth_data
 
 
 def get_access_token(api_key, api_secret, sandbox=False, **oauth_kwargs):

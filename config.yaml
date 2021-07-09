@@ -1,5 +1,6 @@
 default_mode: multiple_notes
 tmp_root: /tmp/
+oauth_callback: https://evernotebot.djud.me/evernote/oauth
 storage:
     users:
         class: evernotebot.bot.storage.Sqlite

@@ -112,3 +112,25 @@ def download_telegram_file(telegram_api, file_id, dirpath="/tmp"):
     with open(filename, "wb") as f:
         f.write(data)
     return filename, short_name
+
+
+def get_message_caption(message: dict) -> str:
+    if user := message.get('forward_from'):
+        parts = filter(lambda x: x, (user['first_name'], user['last_name']))
+        name = ' '.join(parts)
+        if username := user.get('username'):
+            name += f' {username}'
+        return f'Forwarded from {name}'
+    if chat := message.get('forward_from_chat'):
+        name = chat.get('title', chat['username'])
+        return f'Forwarded from {chat.type} {name}'
+    if sender_name := message.get('forward_sender_name'):
+        return f'Forwarded from {sender_name}'
+    return message.get('caption')
+
+
+def get_telegram_link(message: dict) -> str:
+    if chat := message.get('forward_from_chat'):
+        username = chat['username']
+        message_id = message['forward_from_message_id']
+        return f'https://t.me/{username}/{message_id}'

@@ -26,7 +26,7 @@ handlers = {
         'formatter': 'default',
     },
     'evernotebot': {
-        'class': 'logging.handlers.RotatingFileHandler',
+        'class': 'logging.message_handlers.RotatingFileHandler',
         'filename': logs_root('evernotebot.log'),
         'maxBytes': 10485760,
         'backupCount': 1,
@@ -38,12 +38,12 @@ loggers = {
     'wsgi': {
         'level': 'DEBUG',
         'propagate': False,
-        'handlers': ['evernotebot'],
+        'message_handlers': ['evernotebot'],
     },
     'evernotebot': {
         'level': 'DEBUG',
         'propagate': True,
-        'handlers': ['evernotebot'],
+        'message_handlers': ['evernotebot'],
     },
 }
 
@@ -51,7 +51,7 @@ config = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': formatters,
-    'handlers': handlers,
+    'message_handlers': handlers,
     'loggers': loggers,
 }
 
@@ -68,7 +68,7 @@ class JsonFormatter(Formatter):
 def init_logging(debug=False):
     if debug:
         for name, data in loggers.items():
-            data['handlers'].append('stdout')
+            data['message_handlers'].append('stdout')
     logs_dir = logs_root()
     if not exists(logs_dir):
         os.makedirs(logs_dir, exist_ok=True)

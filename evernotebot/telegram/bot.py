@@ -1,8 +1,8 @@
+import json
 import logging
-from typing import Optional, Callable
+from typing import Optional
 
 from .api import BotApi
-from .models import Update, Message
 
 
 class TelegramBotError(Exception):
@@ -11,85 +11,92 @@ class TelegramBotError(Exception):
         self.message = message
 
 
+def extract_message_from_update(update: dict) -> Optional[dict]:
+    fields = ('message', 'edited_message', 'channel_post', 'edited_channel_post')
+    for name in fields:
+        if name in update:
+            return update[name]
+
+
 class TelegramBot:
 
-    __update_types__ = {
-        '*', 'message', 'edited_message', 'channel_post', 'edited_channel_post',
-        'inline_query', 'chosen_inline_result', 'callback_query',
-        'shipping_query', 'pre_checkout_query', 'poll'
-    }
-
-    def __init__(self, token: str, bot_url: str = None, config: dict = None, storage=None):
-        self.config = config or {}
+    def __init__(self, name: str, token: str):
         self.api = BotApi(token)
-        self.url = bot_url
-        self.storage = storage
-        self.__commands__ = {}
-        self.__handlers__ = {}
-        self.logger = logging.getLogger("utelegram")
+        self.url = f'https://t.me/{name}'
+        self._commands = {}
+        self._handlers = {}
+        self.ctx = None
+        self.logger = logging.getLogger('telegram.bot')
 
-    def set_command_handler(self, name: str, callable_handler: Callable):
-        if name in self.__commands__:
-            raise TelegramBotError(f'Command with name `{name}` already registered.')
-        self.__commands__[name] = callable_handler
+    @property
+    def current_update(self):
+        if not self.ctx:
+            raise TelegramBotError(f'Internal error (no ctx)')
+        return self.ctx['update']
 
-    def set_update_handler(self, update_type: str, handler: Callable):
-        if update_type not in self.__update_types__:
-            raise TelegramBotError(f'Invalid update type `{update_type}`')
-        self.__handlers__[update_type] = handler
+    def build_ctx(self, update: dict):
+        ctx = {'update': update}
+        message = extract_message_from_update(update)
+        if message:
+            ctx['message'] = message
+            ctx['user_id'] = message['from']['id']
+        return ctx
 
-    def process_update(self, update_data: dict):
-        self.logger.debug(update_data)
-        update = Update(**update_data)
+    def process_update(self, update: dict):
+        self.logger.debug(update)
+        self.ctx = self.build_ctx(update)
+        message = self.ctx.get('message')
         try:
-            on_update = self.__handlers__.get('*')
-            if on_update and on_update(update) == False:
-                return
-            if update.message and self.__execute_command(update.message):
-                return
-            for update_type in self.__update_types__:
-                if update_type == '*':  # Already handled
-                    continue
-                value = getattr(update, update_type)
-                if value is None:
-                    continue
-                handler = self.__handlers__.get(update_type)
-                if handler is None:
-                    continue
-                handler(self, value)
-                break
+            if message and (command_name := self._parse_command(message)):
+                self.exec_command(command_name)
             else:
-                raise TelegramBotError('No handlers found')
+                self.exec_handler()
         except TelegramBotError as e:
-            message = update.message or update.edited_message or \
-                update.channel_post or update.edited_channel_post
-            if message and message.chat:
-                chat_id = message.chat.id
-                text = '\u274c Error. {0}'.format(e)
-                self.send_message(chat_id, text)
+            self.send_message('\u274c Error. {0}'.format(e))
             raise e
         except Exception as e:
             raise TelegramBotError(e)
+        finally:
+            self.ctx = None
 
-    def __execute_command(self, message: Message):
-            command_name = self.__parse_command(message)
-            if not command_name:
-                return
-            on_command = self.__commands__.get(command_name)
-            if not on_command:
-                raise TelegramBotError(f'Command `{command_name}` not found')
-            on_command(self, message)
-            return True
+    def exec_command(self, name: str):
+        handler = self._commands.get(name)
+        if not handler:
+            raise TelegramBotError(f'Command `{name}` not found')
+        message = self.current_update['message']
+        handler(self, message)
 
-    def __parse_command(self, message: Message) -> Optional[str]:
-        if not message.entities or len(message.entities) > 1:
+    def exec_handler(self):
+        update = self.current_update
+        for update_type, handler in self._handlers:
+            if update_type not in update or not handler:
+                continue
+            handler(self, update[update_type])
+            break
+        else:
+            self.logger.info(f'No handlers found for update: {update}')
+
+    @staticmethod
+    def _parse_command(message: dict) -> Optional[str]:
+        entities = message.get('entities', [])
+        if len(entities) != 1:
             return
-        entity = next(iter(message.entities))  # list is not iterator
-        if entity.type != 'bot_command':
+        entity = entities[0]
+        if entity['type'] != 'bot_command':
             return
-        text = message.text
-        if text.startswith('/') and entity.offset == 0:
-            return text[1:entity.length]  # skip ahead '/'
+        text = message['text']
+        if text.startswith('/') and entity['offset'] == 0:
+            name = text[1:entity['length']]  # skip ahead '/'
+            return name
 
-    def send_message(self, chat_id, text):
-        return self.api.sendMessage(chat_id, text)
+    def send_message(self, text: str, chat_id: int = None) -> Optional[dict]:
+        if not chat_id and (update := self.current_update):
+            fields = ('message', 'edited_message', 'channel_post', 'edited_channel_post')
+            for name in fields:
+                if (message := update.get(name)) and message.chat:
+                    chat_id = message['chat']['id']
+                    break
+        if chat_id:
+            markup = json.dumps({'hide_keyboard': True})
+            return self.api.sendMessage(chat_id, text, markup)
+        self.logger.error(f'Can\'t send message `{text}`: no chat_id')

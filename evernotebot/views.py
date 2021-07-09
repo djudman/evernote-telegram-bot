@@ -1,7 +1,3 @@
-import logging
-import traceback
-from time import time
-
 from evernotebot.util.http import HTTPFound, Request
 
 from evernotebot.bot.shortcuts import evernote_oauth_callback, OauthParams
@@ -13,13 +9,7 @@ def telegram_hook(request: Request):
     try:
         bot.process_update(data)
     except Exception:
-        message = f'Telegram update failed. Data: `{data}`'
-        logging.getLogger('evernotebot').error(message, exc_info=True)
-        bot.failed_updates.create({
-            'created': time(),
-            'data': data,
-            'exception': traceback.format_exc(),
-        }, auto_generate_id=True)
+        bot.fail_update(data)
     return ''
 
 

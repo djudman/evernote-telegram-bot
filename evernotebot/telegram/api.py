@@ -19,7 +19,7 @@ class BotApi:
     def __init__(self, token):
         self.api_url = 'https://api.telegram.org/'
         self.token = token
-        self.logger = logging.getLogger('utelegram.api')
+        self.logger = logging.getLogger('telegram.api')
 
     def __make_request(self, url, params):
         parse_result = urlparse(url)
@@ -41,7 +41,7 @@ class BotApi:
             conn.close()
         return data
 
-    def __request(self, api_method, **kwargs):
+    def __request(self, api_method, **kwargs) -> dict:
         url = '{base_url}bot{token}/{api_method}'.format(
             base_url=self.api_url,
             token=self.token,
@@ -79,7 +79,7 @@ class BotApi:
             allowed_updates=allowed_updates
         )
 
-    def sendMessage(self, chat_id, text, reply_markup=None, parse_mode=None):
+    def sendMessage(self, chat_id, text, reply_markup=None, parse_mode=None) -> dict:
         return self.__request(
             'sendMessage',
             chat_id=chat_id,
