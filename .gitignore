@@ -1,14 +1,15 @@
-__pycache__
-*.pyc
+# files
+*.code-workspace
 *.log
-src/local.yaml
+*.pyc
+*.sqlite
 .DS_Store
+
+# dirs
+__pycache__
+.coverage
 .idea
 .vscode
-*.code-workspace
-.coverage
 htmlcov
-tmp
-logs
-failed_updates
 venv
+logs
