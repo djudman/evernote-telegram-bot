@@ -1,6 +1,19 @@
+debug: ${EVERNOTEBOT_DEBUG}:true
 default_mode: multiple_notes
+host: evernotebot.djud.me
 tmp_root: /tmp/
 oauth_callback: https://evernotebot.djud.me/evernote/oauth
+telegram:
+    bot_name: evernotebot
+    token: ${TELEGRAM_API_TOKEN}
+evernote:
+    access:
+        basic:
+            key: ${EVERNOTE_BASIC_ACCESS_KEY}
+            secret: ${EVERNOTE_BASIC_ACCESS_SECRET}
+        full:
+            key: ${EVERNOTE_FULL_ACCESS_KEY}
+            secret: ${EVERNOTE_FULL_ACCESS_SECRET}
 storage:
     users:
         class: evernotebot.bot.storage.Sqlite
