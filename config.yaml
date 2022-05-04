@@ -1,8 +1,8 @@
 debug: ${EVERNOTEBOT_DEBUG}:true
 default_mode: multiple_notes
-host: evernotebot.djud.me
+host: ${EVERNOTEBOT_HOSTNAME}
 tmp_root: /tmp/
-oauth_callback: https://evernotebot.djud.me/evernote/oauth
+oauth_callback: https://${EVERNOTEBOT_HOSTNAME}/evernote/oauth
 telegram:
     bot_name: evernotebot
     token: ${TELEGRAM_API_TOKEN}
