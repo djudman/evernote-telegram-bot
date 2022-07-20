@@ -21,10 +21,10 @@ formatters = {
 }
 
 handlers = {
-    'stdout': {
-        'class': 'logging.StreamHandler',
-        'formatter': 'default',
-    },
+    # 'stdout': {
+    #     'class': 'logging.StreamHandler',
+    #     'formatter': 'default',
+    # },
     'evernotebot': {
         'class': 'logging.message_handlers.RotatingFileHandler',
         'filename': logs_root('evernotebot.log'),
@@ -37,7 +37,7 @@ handlers = {
 loggers = {
     'wsgi': {
         'level': 'DEBUG',
-        'propagate': False,
+        'propagate': True,
         'message_handlers': ['evernotebot'],
     },
     'evernotebot': {
@@ -66,9 +66,9 @@ class JsonFormatter(Formatter):
 
 
 def init_logging(debug=False):
-    if debug:
-        for name, data in loggers.items():
-            data['message_handlers'].append('stdout')
+    # if debug:
+    #     for name, data in loggers.items():
+    #         data['message_handlers'].append('stdout')
     logs_dir = logs_root()
     if not exists(logs_dir):
         os.makedirs(logs_dir, exist_ok=True)

@@ -3,104 +3,37 @@ import os
 import sqlite3
 import typing
 from typing import Optional, Dict
-from copy import deepcopy
-from contextlib import suppress
-
-from bson.objectid import ObjectId
-from pymongo import MongoClient
-from pymongo.errors import ConfigurationError
-
 from os.path import exists
 
-
-class MongoStorageException(Exception):
-    pass
+from evernotebot.storage.providers import BaseProvider
 
 
-class Mongo:
-    def __init__(self, connection_string, *, collection=None, db_name=None):
-        if collection is None:
-            raise MongoStorageException('`collection` is required')
-        self._driver = MongoClient(connection_string)
-        with suppress(ConfigurationError):
-            db = self._driver.get_database(db_name)
-        if db is None:
-            raise MongoStorageException(
-                'You have to specify database name '
-                'either in connection string or as `db_name` parameter')
-        self._collection = db.get_collection(collection)
-
-    def create(self, data: dict, auto_generate_id=False):
-        data = deepcopy(data)
-        if "id" in data:
-            data["_id"] = data["id"]
-            del data["id"]
-        elif not auto_generate_id:
-            raise MongoStorageException("`id` required")
-        object_id = self._collection.insert_one(data).inserted_id
-        if isinstance(object_id, ObjectId):
-            object_id = str(object_id)
-        return object_id
-
-    def get(self, object_id, fail_if_not_exists=False):
-        query = object_id if isinstance(object_id, dict) else {"_id": object_id}
-        data = self._collection.find_one(query)
-        if fail_if_not_exists and not data:
-            raise MongoStorageException(f"Object not found. Query: {query}")
-        if data:
-            data["id"] = data["_id"]
-            del data["_id"]
-            return data
-
-    def get_all(self, query):
-        for document in self._collection.find(query):
-            document["id"] = document["_id"]
-            del document["_id"]
-            yield document
-
-    def save(self, data: dict):
-        object_id = data.get("id")
-        if object_id:
-            data["_id"] = object_id
-            del data["id"]
-            query = {"_id": object_id}
-            result = self._collection.update_one(query, {"$set": data})
-            if result.matched_count == 0:
-                raise MongoStorageException(f"Object `{object_id}` not found")
-            data["id"] = object_id
-        else:
-            object_id = str(self._collection.insert_one(data).inserted_id)
-            if isinstance(object_id, ObjectId):
-                object_id = str(object_id)
-            data["id"] = object_id
-        return object_id
-
-    def delete(self, object_id, check_deleted_count=True):
-        result = self._collection.delete_one({"_id": object_id})
-        if check_deleted_count and result.deleted_count != 1:
-            raise MongoStorageException(f"Object `{object_id}` not found")
-
-    def close(self):
-        self._driver.close()
-
-
-class Sqlite:
+class Sqlite(BaseProvider):
     def __init__(self, dirpath: str, *, collection: str = None, db_name: str = None) -> None:
         if not exists(dirpath):
             os.makedirs(dirpath)
-        db_filepath = f'{dirpath}/{db_name}'
-        self._connection = sqlite3.connect(db_filepath)
+        self.db_filepath = f'{dirpath}/{db_name}'
         self._table_name = collection
+        self._connection = None
+
+    def _connect(self):
+        self._connection = sqlite3.connect(self.db_filepath)
         self.__execute_sql(
-            f'CREATE TABLE IF NOT EXISTS {collection}'
+            f'CREATE TABLE IF NOT EXISTS {self._table_name}'
             '(id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT)'
         )
 
+    @property
+    def connection(self):
+        if not self._connection:
+            self._connect()
+        return self._connection
+
     def __execute_sql(self, sql: str, *args) -> sqlite3.Cursor:
         sql = sql.strip().upper()
-        cursor = self._connection.execute(sql, args)
+        cursor = self.connection.execute(sql, args)
         if not sql.startswith('SELECT'):
-            self._connection.commit()
+            self.connection.commit()
         return cursor
 
     def create(self, data: dict, auto_generate_id: bool = False) -> int:
@@ -183,8 +116,8 @@ class Sqlite:
 
     def close(self) -> None:
         try:
-            self._connection.commit()
+            self.connection.commit()
         except Exception:
             pass
         finally:
-            self._connection.close()
+            self.connection.close()

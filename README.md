@@ -4,19 +4,19 @@ Telegram bot for Evernote
 [![Coverage Status](https://coveralls.io/repos/github/djudman/evernote-telegram-bot/badge.svg?branch=master)](https://coveralls.io/github/djudman/evernote-telegram-bot?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/1d23d48c1a7370b7b12f/maintainability)](https://codeclimate.com/github/djudman/evernote-telegram-bot/maintainability)
 
-This bot can save everything that you send to your Evernote account.
+This bot can save to your Evernote everything that you send.
 
 You can use this bot in Telegram: https://t.me/evernoterobot  
-*Or* you can use *your own* telegram bot and your own server, then see [Installation](#Installation)
+*Or* you can use **your own** telegram bot and your own server, then see [Installation](#Installation)
 
 # Installation
 If you have some reasons do not use my bot deployed on my server, you can use
 your own installation.  
 
-* Create your own bot with the
+* Create your bot with the
 [BotFather](https://telegram.me/BotFather)
 (see https://core.telegram.org/bots#3-how-do-i-create-a-bot)
-* Create your own Evernote application and obtain a pair of keys (access key and access secret) 
+* Create Evernote application and obtain a pair of keys (access key and access secret) 
     * Go to https://dev.evernote.com/doc/ and press the green button *"GET AN API KEY"*
 * Install a Docker to your server (see https://docs.docker.com/install/)
 * Get and set up SSL certificate (see https://letsencrypt.org)

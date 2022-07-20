@@ -28,7 +28,6 @@ RUN set -ex; \
 	cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime; \
 	mkdir /app/logs
 COPY evernotebot /app/evernotebot
-COPY config.yaml /app/config.yaml
 
 ENTRYPOINT [ \
 	"gunicorn", \

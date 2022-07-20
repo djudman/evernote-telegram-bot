@@ -1,15 +1,11 @@
+from evernotebot.bot.errors import EvernoteBotException
 from evernotebot.util.http import HTTPFound, Request
-
-from evernotebot.bot.shortcuts import evernote_oauth_callback, OauthParams
 
 
 def telegram_hook(request: Request):
     data = request.json()
     bot = request.app.bot
-    try:
-        bot.process_update(data)
-    except Exception:
-        bot.fail_update(data)
+    bot.process_update(data)
     return ''
 
 
@@ -18,7 +14,12 @@ def evernote_oauth(request: Request):
     params = request.GET
     callback_key = params['key']
     access_type = params['access']
+    if access_type not in {'basic', 'full'}:
+        raise Exception(f'Invalid access type {access_type}')
     verifier = params.get('oauth_verifier')
-    oauth_params = OauthParams(callback_key, verifier, access_type)
-    evernote_oauth_callback(bot, oauth_params)
+    try:
+        bot.evernote_auth(callback_key, access_type, verifier)
+    except EvernoteBotException as e:
+        bot.send_message(e.message)
+
     return HTTPFound(bot.url)

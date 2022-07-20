@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from evernotebot.bot.storage import Sqlite
+from evernotebot.storage import Sqlite
 
 
 class TestSqliteStorage(unittest.TestCase):

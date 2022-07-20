@@ -3,7 +3,7 @@ from unittest import expectedFailure
 from unittest.case import SkipTest
 
 from pymongo.errors import ServerSelectionTimeoutError
-from evernotebot.bot.storage import Mongo
+from evernotebot.storage import Mongo
 
 
 class TestMongoStorage(unittest.TestCase):

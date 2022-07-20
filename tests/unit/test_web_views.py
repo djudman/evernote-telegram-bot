@@ -5,7 +5,7 @@ from collections import namedtuple
 from urllib.parse import urlencode
 from unittest import mock
 
-from util.http import Request
+from evernotebot.util.http import Request
 
 from evernotebot.bot.core import EvernoteBot
 from evernotebot.bot.models import BotUser, EvernoteOauthData
@@ -72,7 +72,7 @@ class TestWebViews(TestCase):
         bot_user = BotUser(**self.default_user_data)
         bot_user.evernote.oauth = EvernoteOauthData(token="token",
             secret="secret", callback_key=callback_key)
-        bot.users.create(bot_user.asdict())
+        bot._users.create(bot_user.asdict())
         evernote_oauth(request)
         bot.api.sendMessage.assert_called_once()
         self.assertEqual(bot.api.sendMessage.call_args[0][1],

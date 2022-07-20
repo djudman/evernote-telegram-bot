@@ -1,63 +1,38 @@
-import importlib
-import importlib.util
 import json
 import logging
 import os
 import re
 import traceback
-from os.path import exists, join
+
+from functools import partial
 
 from .http import Request, Response
+from gunicorn.app.base import BaseApplication
 
 
-class UrlRouter:
-    def __init__(self, src_root, config=None):
-        if config is None:
-            config = {}
-        if not isinstance(config, dict):
-            raise Exception('Invalid config. Non-empty dict is expected.')
-        self.config = config
-        url_files = []
-        if not exists(src_root):
-            raise Exception(f'Invalid source root: `{src_root}`')
-        for dirpath, _, files in os.walk(src_root):
-            paths = [join(dirpath, filename) for filename in files if filename == 'urls.py']
-            url_files.extend(paths)
-        url_files.sort()
+class WsgiApplication(BaseApplication):
+    def __init__(self, url_schema, bind='127.0.0.1:11000', num_workers=5):
+        self.bind = bind
+        self.num_workers = num_workers
+        self.application = self.handler_app
+        super().__init__()
         self.handlers = []
-        for filename in url_files:
-            urls = self.import_urls(filename)
-            for method, regex, handler in urls:
-                handler_info = (method, re.compile(regex), handler)
-                self.handlers.append(handler_info)
+        self.logger = logging.getLogger('wsgi')
+        for method, path, handler in url_schema:
+            self.handlers.append((method, re.compile(path), handler))
 
-    def import_urls(self, filename):
-        spec = importlib.util.spec_from_file_location('urls', filename)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        if callable(module.urls):
-            return module.urls(self.config)
-        return module.urls
+    def load(self):
+        return self.application
+
+    def load_config(self):
+        self.cfg.set('bind', self.bind)
+        self.cfg.set('workers', self.num_workers)
 
     def get_handler(self, url_path, http_method):
         for method, regex_object, handler in self.handlers:
-            if method == http_method and regex_object.search(url_path):
-                return handler
-
-    def add_route(self, path, callable_handler, *, method='GET'):
-        self.handlers.append((method, re.compile(path), callable_handler))
-
-
-class WsgiApplication:
-    def __init__(self, src_root, *, urls=None, config=None):
-        if config is None:
-            config = {}
-        self.config = config
-        self.router = UrlRouter(src_root, config)
-        self.logger = logging.getLogger('wsgi')
-        if urls:
-            for method, path, handler in urls:
-                self.router.add_route(path, handler, method=method)
+            if method.lower() == http_method.lower() and (matched := regex_object.match(url_path)):
+                groups = matched.groups()
+                return partial(handler, *groups)
 
     def wsgi_request(self, wsgi_environ):
         request = None
@@ -66,7 +41,7 @@ class WsgiApplication:
         try:
             request = Request(wsgi_environ)
             request.read()
-            handler = self.router.get_handler(request.path, request.method)
+            handler = self.get_handler(request.path, request.method)
             if handler:
                 request.app = self
                 response = handler(request)
@@ -80,7 +55,7 @@ class WsgiApplication:
                 response = Response(body=b'Not found', status_code=404)
         except Exception:
             exc = traceback.format_exc()
-            response = Response(body=b'Internal server error', status_code=500)
+            response = Response(body=b'Internal wsgi app error', status_code=500)
         finally:
             self.__log_request(request, response, exc)
         return response.status, response.headers, response.body
@@ -88,9 +63,11 @@ class WsgiApplication:
     def __log_request(self, request: Request, response: Response, str_exc: str):
         if hasattr(request, "no_log") and request.no_log and not str_exc:
             return
+        if not response:
+            response = Response(body=b'Internal wsgi app error', status_code=500)
         message = {
             'request': request.__to_dict__(),
-            'response': response.__to_dict__(),
+            'response': response.__to_dict__() or {},
         }
         if str_exc:
             message['exception'] = str_exc
@@ -101,7 +78,10 @@ class WsgiApplication:
             level = error_level_map.get(first_digit, 'info')
         getattr(self.logger, level)(message)
 
-    def __call__(self, environ, start_response):
+    def handler_app(self, environ, start_response):
+        pid = os.getpid()
+        self.logger.debug(f'HTTP REQUEST[{pid}]: ' + str(environ))
         status, response_headers, response_body = self.wsgi_request(environ)
         start_response(status, response_headers)
+        self.logger.debug(f'HTTP RESPONSE[{pid}]: ' + str(response_body))
         return [response_body]

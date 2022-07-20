@@ -1,10 +1,9 @@
 import datetime
 import hashlib
 import mimetypes
-import random
 import re
-import string
 import urllib.parse
+from typing import List
 
 import evernote.edam.type.ttypes as Types
 from evernote.edam.error.ttypes import EDAMUserException
@@ -16,7 +15,7 @@ class EvernoteApiError(Exception):
 
 
 class NoteContent:
-    def __init__(self, content: str=""):
+    def __init__(self, content: str = ''):
         self.content = self.parse(content)
         self.resources = []
 
@@ -81,44 +80,30 @@ class NoteContent:
 
 def get_oauth_data(
         user_id: int,
-        key: str,
-        secret: str,
-        oauth_callback: str,
+        app_key: str,
+        app_secret: str,
+        callback_url: str,
         access='basic',
         sandbox=False):
 
-    symbols = string.ascii_letters + string.digits
-    session_key = ''.join([random.choice(symbols) for _ in range(32)])
-    bytes_key = f'{key}{secret}{user_id}'.encode()
+    bytes_key = f'{app_key}{app_secret}{user_id}{access}'.encode()
     callback_key = hashlib.sha1(bytes_key).hexdigest()
-    qs = urllib.parse.urlencode({
-        'access': access,
-        'key': callback_key,
-        'session_key': session_key,
-    })
-    callback_url = f'{oauth_callback}?{qs}'
-    sdk = EvernoteSdk(consumer_key=key, consumer_secret=secret, sandbox=sandbox)
+    qs = urllib.parse.urlencode({'access': access, 'key': callback_key})
+    callback_url = f'{callback_url}?{qs}'
+    sdk = EvernoteSdk(consumer_key=app_key, consumer_secret=app_secret, sandbox=sandbox)
     try:
         request_token = sdk.get_request_token(callback_url)
-        if 'oauth_token' not in request_token or 'oauth_token_secret' not in request_token:
-            raise EvernoteApiError("Can't obtain oauth token from Evernote")
+        token = request_token['oauth_token']
+        secret = request_token['oauth_token_secret']
         oauth_url = sdk.get_authorize_url(request_token)
     except Exception as e:
         raise EvernoteApiError() from e
     return {
         'callback_key': callback_key,
-        'oauth_token': request_token['oauth_token'],
-        'oauth_token_secret': request_token['oauth_token_secret'],
+        'token': token,
+        'secret': secret,
         'oauth_url': oauth_url,
     }
-
-
-def get_access_token(api_key, api_secret, sandbox=False, **oauth_kwargs):
-    sdk = EvernoteSdk(consumer_key=api_key, consumer_secret=api_secret,
-                      sandbox=sandbox)
-    return sdk.get_access_token(
-        oauth_kwargs["token"], oauth_kwargs["secret"],
-        oauth_kwargs["verifier"])
 
 
 class EvernoteApi:
@@ -126,6 +111,10 @@ class EvernoteApi:
         self._token = access_token
         self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
         self._notes_store = self._sdk.get_note_store()
+
+    def get_access_token(self, app_key, app_secret, token, secret, verifier, sandbox=False):
+        sdk = EvernoteSdk(consumer_key=app_key, consumer_secret=app_secret, sandbox=sandbox)
+        return sdk.get_access_token(token, secret, verifier)
 
     def _note_store_call(self, method, *args, **kwargs):
         try:
@@ -136,7 +125,7 @@ class EvernoteApi:
                 raise EvernoteApiError('Invalid auth token')
             raise EvernoteApiError()
 
-    def get_all_notebooks(self, query: dict=None):
+    def get_all_notebooks(self, query: dict = None) -> List[dict]:
         notebooks = self._note_store_call('listNotebooks')
         notebooks = [{"guid": nb.guid, "name": nb.name} for nb in notebooks]
         if not query:
@@ -163,7 +152,8 @@ class EvernoteApi:
             list(map(lambda f: content.append(file=f), kwargs["files"]))
         note.content = str(content)
         note.resources = content.resources
-        return self._note_store_call('createNote', note)
+        created_note = self._note_store_call('createNote', note)
+        return created_note.guid
 
     def update_note(self, note_id, text=None, title=None, **kwargs):
         note = self.get_note(note_id)
@@ -172,10 +162,10 @@ class EvernoteApi:
         if 'files' in kwargs:
             files = kwargs['files']
             # We create new note for the files...
-            attachments_note = self.create_note(note.notebookGuid, text='', title=title, files=files)
+            attachments_note_id = self.create_note(note.notebookGuid, text='', title=title, files=files)
             # ...and put a link to this note into original note
             for file in files:
-                url = self.get_note_link(attachments_note.guid)
+                url = self.get_note_link(attachments_note_id)
                 link = f'<a href="{url}">{file["name"]}</a>'
                 content.append(html=link)
         note.content = str(content)
