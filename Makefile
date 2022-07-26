@@ -5,3 +5,5 @@ default:
 	docker push djudman/evernote-telegram-bot
 test:
 	python3 tests/run.py
+run:
+	./init.d/evernotebot start
