@@ -48,14 +48,14 @@ your own installation.
     ```
     docker run \
         -e EVERNOTEBOT_DEBUG="$EVERNOTEBOT_DEBUG" \
-        -e MONGO_HOST="$MONGO_HOST" \
         -e EVERNOTEBOT_HOSTNAME="$EVERNOTEBOT_HOSTNAME" \
+        -e EVERNOTEBOT_EXPOSE_PORT="$EVERNOTEBOT_EXPOSE_PORT" \
         -e TELEGRAM_API_TOKEN="$TELEGRAM_API_TOKEN" \
         -e TELEGRAM_BOT_NAME="$TELEGRAM_BOT_NAME" \
-        -e EVERNOTE_BASIC_ACCESS_KEY="$EVERNOTE_BASIC_ACCESS_KEY" \
-        -e EVERNOTE_BASIC_ACCESS_SECRET="$EVERNOTE_BASIC_ACCESS_SECRET" \
-        -e EVERNOTE_FULL_ACCESS_KEY="$EVERNOTE_FULL_ACCESS_KEY" \
-        -e EVERNOTE_FULL_ACCESS_SECRET="$EVERNOTE_FULL_ACCESS_SECRET" \
+        -e EVERNOTE_READONLY_KEY="$EVERNOTE_READONLY_KEY" \
+        -e EVERNOTE_READONLY_SECRET="$EVERNOTE_READONLY_SECRET" \
+        -e EVERNOTE_READWRITE_KEY="$EVERNOTE_READWRITE_KEY" \
+        -e EVERNOTE_READWRITE_SECRET="$EVERNOTE_READWRITE_SECRET" \
         -d \
         -p 127.0.0.1:8000:8000 \
         --restart=always \
@@ -67,14 +67,15 @@ your own installation.
     ```
 
 # Environment variables
-| Variable name                | Default value | Description |
-|------------------------------|---------------|-------------|
-| EVERNOTEBOT_DEBUG            | 0             | Enable debug mode (additional logging enabled) |
-| EVERNOTEBOT_HOSTNAME         | evernotebot.djud.me | DNS name of your host
-| TELEGRAM_API_TOKEN           | -             | Access token for telegram API. You can obtain this by BotFather |
-| TELEGRAM_BOT_NAME            | evernoterobot | Name of telegram bot. You used this in BotFather |
-| EVERNOTE_BASIC_ACCESS_KEY    | -             | appKey for your Evernote app (with readonly permissions) |
-| EVERNOTE_BASIC_ACCESS_SECRET | -             | secret for your Evernote app (with readonly permissions) |
-| EVERNOTE_FULL_ACCESS_KEY     | -             | appKey for your Evernote app (with read/write permissions) |
-| EVERNOTE_FULL_ACCESS_SECRET  | -             | secret for your Evernote app (with read/write permissions) |
-| MONGO_HOST                   | 127.0.0.1     | Hostname for mongodb host|
+| Variable name             | Default value         | Description                                                                                                  |
+|---------------------------|-----------------------|--------------------------------------------------------------------------------------------------------------|
+| EVERNOTEBOT_DIR           | $HOME/evernotebot     | Install dir for tha bot. Some files there. For example, `logs/` dir and `.env` file                          |
+| EVERNOTEBOT_DEBUG         | 0                     | Enable debug mode (additional logging, use evernote sandbox)                                                 |
+| EVERNOTEBOT_HOSTNAME      | evernotebot.djud.site | DNS name of your host. This name will use in such URLs as oauth callback url and webhook url                 |
+| EVERNOTEBOT_EXPOSE_PORT   | 8000                  | Port that the docker container with bot listen on your machine. The bot inside container uses 127.0.0.1:8000 |
+| TELEGRAM_BOT_NAME         | evernoterobot         | Name of telegram bot. You used this in BotFather                                                             |
+| TELEGRAM_API_TOKEN        | -                     | Access token for telegram API. You can obtain this by BotFather                                              |
+| EVERNOTE_READONLY_KEY     | -                     | appKey for your Evernote app (readonly permissions)                                                          |
+| EVERNOTE_READONLY_SECRET  | -                     | secret for your Evernote app (readonly permissions)                                                          |
+| EVERNOTE_READWRITE_KEY    | -                     | appKey for your Evernote app (read/write permissions), required for `one_note` bot mode                      |
+| EVERNOTE_READWRITE_SECRET | -                     | secret for your Evernote app (read/write permissions), required for `one_note` bot mode                      |
