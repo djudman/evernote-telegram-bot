@@ -1,6 +1,4 @@
 gunicorn
 evernote3==1.25.14
 oauth2
-pymongo
-PyYAML>=5.4
 urllib3>=1.26.5
