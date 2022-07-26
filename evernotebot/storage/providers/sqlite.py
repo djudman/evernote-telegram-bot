@@ -12,7 +12,7 @@ class Sqlite(BaseProvider):
     def __init__(self, dirpath: str, *, collection: str = None, db_name: str = None) -> None:
         if not exists(dirpath):
             os.makedirs(dirpath)
-        self.db_filepath = f'{dirpath}/{db_name}'
+        self.db_filepath = f'{dirpath}/{db_name}.sqlite'
         self._table_name = collection
         self._connection = None
 

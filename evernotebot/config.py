@@ -1,23 +1,44 @@
 import os
+from pathlib import Path
 
 from evernotebot.util.logs import init_logging
 
 
+def root_dir(path: str = '') -> str:
+    return str(Path(__file__).parent.parent.joinpath(path).resolve())
+
+
+def make_dirs(config):
+    dirs = (
+        config['logs_root'],
+        config['tmp_root'],
+        config['storage']['dirpath'],
+    )
+    for path in dirs:
+        os.makedirs(path, exist_ok=True)
+
+
+
 def load_config():
-    bot_name = os.getenv('BOT_NAME', 'evernotebot')
-    host = os.getenv('HOST', '127.0.0.1:8081')
-    bot_api_token = os.getenv('BOT_API_TOKEN', 'bot_api_token')
-    is_debug = os.getenv('DEBUG', True)
-    default_oauth_url = is_debug and f'http://{host}/evernote/oauth' or f'https://{host}/evernote/oauth'
+    bot_name = os.getenv('TELEGRAM_BOT_NAME', 'evernoterobot')
+    host = os.getenv('EVERNOTEBOT_HOSTNAME', '127.0.0.1')
+    port = os.getenv('EVERNOTEBOT_EXPOSE_PORT', 8000)
+    bot_api_token = os.getenv('TELEGRAM_API_TOKEN', 'bot_api_token')
+    is_debug = os.getenv('EVERNOTEBOT_DEBUG')
+    oauth_url = (host == '127.0.0.1') and f'{host}:{port}/evernote/oauth' or f'{host}/evernote/oauth'
+    default_oauth_url = is_debug and f'http://{oauth_url}' or f'https://{oauth_url}'
     default_bot_api_url = is_debug and 'http://127.0.0.1:11000/' or 'https://api.telegram.org/'
-    default_webhook_url = is_debug and f'http://{host}/{bot_api_token}' or f'https://{host}/{bot_api_token}'
+    webhook_url = (host == '127.0.0.1') and f'{host}:{port}/{bot_api_token}' or f'{host}/{bot_api_token}'
+    default_webhook_url = is_debug and f'http://{webhook_url}' or f'https://{webhook_url}'
     config = {
         'debug': is_debug,
         'default_mode': 'multiple_notes',
         'host': host,
+        'port': port,
         'oauth_callback_url': os.getenv('OAUTH_CALLBACK_URL', default_oauth_url),
         'webhook_url': os.getenv('WEBHOOK_URL', default_webhook_url),
-        'tmp_root': os.getenv('TMP_ROOT', '/tmp/'),
+        'logs_root': root_dir('logs/'),
+        'tmp_root': os.getenv('TMP_ROOT', root_dir('tmp/')),
         'telegram': {
             'bot_name': bot_name,
             'token': bot_api_token,
@@ -37,9 +58,10 @@ def load_config():
         },
         'storage': {
             'provider': 'evernotebot.storage.providers.sqlite.Sqlite',
-            'db_name': os.getenv('DBNAME', bot_name),
-            'dirpath': os.getenv('DATA_DIR', f'/tmp/{bot_name}-data/')
+            'db_name': bot_name,
+            'dirpath': root_dir('db/'),
         },
     }
-    init_logging(debug=is_debug)
+    make_dirs(config)
+    init_logging(config['logs_root'], debug=is_debug)
     return config

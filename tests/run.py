@@ -48,10 +48,10 @@ if __name__ == '__main__':
     os.environ['EVERNOTEBOT_HOSTNAME'] = 'localhost'
     os.environ['TELEGRAM_BOT_NAME'] = 'test'
     os.environ['TELEGRAM_API_TOKEN'] = 'secret'
-    os.environ['EVERNOTE_BASIC_ACCESS_KEY'] = 'secret'
-    os.environ['EVERNOTE_BASIC_ACCESS_SECRET'] = 'secret'
-    os.environ['EVERNOTE_FULL_ACCESS_KEY'] = 'secret'
-    os.environ['EVERNOTE_FULL_ACCESS_SECRET'] = 'secret'
+    os.environ['EVERNOTE_READONLY_KEY'] = 'secret'
+    os.environ['EVERNOTE_READONLY_SECRET'] = 'secret'
+    os.environ['EVERNOTE_READWRITE_KEY'] = 'secret'
+    os.environ['EVERNOTE_READWRITE_SECRET'] = 'secret'
 
     project_dir = dirname(dirname(os.path.realpath(__file__)))
     sys.path.insert(0, project_dir)

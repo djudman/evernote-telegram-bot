@@ -31,7 +31,6 @@ COPY evernotebot /app/evernotebot
 
 ENTRYPOINT [ \
 	"gunicorn", \
-	"--bind=0.0.0.0:8000", \
 	"--workers=2", \
 	"--preload", \
 	"--access-logfile=/app/logs/gunicorn-access.log", \

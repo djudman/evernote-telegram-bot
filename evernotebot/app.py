@@ -12,9 +12,8 @@ class EvernoteBotApplication(WsgiApplication):
         config = load_config()
         self.config = config
         bot_api_token = config['telegram']['token']
-        if not host or not port:
-            host, port = config['host'].split(':', 1)
-            port = port or 8080
+        host = host or '127.0.0.1'
+        port = port or 8000
         url_schema = (
             ('POST', f'^/{bot_api_token}$', telegram_hook),  # webhook_url
             ('GET', r'^/evernote/oauth$', evernote_oauth),  # oauth_callback_url
