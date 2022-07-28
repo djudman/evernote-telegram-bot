@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import json
 import mimetypes
 import re
 import urllib.parse
@@ -91,13 +92,20 @@ def get_oauth_data(
     qs = urllib.parse.urlencode({'access': access, 'key': callback_key})
     callback_url = f'{callback_url}?{qs}'
     sdk = EvernoteSdk(consumer_key=app_key, consumer_secret=app_secret, sandbox=sandbox)
+    request_token = None
     try:
         request_token = sdk.get_request_token(callback_url)
         token = request_token['oauth_token']
         secret = request_token['oauth_token_secret']
         oauth_url = sdk.get_authorize_url(request_token)
     except Exception as e:
-        raise EvernoteApiError() from e
+        if isinstance(request_token, dict):
+            if len(request_token) == 1:
+                key, value = request_token.popitem()
+                token_data = f'{key}{value}'
+            else:
+                token_data = json.dumps(request_token)
+        raise EvernoteApiError(f'Cant obtain oauth_token. Got: {token_data}') from e
     return {
         'callback_key': callback_key,
         'token': token,
