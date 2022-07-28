@@ -8,7 +8,7 @@ class StartCommandMixin(EvernoteMixin):
         if name != 'start':
             return
         text = '''Welcome! It's bot for saving your notes to Evernote on fly.
-    Please tap on button below to link your Evernote account with bot.'''
+Please tap on button below to link your Evernote account with bot.'''
         oauth_data = self.get_evernote_oauth_data(text)
         self.user['evernote'] = {'oauth': oauth_data}
         self.save_user()
