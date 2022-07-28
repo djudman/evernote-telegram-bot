@@ -1,4 +1,5 @@
 import atexit
+import json
 import logging
 
 from evernotebot import EvernoteBot
@@ -27,6 +28,7 @@ class EvernoteBotApplication(WsgiApplication):
         except Exception:
             message = f"Can't set up webhook url `{webhook_url}`"
             logging.getLogger('evernotebot').fatal(message, exc_info=True)
+        logging.getLogger('evernotebot').info(json.dumps(self.config, indent=4))
 
     def shutdown(self):
         self.bot.stop()
