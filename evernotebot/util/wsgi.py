@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import re
 import traceback
 
@@ -76,12 +75,12 @@ class WsgiApplication(BaseApplication):
             first_digit = response.status_code // 100
             error_level_map = {5: 'error', 4: 'warning'}
             level = error_level_map.get(first_digit, 'info')
-        getattr(self.logger, level)(message)
+        getattr(self.logger, level)(json.dumps(message, indent=4))
 
     def handler_app(self, environ, start_response):
-        pid = os.getpid()
-        self.logger.debug(f'HTTP REQUEST[{pid}]: ' + str(environ))
         status, response_headers, response_body = self.wsgi_request(environ)
         start_response(status, response_headers)
-        self.logger.debug(f'HTTP RESPONSE[{pid}]: ' + str(response_body))
         return [response_body]
+
+    def __call__(self, *args, **kwargs):
+        return self.handler_app(*args, **kwargs)
