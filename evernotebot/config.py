@@ -23,7 +23,7 @@ def load_config():
     host = os.getenv('EVERNOTEBOT_HOSTNAME') or '127.0.0.1'
     port = os.getenv('EVERNOTEBOT_EXPOSE_PORT') or 8000
     bot_api_token = os.getenv('TELEGRAM_API_TOKEN') or 'bot_api_token'
-    is_debug = bool(os.getenv('EVERNOTEBOT_DEBUG'))
+    is_debug = int(os.getenv('EVERNOTEBOT_DEBUG'))
     oauth_url = (host == '127.0.0.1') and f'{host}:{port}/evernote/oauth' or f'{host}/evernote/oauth'
     default_oauth_url = is_debug and f'http://{oauth_url}' or f'https://{oauth_url}'
     default_bot_api_url = is_debug and 'http://127.0.0.1:11000/' or 'https://api.telegram.org/'
