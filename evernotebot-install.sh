@@ -5,6 +5,27 @@ read_env_variable() {
 	echo "export $1=\"$value\"" >> "$env_file"
 }
 
+create_env() {
+	# $1 - install_dir, $2 - env_file
+	echo "export EVERNOTEBOT_DIR=\"$install_dir\"" >> "$env_file"
+	read_env_variable "EVERNOTEBOT_DEBUG"
+	read_env_variable "EVERNOTEBOT_HOSTNAME"
+	read_env_variable "EVERNOTEBOT_EXPOSE_PORT"
+
+	read_env_variable "TELEGRAM_BOT_NAME"
+	read_env_variable "TELEGRAM_API_TOKEN"
+
+	read_env_variable "EVERNOTE_READONLY_KEY"
+	read_env_variable "EVERNOTE_READONLY_SECRET"
+
+	read_env_variable "EVERNOTE_READWRITE_KEY"
+	read_env_variable "EVERNOTE_READWRITE_SECRET"
+
+	source "$env_file"
+	echo "source $env_file" >> ~/.bashrc
+	echo "A line \"source $env_file\" added to your .bashrc"
+}
+
 # Set up installation directory
 current_dir=$(pwd)
 read -rp "Install directory (default: $current_dir): " install_dir
@@ -49,33 +70,10 @@ if [ -f "$env_file" ]; then
 		old_env_file="$env_file.bak"
 		mv "$env_file" "$old_env_file"
 		touch "$env_file"
-
-		echo "export EVERNOTEBOT_DIR=\"$install_dir\"" >> "$env_file"
-		read_env_variable "EVERNOTEBOT_DEBUG"
-		read_env_variable "EVERNOTEBOT_HOSTNAME"
-		read_env_variable "EVERNOTEBOT_EXPOSE_PORT"
-
-		read_env_variable "TELEGRAM_BOT_NAME"
-		read_env_variable "TELEGRAM_API_TOKEN"
-
-		read_env_variable "EVERNOTE_READONLY_KEY"
-		read_env_variable "EVERNOTE_READONLY_SECRET"
-
-		read_env_variable "EVERNOTE_READWRITE_KEY"
-		read_env_variable "EVERNOTE_READWRITE_SECRET"
-
-#		read -rp "Would you like to use mongodb as a storage (default: sqlite)? (y/N) " use_mongo
-#		if [ "$use_mongo" = "y" ]; then
-#			read_env_variable "MONGO_HOST"
-#		fi
-
-		source "$env_file"
-		echo "source $env_file" >> ~/.bashrc
-		echo "A line \"source $env_file\" added to your .bashrc"
-
-		rm -f "$old_env_file"
-		echo "File $old_env_file deleted"
+		create_env
 	fi
+else
+	create_env
 fi
 
 echo "Evernote bot successfuly installed to $install_dir"
