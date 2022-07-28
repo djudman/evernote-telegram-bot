@@ -35,6 +35,7 @@ class UserMixin(BaseMixin):
                 'first_name': from_user.get('first_name'),
                 'last_name': from_user.get('last_name'),
                 'username': from_user.get('username'),
+                'bot_mode': 'multiple_notes',
             }
         self.user = user
 
