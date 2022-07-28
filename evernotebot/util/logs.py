@@ -26,14 +26,15 @@ def init_logging(logs_dir: str, debug=False):
                 'class': 'evernotebot.util.logs.JsonFormatter',
             }
         },
-        'message_handlers': {
+        'handlers': {
             # 'stdout': {
             #     'class': 'logging.StreamHandler',
             #     'formatter': 'default',
             # },
             'evernotebot': {
-                'class': 'logging.message_handlers.RotatingFileHandler',
+                'class': 'logging.handlers.RotatingFileHandler',
                 'filename': join(logs_dir, 'evernotebot.log'),
+                'mode': 'a',
                 'maxBytes': 10485760,
                 'backupCount': 1,
                 'formatter': 'default',
@@ -42,13 +43,13 @@ def init_logging(logs_dir: str, debug=False):
         'loggers': {
             'wsgi': {
                 'level': 'DEBUG',
-                'propagate': True,
-                'message_handlers': ['evernotebot'],
+                'propagate': False,
+                'handlers': ['evernotebot'],
             },
             'evernotebot': {
                 'level': 'DEBUG',
-                'propagate': True,
-                'message_handlers': ['evernotebot'],
+                'propagate': False,
+                'handlers': ['evernotebot'],
             },
         },
     }
