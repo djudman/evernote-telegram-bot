@@ -66,8 +66,8 @@ class EvernoteBot(
             else:
                 self.logger.warning('update is ignored: %s'.format(str(update)))
         except EvernoteBotException as e:
-            self.logger.error(f'{traceback.format_exc()} {e.message}')
-            self.send_message('\u274c Error. {0}'.format(e))
+            self.logger.error(f'{traceback.format_exc()} {e}')
+            self.send_message(f'\u274c Error. {e}')
         except Exception as e:
             self.logger.error(traceback.format_exc())
             self.failed_updates.create({
@@ -88,12 +88,14 @@ class EvernoteBot(
             return
         self.exec_all_mixins('on_message', message)
         message_attrs = ('text', 'photo', 'voice', 'audio', 'video', 'document', 'location')
-        message_type = [message[name] for name in message_attrs if name in message]
-        if len(message_type) == 1:
-            message_type = message_type[0]
+        for name in message_attrs:
+            message_type = message.get(name)
+            if not message_type:
+                continue
             status_message = self.send_message(f'{message_type.capitalize()} accepted')
             self.exec_all_mixins(f'on_receive_{message_type}', message)
-            self.edit_message(status_message['message_id'], 'Saved')
+            if status_message:
+                self.edit_message(status_message['message_id'], 'Saved')
 
     def channel_post(self, channel_post: dict):
         self.receive_message(channel_post)
