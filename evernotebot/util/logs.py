@@ -51,6 +51,11 @@ def init_logging(logs_dir: str, debug=False):
                 'propagate': False,
                 'handlers': ['evernotebot'],
             },
+            'telegram.api': {
+                'level': 'DEBUG',
+                'propagate': False,
+                'handlers': ['evernotebot'],
+            },
         },
     }
     logging.config.dictConfig(config)
