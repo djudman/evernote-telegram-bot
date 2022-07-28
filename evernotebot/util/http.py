@@ -35,6 +35,8 @@ class Request:
     def json(self):
         if not self.body:
             self.read()
+        if not self.body:
+            return
         data = self.body.decode()
         return json.loads(data)
 
