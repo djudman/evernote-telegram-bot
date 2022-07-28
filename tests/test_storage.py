@@ -9,7 +9,7 @@ class TestStorage(TestCase):
     def setUp(self) -> None:
         self.config = {
             'provider': 'evernotebot.storage.providers.sqlite.Sqlite',
-            'dirpath': '/tmp/',
+            'dirpath': '/tmp',
             'db_name': 'test',
         }
         self.clear()
@@ -18,7 +18,7 @@ class TestStorage(TestCase):
         self.clear()
 
     def clear(self):
-        filepath = Path(self.config['dirpath'], self.config['db_name'])
+        filepath = Path(self.config['dirpath'], f'{self.config["db_name"]}.sqlite')
         if filepath.exists():
             os.unlink(filepath.resolve())
 
