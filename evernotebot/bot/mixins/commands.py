@@ -14,10 +14,19 @@ Please tap on button below to link your Evernote account with bot.'''
         self.save_user()
 
 
+def check_user(user: dict):
+    if user.get('created'):
+        return
+    user_id = user['user_id']
+    text = f'Unregistered user {user_id}. You\'ve to send /start command to register'
+    raise EvernoteBotException(text)
+
+
 class SwitchModeCommand(EvernoteMixin):
     def on_command(self, name: str):
         if name != 'switch_mode':
             return
+        check_user(self.user)
         buttons = []
         for mode in ('one_note', 'multiple_notes'):
             title = mode.capitalize().replace('_', ' ')
@@ -75,8 +84,9 @@ class SwitchModeCommand(EvernoteMixin):
 
 class SwitchNotebookCommand(EvernoteMixin):
     def on_command(self, name: str):
-        if name != 'switch_notebook':
+        if name != 'notebook':
             return
+        check_user(self.user)
         all_notebooks = self.evernote_get_notebooks()
         buttons = []
         current_nb_name = self.user['evernote']['notebook']['name']
