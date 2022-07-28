@@ -6,4 +6,4 @@ default:
 test:
 	python3 tests/run.py
 run:
-	./init.d/evernotebot start
+	EVERNOTEBOT_DIR="$(HOME)/github/djudman/evernote-telegram-bot" ./init.d/evernotebot start
