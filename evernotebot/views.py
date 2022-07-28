@@ -4,9 +4,11 @@ from evernotebot.util.http import HTTPFound, Request
 
 def telegram_hook(request: Request):
     data = request.json()
-    bot = request.app.bot
-    bot.process_update(data)
-    return ''
+    if data:
+        bot = request.app.bot
+        bot.process_update(data)
+        return 'ok'
+    return 'request body is empty'
 
 
 def evernote_oauth(request: Request):
