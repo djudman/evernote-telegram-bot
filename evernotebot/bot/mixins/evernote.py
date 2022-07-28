@@ -23,16 +23,22 @@ class EvernoteMixin(ChatMixin):
         auth_button = {'text': 'Waiting for Evernote...', 'url': self.url}
         status_message = self.send_message(message_text, buttons=[auth_button])
         app_config = self.config['evernote']['access'][access]
-        oauth_data = get_oauth_data(
-            self.user['user_id'],
-            app_config['key'],
-            app_config['secret'],
-            self.config['oauth_callback_url'],
-            access,
-            sandbox=self.config['debug'])
-        auth_button = {'text': 'Sign in with Evernote', 'url': oauth_data['oauth_url']}
-        self.edit_message(status_message['message_id'], buttons=[auth_button])
-        return oauth_data
+        try:
+            oauth_data = get_oauth_data(
+                self.user['user_id'],
+                app_config['key'],
+                app_config['secret'],
+                self.config['oauth_callback_url'],
+                access,
+                sandbox=self.config['debug'])
+            auth_button = {'text': 'Sign in with Evernote', 'url': oauth_data['oauth_url']}
+            self.edit_message(status_message['message_id'], buttons=[auth_button])
+            return oauth_data
+        except Exception as e:
+            auth_button = {'text': 'Evernote request failed', 'url': self.url}
+            self.edit_message(status_message['message_id'], buttons=[auth_button])
+            raise e
+
 
     def evernote_auth(self, callback_key: str, access: str, oauth_verifier: str):
         if not oauth_verifier:
