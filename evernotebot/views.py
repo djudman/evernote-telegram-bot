@@ -1,3 +1,6 @@
+import traceback
+
+from evernotebot.bot.api import BotApiError
 from evernotebot.bot.errors import EvernoteBotException
 from evernotebot.util.http import HTTPFound, Request
 
@@ -6,7 +9,10 @@ def telegram_hook(request: Request):
     data = request.json()
     if data:
         bot = request.app.bot
-        bot.process_update(data)
+        try:
+            bot.process_update(data)
+        except BotApiError as e:
+            bot.logger.error(f'{traceback.format_exc()} {e}')
         return 'ok'
     return 'request body is empty'
 

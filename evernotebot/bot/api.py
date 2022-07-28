@@ -18,6 +18,9 @@ class BotApiError(Exception):
         self.code = code
         self.message = message
 
+    def __str__(self):
+        return f'{self.code} {self.message}'
+
 
 def log_http_request(method):
     def wrapper(obj, url, params):
