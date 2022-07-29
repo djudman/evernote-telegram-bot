@@ -19,7 +19,7 @@ class EvernoteMixin(ChatMixin):
             raise EvernoteBotException('You have to sign in to Evernote first. Send /start and link account')
         self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
 
-    def get_evernote_oauth_data(self, message_text: str, access='readonly') -> dict:
+    def get_evernote_oauth_data(self, message_text: str, access: str = 'readonly') -> dict:
         auth_button = {'text': 'Waiting for Evernote...', 'url': self.url}
         status_message = self.send_message(message_text, buttons=[auth_button])
         app_config = self.config['evernote']['access'][access]

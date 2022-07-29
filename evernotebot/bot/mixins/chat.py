@@ -6,7 +6,7 @@ from evernotebot.bot.mixins.user import UserMixin
 
 
 class ChatMixin(UserMixin, BotApiMixin):
-    def __init__(self, config):
+    def __init__(self, config: dict):
         super(ChatMixin, self).__init__(config)
 
     def send_message(
@@ -27,7 +27,7 @@ class ChatMixin(UserMixin, BotApiMixin):
         message = self.api.sendMessage(chat_id, text, keyboard, parse_mode)
         return message
 
-    def edit_message(self, message_id, text: str = None, buttons: List[Dict] = None):
+    def edit_message(self, message_id: int, text: str = None, buttons: List[Dict] = None):
         if buttons is not None:
             inline_keyboard = json.dumps({'inline_keyboard': [buttons]})
         else:

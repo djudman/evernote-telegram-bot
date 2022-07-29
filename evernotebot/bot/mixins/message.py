@@ -132,7 +132,7 @@ class MessageHandlerMixin(EvernoteMixin):
         title = get_message_caption(message) or title
         self.save_note(title=title, html=html)
 
-    def save_file(self, file_id, file_size, message: dict):
+    def save_file(self, file_id: str, file_size: int, message: dict):
         download_dir = self.config['tmp_root']
         filename, short_name = self.download_telegram_file(file_id, file_size, download_dir)
         self.evernote_check_quota(file_size)
@@ -144,7 +144,7 @@ class MessageHandlerMixin(EvernoteMixin):
             text = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p><pre>{message["caption"]}</pre></div>'
         self.save_note('', title=title, files=files, html=text)
 
-    def download_telegram_file(self, file_id, file_size, dirpath='/tmp'):
+    def download_telegram_file(self, file_id: str, file_size: int, dirpath: str = '/tmp'):
         max_size = 20 * 1024 * 1024
         if file_size > max_size:
             raise EvernoteBotException('File too big. Telegram does not allow to the bot to download files over 20Mb.')

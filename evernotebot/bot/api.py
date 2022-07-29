@@ -7,13 +7,14 @@ from http.client import HTTPSConnection, HTTPConnection
 from json import JSONDecodeError
 from time import time
 from urllib.parse import urlparse, urlencode
+from typing import Optional
 
 
 logger = logging.getLogger('telegram.api')
 
 
 class BotApiError(Exception):
-    def __init__(self, code, message):
+    def __init__(self, code: int, message: str):
         super().__init__(message)
         self.code = code
         self.message = message
@@ -23,7 +24,7 @@ class BotApiError(Exception):
 
 
 def log_http_request(method):
-    def wrapper(obj, url, params):
+    def wrapper(obj, url: str, params: dict):
         h = hashlib.sha256()
         h.update('{0}_{1}_{2}'.format(time(), url, random.random()).encode())
         request_id = h.hexdigest()
@@ -45,7 +46,7 @@ def log_http_request(method):
 
 
 class BotApi:
-    def __init__(self, token, api_url):
+    def __init__(self, token: str, api_url: str):
         self.token = token
         self.api_url = api_url.rstrip('/')
 
@@ -89,7 +90,7 @@ class BotApi:
             raise BotApiError(response['error_code'], response['description'])
         return response['result']
 
-    def setWebhook(self, url, certificate=None, max_connections=40, allowed_updates=None):
+    def setWebhook(self, url: str, certificate=None, max_connections=40, allowed_updates=None):
         if allowed_updates is None:
             allowed_updates = []
         return self.__api_request(
@@ -100,7 +101,7 @@ class BotApi:
             allowed_updates=allowed_updates
         )
 
-    def sendMessage(self, chat_id, text, reply_markup=None, parse_mode=None) -> dict:
+    def sendMessage(self, chat_id: int, text: str, reply_markup: Optional[dict] = None, parse_mode=None) -> dict:
         return self.__api_request(
             'sendMessage',
             chat_id=chat_id,
@@ -109,7 +110,7 @@ class BotApi:
             parse_mode=parse_mode
         )
 
-    def editMessageReplyMarkup(self, chat_id, message_id, reply_markup):
+    def editMessageReplyMarkup(self, chat_id: int, message_id, reply_markup):
         return self.__api_request(
             'editMessageReplyMarkup',
             chat_id=chat_id,
@@ -117,7 +118,7 @@ class BotApi:
             reply_markup=reply_markup
         )
 
-    def editMessageText(self, chat_id, message_id, text, reply_markup=None):
+    def editMessageText(self, chat_id: int, message_id, text, reply_markup=None):
         return self.__api_request(
             'editMessageText',
             chat_id=chat_id,
@@ -126,7 +127,7 @@ class BotApi:
             reply_markup=reply_markup
         )
 
-    def getFile(self, file_id):
+    def getFile(self, file_id: str):
         response = self.__api_request('getFile', file_id=file_id)
         path = response['file_path']
         return f'{self.api_url}/file/bot{self.token}/{path}'

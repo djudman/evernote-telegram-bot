@@ -36,7 +36,7 @@ class EvernoteBot(
     HelpCommandMixin
 ):
 
-    def __init__(self, config):
+    def __init__(self, config: dict):
         super().__init__(config)
         self.debug = config['debug']
         self.logger = logging.getLogger('evernotebot')
