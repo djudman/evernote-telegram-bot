@@ -17,8 +17,8 @@ Please tap on button below to link your Evernote account with bot.'''
 def check_user(user: dict):
     if user.get('created'):
         return
-    user_id = user['user_id']
-    text = f'Unregistered user {user_id}. You\'ve to send /start command to register'
+    name = f"{user['first_name']} {user['last_name']}, id = {user['user_id']}"
+    text = f'Unregistered user {name}. You\'ve to send /start command to register'
     raise EvernoteBotException(text)
 
 
