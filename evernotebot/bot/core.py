@@ -9,10 +9,9 @@ from evernotebot.bot.mixins import (
     SwitchModeCommand,
     SwitchNotebookCommand,
     HelpCommandMixin,
-    MessageHandlerMixin, EvernoteMixin
+    MessageHandlerMixin
 )
-from evernotebot.bot.mixins.chat import ChatMixin
-from evernotebot.bot.mixins.user import UserMixin
+
 from evernotebot.storage import Storage
 
 
@@ -34,10 +33,7 @@ class EvernoteBot(
     StartCommandMixin,
     SwitchModeCommand,
     SwitchNotebookCommand,
-    HelpCommandMixin,
-    EvernoteMixin,
-    ChatMixin,
-    UserMixin
+    HelpCommandMixin
 ):
 
     def __init__(self, config):
