@@ -1,3 +1,3 @@
-from evernotebot.bot.core import EvernoteBot
+from evernotebot.bot import EvernoteBot
 
 __all__ = ['EvernoteBot']
