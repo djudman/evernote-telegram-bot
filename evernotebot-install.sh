@@ -26,6 +26,14 @@ create_env() {
 	echo "A line \"source $env_file\" added to your .bashrc"
 }
 
+# Check current user in docker group
+groups | grep docker > /dev/null
+status=$?
+if [ $status -ne 0 ]; then
+	echo "User $USER must be in group `docker`"
+	exit 1
+fi
+
 # Set up installation directory
 current_dir=$(pwd)
 read -rp "Install directory (default: $current_dir): " install_dir
