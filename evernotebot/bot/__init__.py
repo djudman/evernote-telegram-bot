@@ -60,11 +60,11 @@ class EvernoteBot(
             elif 'edited_channel_post' in update:
                 pass
             else:
-                self.logger.warning('update is ignored: %s'.format(str(update)))
+                self.logger.warning('update is ignored: {0}'.format(str(update)))
         except EvernoteBotException as e:
             self.logger.error(f'{traceback.format_exc()} {e}')
             self.send_message(f'\u274c Error. {e}')
-        except Exception as e:
+        except Exception:
             self.logger.error(traceback.format_exc())
             self.failed_updates.create({
                 'created': time(),

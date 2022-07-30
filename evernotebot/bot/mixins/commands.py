@@ -128,7 +128,7 @@ class HelpCommandMixin(ChatMixin):
             return
         self.send_message('''This is bot for Evernote (https://evernote.com).
 
-Just send message to bot and it will create note in your Evernote notebook. 
+Just send message to bot and it will create note in your Evernote notebook.
 
 You can send to bot:
 

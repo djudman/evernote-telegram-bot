@@ -37,7 +37,7 @@ class EvernoteMixin(ChatMixin):
         except Exception as e:
             auth_button = {'text': 'Evernote request failed', 'url': self.url}
             self.edit_message(status_message['message_id'], buttons=[auth_button])
-            self.send_message(f'It seems Evernote API does not work properly. Please, try again later')
+            self.send_message('It seems Evernote API does not work properly. Please, try again later')
             raise e
 
     def evernote_auth(self, callback_key: str, access: str, oauth_verifier: str):

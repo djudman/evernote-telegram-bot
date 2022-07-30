@@ -5,7 +5,7 @@ class BaseMixin:
         self.url = f'https://t.me/{bot_name}'
         self.name = bot_name
 
-    def exec_all_mixins(self, callback_name : str, *args):
+    def exec_all_mixins(self, callback_name: str, *args):
         for _class in self.__class__.__bases__:
             if not hasattr(_class, callback_name):
                 continue

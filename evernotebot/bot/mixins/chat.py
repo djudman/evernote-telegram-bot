@@ -13,12 +13,12 @@ class ChatMixin(UserMixin, BotApiMixin):
             self,
             text: str,
             buttons: List[Dict] = None,
-            keyboard: Dict = None,
+            keyboard_data: Optional[Dict] = None,
             parse_mode=None
     ) -> Optional[Dict]:
 
-        if keyboard is not None:
-            keyboard = json.dumps(keyboard)
+        if keyboard_data is not None:
+            keyboard = json.dumps(keyboard_data)
         elif buttons is not None:
             keyboard = json.dumps({'inline_keyboard': [buttons]})
         else:

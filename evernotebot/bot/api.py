@@ -26,7 +26,7 @@ class BotApiError(Exception):
 def log_http_request(method):
     def wrapper(obj, url: str, params: dict):
         h = hashlib.sha256()
-        h.update('{0}_{1}_{2}'.format(time(), url, random.random()).encode())
+        h.update('{0}_{1}_{2}'.format(time(), url, random.random()).encode())  # nosec
         request_id = h.hexdigest()
         logger.debug({
             'ts': time(),
@@ -56,7 +56,7 @@ class BotApi:
         hostname = parse_result.netloc
         if url.startswith('https'):
             context = ssl.SSLContext()
-            conn = HTTPSConnection(hostname, None, context=context)
+            conn = HTTPSConnection(hostname, None, context=context)  # nosec
         else:
             conn = HTTPConnection(hostname, None)
         body = urlencode(params)
@@ -101,7 +101,7 @@ class BotApi:
             allowed_updates=allowed_updates
         )
 
-    def sendMessage(self, chat_id: int, text: str, reply_markup: Optional[dict] = None, parse_mode=None) -> dict:
+    def sendMessage(self, chat_id: int, text: str, reply_markup: Optional[str] = None, parse_mode=None) -> dict:
         return self.__api_request(
             'sendMessage',
             chat_id=chat_id,
