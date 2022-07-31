@@ -3,11 +3,11 @@ import json
 import logging
 import random
 import ssl
-from http.client import HTTPSConnection, HTTPConnection
+from http.client import HTTPConnection, HTTPSConnection
 from json import JSONDecodeError
 from time import time
-from urllib.parse import urlparse, urlencode
 from typing import Optional
+from urllib.parse import urlencode, urlparse
 
 
 logger = logging.getLogger('telegram.api')

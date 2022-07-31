@@ -1,10 +1,10 @@
 from typing import Tuple
 
-from requests_oauthlib.oauth1_session import TokenRequestDenied
-
 from evernotebot.bot.errors import EvernoteBotException
 from evernotebot.bot.mixins.chat import ChatMixin
 from evernotebot.util.evernote.client import EvernoteApi, get_oauth_data
+
+from requests_oauthlib.oauth1_session import TokenRequestDenied
 
 
 class EvernoteMixin(ChatMixin):

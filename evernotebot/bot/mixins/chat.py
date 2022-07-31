@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 from evernotebot.bot.mixins.bot_api import BotApiMixin
 from evernotebot.bot.mixins.user import UserMixin

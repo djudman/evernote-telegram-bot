@@ -5,13 +5,12 @@ from typing import Optional
 
 from evernotebot.bot.errors import EvernoteBotException
 from evernotebot.bot.mixins import (
+    HelpCommandMixin,
+    MessageHandlerMixin,
     StartCommandMixin,
     SwitchModeCommand,
-    SwitchNotebookCommand,
-    HelpCommandMixin,
-    MessageHandlerMixin
+    SwitchNotebookCommand
 )
-
 from evernotebot.storage import Storage
 
 
