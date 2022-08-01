@@ -22,7 +22,7 @@ def evernote_oauth(request: Request):
     params = request.GET
     callback_key = params['key']
     access_type = params['access']
-    if access_type not in {'basic', 'full'}:
+    if access_type not in {'readonly', 'readwrite'}:
         raise Exception(f'Invalid access type {access_type}')
     verifier = params.get('oauth_verifier')
     try:
