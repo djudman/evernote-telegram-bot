@@ -1,7 +1,7 @@
 import random
 import string
-from unittest.mock import Mock
 from collections import namedtuple
+from unittest.mock import Mock
 
 
 class MockMethod:
@@ -22,7 +22,7 @@ class MockMethod:
 class TelegramApiMock:
     def __init__(self):
         self.history = []
-        self.sendMessage = MockMethod(result={"message_id": random.randint(1, 1000)})
+        self.sendMessage = MockMethod(result={"message_id": random.randint(1, 1000)})  # nosec
         self.editMessageText = MockMethod()
         self.editMessageReplyMarkup = MockMethod()
         self.getFile = MockMethod(result="https://google.com/robots.txt")
@@ -54,7 +54,7 @@ class EvernoteApiMock:
         return self
 
     def __generate_secret_string(self):
-        return "".join(s for s in random.choices(string.ascii_letters, k = 40))
+        return ''.join(s for s in random.choices(string.ascii_letters, k=40))  # nosec
 
 
 class EvernoteSdkMock(Mock):

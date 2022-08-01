@@ -9,7 +9,7 @@ class TestStorage(TestCase):
     def setUp(self) -> None:
         self.config = {
             'provider': 'evernotebot.storage.providers.sqlite.Sqlite',
-            'dirpath': '/tmp',
+            'dirpath': '/tmp',  # nosec
             'db_name': 'test',
         }
         self.clear()

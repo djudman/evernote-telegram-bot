@@ -62,7 +62,7 @@ class UserMixin(BaseMixin):
         else:
             self._users.save(self.user)
 
-    #def on_bot_update_finished(self):
+    # def on_bot_update_finished(self):
         # self._users.close()
 
     def find_user(self, query: dict) -> dict:

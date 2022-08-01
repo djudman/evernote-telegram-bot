@@ -4,6 +4,7 @@ from time import sleep
 
 from evernotebot.app import EvernoteBotApplication
 from evernotebot.util.logs import init_logging
+
 from tests.telegram.api import Api
 from tests.telegram.client import BotClient
 from tests.telegram.server import Server
@@ -19,7 +20,7 @@ class TelegramApi(Process):
 class TelegramServer(Process):
     def run(self) -> None:
         init_logging(debug=True)
-        self.srv = Server(('127.0.0.1', 12000), f'http://127.0.0.1:11000')
+        self.srv = Server(('127.0.0.1', 12000), 'http://127.0.0.1:11000')
         self.srv.add_bot('evernotebot', 'bot_api_token')
         self.srv.serve_forever()
 

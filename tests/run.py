@@ -8,9 +8,9 @@ except ImportError:
 
 import importlib.util
 import os
-from os.path import dirname
 import sys
 import unittest
+from os.path import dirname
 
 
 def coverage_report(coverage):
@@ -47,11 +47,11 @@ def get_test_modules(pattern):
 if __name__ == '__main__':
     os.environ['EVERNOTEBOT_HOSTNAME'] = 'localhost'
     os.environ['TELEGRAM_BOT_NAME'] = 'test'
-    os.environ['TELEGRAM_API_TOKEN'] = 'secret'
-    os.environ['EVERNOTE_READONLY_KEY'] = 'secret'
-    os.environ['EVERNOTE_READONLY_SECRET'] = 'secret'
-    os.environ['EVERNOTE_READWRITE_KEY'] = 'secret'
-    os.environ['EVERNOTE_READWRITE_SECRET'] = 'secret'
+    os.environ['TELEGRAM_API_TOKEN'] = 'secret'  # nosec
+    os.environ['EVERNOTE_READONLY_KEY'] = 'secret'  # nosec
+    os.environ['EVERNOTE_READONLY_SECRET'] = 'secret'  # nosec
+    os.environ['EVERNOTE_READWRITE_KEY'] = 'secret'  # nosec
+    os.environ['EVERNOTE_READWRITE_SECRET'] = 'secret'  # nosec
 
     project_dir = dirname(dirname(os.path.realpath(__file__)))
     sys.path.insert(0, project_dir)

@@ -1,10 +1,10 @@
-from .evernote import EvernoteMixin
 from .commands import (
+    HelpCommandMixin,
     StartCommandMixin,
     SwitchModeCommand,
-    SwitchNotebookCommand,
-    HelpCommandMixin
+    SwitchNotebookCommand
 )
+from .evernote import EvernoteMixin
 from .message import MessageHandlerMixin
 
 __all__ = [
