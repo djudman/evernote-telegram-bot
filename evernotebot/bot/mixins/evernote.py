@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple
 
 from evernotebot.bot.errors import EvernoteBotException
@@ -47,7 +48,7 @@ class EvernoteMixin(ChatMixin):
         oauth = user['evernote']['oauth']
         app_config = self.config['evernote']['access'][access]
         try:
-            access_token = self._evernote_api.get_access_token(
+            access_token = EvernoteApi.get_access_token(
                 app_config['key'],
                 app_config['secret'],
                 oauth['token'],
@@ -55,13 +56,20 @@ class EvernoteMixin(ChatMixin):
                 oauth_verifier,
                 sandbox=self.config['debug']
             )
-            user['evernote']['access_token'] = access_token
+            self.user['evernote']['access_token'] = access_token
+            self._evernote_api = EvernoteApi(access_token, sandbox=self.config['debug'])
         except TokenRequestDenied as e:
-            raise EvernoteBotException('Evernote request failed. Try again later.') from e
+            logging.getLogger('evernotebot').fatal(e, exc_info=True)
+            raise EvernoteBotException('Evernote access token request failed. Try again later.')
         except Exception as e:
-            raise EvernoteBotException('Unknown error. Try again later.') from e
-        self.user_setup_by_access(user, access)
-        self.save_user()
+            logging.getLogger('evernotebot').fatal(e, exc_info=True)
+            raise EvernoteBotException('Getting evernote access token failed. Try again later.')
+        try:
+            self.user_setup_by_access(self.user, access)
+            self.save_user()
+        except Exception as e:
+            logging.getLogger('evernotebot').fatal(e, exc_info=True)
+            raise EvernoteBotException('User initial setup failed. Try again later.')
 
     def user_setup_by_access(self, user: dict, access_type: str) -> None:
         user['evernote']['access_type'] = access_type

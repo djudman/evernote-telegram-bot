@@ -24,7 +24,9 @@ class UserMixin(BaseMixin):
         self._users.close()
 
     def on_bot_update(self, update: dict):
-        message = update['message'] or update['channel_post']
+        message = update.get('message') or update.get('channel_post')
+        if not message:
+            return
         from_user = message['from']
         user = self._users.get(from_user['id'])
         if not user:
@@ -69,4 +71,6 @@ class UserMixin(BaseMixin):
         users = self._users.get_all(query)
         if not users:
             raise Exception(f'Cant find user with query `{query}`')
-        return list(users).pop()
+        user = list(users).pop()
+        self.user = self._users.get(user['id'])
+        return self.user

@@ -83,9 +83,8 @@ class EvernoteBot(
             return
         self.exec_all_mixins('on_message', message)
         message_attrs = ('text', 'photo', 'voice', 'audio', 'video', 'document', 'location')
-        for name in message_attrs:
-            message_type = message.get(name)
-            if not message_type:
+        for message_type in message_attrs:
+            if not message.get(message_type):
                 continue
             status_message = self.send_message(f'{message_type.capitalize()} accepted')
             self.exec_all_mixins(f'on_receive_{message_type}', message)

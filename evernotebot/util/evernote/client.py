@@ -120,7 +120,8 @@ class EvernoteApi:
         self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
         self._notes_store = self._sdk.get_note_store()
 
-    def get_access_token(self, app_key, app_secret, token, secret, verifier, sandbox=False):
+    @staticmethod
+    def get_access_token(app_key, app_secret, token, secret, verifier, sandbox=False):
         sdk = EvernoteSdk(consumer_key=app_key, consumer_secret=app_secret, sandbox=sandbox)
         return sdk.get_access_token(token, secret, verifier)
 
@@ -140,7 +141,7 @@ class EvernoteApi:
             return notebooks
         return list(
             filter(lambda nb: nb["guid"] == query.get("guid") \
-                or nb["name"] == query.get("name"), notebooks)
+                   or nb["name"] == query.get("name"), notebooks)
         )
 
     def get_default_notebook(self):
@@ -185,8 +186,8 @@ class EvernoteApi:
         with_resources_recognition = False,
         with_resources_alternate_data = False
         return self._note_store_call('getNote', note_guid, with_content,
-            with_resources_data, with_resources_recognition,
-            with_resources_alternate_data)
+                                     with_resources_data, with_resources_recognition,
+                                     with_resources_alternate_data)
 
     def get_note_link(self, note_guid, app_link=False):
         user_store = self._sdk.get_user_store()
