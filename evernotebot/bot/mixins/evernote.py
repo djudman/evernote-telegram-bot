@@ -19,6 +19,16 @@ class EvernoteMixin(ChatMixin):
         if not token:
             raise EvernoteBotException('You have to sign in to Evernote first. Send /start and link account')
         self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
+    
+    @property
+    def evernote_api(self):
+        if self._evernote_api:
+            return self._evernote_api
+        token = self.user.get('evernote', {}).get('access_token')
+        if not token:
+            raise EvernoteBotException('You have to sign in to Evernote first. Send /start and link account')
+        self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
+        return self._evernote_api
 
     def get_evernote_oauth_data(self, message_text: str, access: str = 'readonly') -> dict:
         auth_button = {'text': 'Waiting for Evernote...', 'url': self.url}
@@ -72,11 +82,11 @@ class EvernoteMixin(ChatMixin):
             raise EvernoteBotException('User initial setup failed. Try again later.')
 
     def user_setup_by_access(self, user: dict, access_type: str) -> None:
-        user['evernote']['access_type'] = access_type
+        user['evernote']['access'] = access_type
         del user['evernote']['oauth']
         if access_type == 'readonly':
             self.send_message('Evernote account is connected.\nFrom now you can just send a message and a note will be created.')
-            default_notebook = self._evernote_api.get_default_notebook()
+            default_notebook = self.evernote_api.get_default_notebook()
             nb_name = default_notebook['name']
             user['evernote']['notebook'] = {
                 'name': nb_name,
@@ -84,31 +94,28 @@ class EvernoteMixin(ChatMixin):
             }
             mode = user['bot_mode'].replace('_', ' ').capitalize()
             self.send_message(f'Current notebook: {nb_name}\nCurrent mode: {mode}')
-        else:
-            # TODO: очень на косвенных
-            self.switch_mode(user, 'one_note')
 
     def evernote_check_quota(self, file_size: int):
-        quota = self._evernote_api.get_quota_info()
+        quota = self.evernote_api.get_quota_info()
         if quota['remaining'] < file_size:
             reset_date = quota['reset_date'].strftime('%Y-%m-%d %H:%M:%S')
             remain_bytes = quota['remaining']
             raise EvernoteBotException(f'Your evernote quota is out ({remain_bytes} bytes remains till {reset_date})')
 
     def evernote_get_notebooks(self, query: dict = None) -> Tuple[dict]:
-        nbs = self._evernote_api.get_all_notebooks(query)
+        nbs = self.evernote_api.get_all_notebooks(query)
         return tuple((nb for nb in nbs))
 
     def create_shared_note(self, notebook_guid: str, title):
-        note_id = self._evernote_api.create_note(notebook_guid, title)
-        note_url = self._evernote_api.get_note_link(note_id)
+        note_id = self.evernote_api.create_note(notebook_guid, title=title)
+        note_url = self.evernote_api.get_note_link(note_id)
         return note_id, note_url
 
     def save_note(self, text: str = None, title: str = None, **kwargs):
         user = self.user
         if user['bot_mode'] == 'one_note':
             note_id = user['evernote']['shared_note_id']
-            self._evernote_api.update_note(note_id, text, title, **kwargs)
+            self.evernote_api.update_note(note_id, text, title, **kwargs)
         else:
             notebook_id = user['evernote']['notebook']['guid']
-            self._evernote_api.create_note(notebook_id, text, title, **kwargs)
+            self.evernote_api.create_note(notebook_id, text, title, **kwargs)

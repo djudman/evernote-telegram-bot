@@ -95,10 +95,10 @@ class MessageHandlerMixin(EvernoteMixin):
         file_id = None
         file_size = math.inf
         for photo in message['photo']:  # pick the biggest file
-            if photo.file_size <= max_size and \
-                    (file_size == math.inf or file_size < photo.file_size):
-                file_size = photo.file_size
-                file_id = photo.file_id
+            if photo['file_size'] <= max_size and \
+                    (file_size == math.inf or file_size < photo['file_size']):
+                file_size = photo['file_size']
+                file_id = photo['file_id']
         self.save_file(file_id, file_size, message)
 
     def on_receive_video(self, message: dict):
@@ -136,7 +136,8 @@ class MessageHandlerMixin(EvernoteMixin):
         download_dir = self.config['tmp_root']
         filename, short_name = self.download_telegram_file(file_id, file_size, download_dir)
         self.evernote_check_quota(file_size)
-        title = get_message_caption(message) or (message['text'] and message['text'][:20]) or 'File'
+        message_text = message.get('text')
+        title = get_message_caption(message) or (message_text and message_text[:20]) or 'File'
         files = ({'path': filename, 'name': short_name},)
         text = ''
         telegram_link = get_telegram_link(message)

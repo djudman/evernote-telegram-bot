@@ -38,13 +38,14 @@ class SwitchModeCommand(EvernoteMixin):
             'resize_keyboard': True,
             'one_time_keyboard': True,
         }
-        self.send_message('Please, select mode', keyboard=keyboard)
+        self.send_message('Please, select mode', keyboard_data=keyboard)
         self.user['state'] = 'switch_mode'
         self.save_user()
 
     def on_user_state(self, state: str, message: dict):
         if state != 'switch_mode':
             return
+        del self.user['state']
         mode = message['text']
         if mode.startswith('> ') and mode.endswith(' <'):
             mode = mode[2:-2]
@@ -100,7 +101,7 @@ class SwitchNotebookCommand(EvernoteMixin):
             'resize_keyboard': True,
             'one_time_keyboard': True,
         }
-        self.send_message('Please, select notebook', keyboard=keyboard)
+        self.send_message('Please, select notebook', keyboard_data=keyboard)
         self.user['state'] = 'switch_notebook'
         self.save_user()
 
@@ -108,6 +109,7 @@ class SwitchNotebookCommand(EvernoteMixin):
         user = self.user
         if state != 'switch_notebook':
             return
+        del self.user['state']
         name = message['text']
         if name.startswith('> ') and name.endswith(' <'):
             name = name[2:-2]
