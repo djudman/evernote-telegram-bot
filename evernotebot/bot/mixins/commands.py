@@ -51,19 +51,17 @@ class SwitchModeCommand(EvernoteMixin):
             mode = mode[2:-2]
         title = mode
         mode = mode.lower().replace(' ', '_')
+        if mode not in ('one_note', 'multiple_notes'):
+            raise EvernoteBotException(f'Unknown mode `{title}`')
         if self.user['bot_mode'] == mode:
             self.send_message(f'The bot already in `{title}` mode.')
-            return
-        if mode == 'one_note':
+        elif mode == 'one_note':
             self.switch_mode_one_note()
-            return
-        if mode == 'multiple_notes':
+        elif mode == 'multiple_notes':
             del self.user['evernote']['shared_note_id']
             self.user['bot_mode'] = mode
-            self.save_user()
             self.send_message(f'The bot has switched to `{title}` mode.')
-            return
-        raise EvernoteBotException(f'Unknown mode `{title}`')
+        self.save_user()
 
     def switch_mode_one_note(self):
         settings = self.user['evernote']
