@@ -1,8 +1,8 @@
 import json
 import ssl
-from http.client import HTTPSConnection, HTTPConnection
+from http.client import HTTPConnection, HTTPSConnection
 from time import time
-from urllib.parse import parse_qsl, urlparse, urlencode
+from urllib.parse import parse_qsl, urlencode, urlparse
 
 
 class Request:
@@ -29,7 +29,7 @@ class Request:
 
     def read(self):
         if not self.body and self.input and self.content_length > 0:
-            self.body = self.input.read(self.content_length) # TODO: Whether can input be closed?
+            self.body = self.input.read(self.content_length)  # TODO: Whether can input be closed?
         return self.body
 
     def json(self):

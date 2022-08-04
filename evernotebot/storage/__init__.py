@@ -1,6 +1,6 @@
 import copy
 import importlib
-from typing import Dict, Optional, Generator
+from typing import Dict, Generator, Optional
 
 import evernotebot.storage.providers as providers
 

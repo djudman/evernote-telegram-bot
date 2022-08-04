@@ -2,11 +2,11 @@ import json
 import logging
 import re
 import traceback
-
 from functools import partial
 
-from .http import Request, Response
 from gunicorn.app.base import BaseApplication
+
+from .http import Request, Response
 
 
 class WsgiApplication(BaseApplication):

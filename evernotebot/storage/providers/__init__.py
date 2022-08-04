@@ -1,6 +1,6 @@
 import typing
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 
 class BaseProvider(metaclass=ABCMeta):

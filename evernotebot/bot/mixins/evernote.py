@@ -19,7 +19,7 @@ class EvernoteMixin(ChatMixin):
         if not token:
             raise EvernoteBotException('You have to sign in to Evernote first. Send /start and link account')
         self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
-    
+
     @property
     def evernote_api(self):
         if self._evernote_api:

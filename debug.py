@@ -1,4 +1,5 @@
 import os
+
 from evernotebot.app import EvernoteBotApplication
 
 

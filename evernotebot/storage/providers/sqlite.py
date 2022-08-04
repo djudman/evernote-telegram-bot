@@ -2,8 +2,8 @@ import json
 import os
 import sqlite3
 import typing
-from typing import Optional, Dict
 from os.path import exists
+from typing import Dict, Optional
 
 from evernotebot.storage.providers import BaseProvider
 

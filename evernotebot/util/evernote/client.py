@@ -7,8 +7,8 @@ import urllib.parse
 from typing import List
 
 import evernote.edam.type.ttypes as Types
-from evernote.edam.error.ttypes import EDAMUserException
 from evernote.api.client import EvernoteClient as EvernoteSdk
+from evernote.edam.error.ttypes import EDAMUserException
 
 
 class EvernoteApiError(Exception):
@@ -140,8 +140,7 @@ class EvernoteApi:
         if not query:
             return notebooks
         return list(
-            filter(lambda nb: nb["guid"] == query.get("guid") \
-                   or nb["name"] == query.get("name"), notebooks)
+            filter(lambda nb: nb["guid"] == query.get("guid") or nb["name"] == query.get("name"), notebooks)
         )
 
     def get_default_notebook(self):

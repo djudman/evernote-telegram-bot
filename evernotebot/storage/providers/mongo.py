@@ -1,7 +1,8 @@
-from copy import deepcopy
 from contextlib import suppress
+from copy import deepcopy
 
 from bson.objectid import ObjectId
+
 from pymongo import MongoClient
 from pymongo.errors import ConfigurationError
 
