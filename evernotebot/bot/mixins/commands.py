@@ -58,7 +58,7 @@ class SwitchModeCommand(EvernoteMixin):
         elif mode == 'one_note':
             self.switch_mode_one_note()
         elif mode == 'multiple_notes':
-            del self.user['evernote']['shared_note_id']
+            # del self.user['evernote']['shared_note_id']
             self.user['bot_mode'] = mode
             self.send_message(f'The bot has switched to `{title}` mode.')
         self.save_user()
