@@ -19,7 +19,7 @@ class EvernoteBotApplication(WsgiApplication):
             ('POST', f'^/{bot_api_token}$', telegram_hook),  # webhook_url
             ('GET', r'^/evernote/oauth$', evernote_oauth),  # oauth_callback_url
         )
-        super().__init__(url_schema, bind=f'{host}:{port}')
+        super().__init__(url_schema)
         atexit.register(self.shutdown)
         self.bot = EvernoteBot(config)
         webhook_url = config['webhook_url']

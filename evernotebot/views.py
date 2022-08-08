@@ -2,11 +2,11 @@ import traceback
 
 from evernotebot.bot.api import BotApiError
 from evernotebot.bot.errors import EvernoteBotException
-from evernotebot.util.http import HTTPFound, Request
+from evernotebot.util.wsgi import Request
 
 
-def telegram_hook(request: Request):
-    data = request.json()
+async def telegram_hook(request: Request):
+    data = await request.json()
     if data:
         bot = request.app.bot
         try:
@@ -17,7 +17,7 @@ def telegram_hook(request: Request):
     return 'request body is empty'
 
 
-def evernote_oauth(request: Request):
+async def evernote_oauth(request: Request):
     bot = request.app.bot
     params = request.GET
     callback_key = params['key']
@@ -29,5 +29,4 @@ def evernote_oauth(request: Request):
         bot.evernote_auth(callback_key, access_type, verifier)
     except EvernoteBotException as e:
         bot.send_message(e.message)
-
-    return HTTPFound(bot.url)
+    return request.make_response(status=302, body=bot.url.encode())

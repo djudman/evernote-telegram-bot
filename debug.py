@@ -1,6 +1,6 @@
 import os
 
-from evernotebot.app import EvernoteBotApplication
+import uvicorn
 
 
 # This file uses for debug only
@@ -22,9 +22,12 @@ if __name__ == '__main__':
 
     host = '127.0.0.1'
     port = 8000
-    app = EvernoteBotApplication(host, port)
     try:
-        print(f'Starting `{app.bot.name}` at http://{host}:{port}...')
-        app.run()
+        print(f'Starting `evernotebot` at http://{host}:{port}...')
+        config = uvicorn.Config('evernotebot.wsgi:app', host=host, port=port, log_level='debug')
+        server = uvicorn.Server(config)
+        server.run()
     except KeyboardInterrupt:
-        app.shutdown()
+        pass
+        # TODO:
+        # app.shutdown()
