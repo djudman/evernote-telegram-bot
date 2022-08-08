@@ -27,7 +27,7 @@ class UserMixin(BaseMixin):
         message = update.get('message') or update.get('channel_post')
         if not message:
             return
-        from_user = message['from']
+        from_user = message.get('from') or message.get('sender_chat')
         user = self._users.get(from_user['id'])
         if not user:
             user = {
