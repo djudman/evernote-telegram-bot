@@ -27,11 +27,23 @@ create_env() {
 }
 
 # Check current user in docker group
-groups | grep docker > /dev/null
-status=$?
-if [ $status -ne 0 ]; then
-	echo "User $USER must be in group `docker`"
-	exit 1
+OS="$(uname -s)"
+if [ "$OS" = "Linux" ]; then
+	groups | grep docker > /dev/null
+	status=$?
+	if [ $status -ne 0 ]; then
+		echo "User $USER must be in group docker"
+		exit 1
+	fi
+else
+	if [ "$OS" = "Darwin" ]; then
+		groups | grep staff > /dev/null
+		status=$?
+		if [ $status -ne 0 ]; then
+			echo "User $USER must be in group staff"
+			exit 1
+		fi
+	fi
 fi
 
 # Set up installation directory
@@ -42,6 +54,7 @@ if [ ! "$install_dir" ]; then
 else
 	mkdir -p "$install_dir"
 fi
+cd "$install_dir"
 echo "Installation directory: $install_dir"
 export EVERNOTEBOT_DIR="$install_dir"
 
@@ -59,16 +72,9 @@ else
 	echo "Volume $VOLUME_NAME already exists"
 fi
 
-# Get an init.d script from github
-curl https://raw.githubusercontent.com/djudman/evernote-telegram-bot/master/init.d/evernotebot --output ./evernotebot-init.d
-chown root: ./evernotebot-init.d
-chmod a+x ./evernotebot-init.d
-mv ./evernotebot-init.d /etc/init.d/evernotebot
-status=$?
-if [ $status -ne 0 ]; then
-	echo "Installation FAILED."
-	exit 1
-fi
+# Get an script for start/stop/update from github
+curl https://raw.githubusercontent.com/djudman/evernote-telegram-bot/master/init.d/evernotebot --output ./evernotebot
+chmod u+x ./evernotebot
 
 # Build `.env` file in installation directory. This file will contain environment variables
 env_file="$install_dir/.env"
@@ -85,4 +91,4 @@ else
 fi
 
 echo "Evernote bot successfuly installed to $install_dir"
-echo "Use /etc/init.d/evernotebot start|stop|restart to start/stop/restart bot"
+echo "Use ./evernotebot start|stop|restart|update"
