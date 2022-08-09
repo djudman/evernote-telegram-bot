@@ -4,11 +4,11 @@ import logging
 
 from evernotebot import EvernoteBot
 from evernotebot.config import load_config
-from evernotebot.util.wsgi import WsgiApplication
+from evernotebot.util.asgi import AsgiApplication
 from evernotebot.views import evernote_oauth, telegram_hook
 
 
-class EvernoteBotApplication(WsgiApplication):
+class EvernoteBotApplication(AsgiApplication):
     def __init__(self, host: str = None, port: int = None):
         config = load_config()
         self.config = config

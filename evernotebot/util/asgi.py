@@ -113,7 +113,7 @@ class Request(Jsonable):
         }
 
 
-class WsgiApplication:
+class AsgiApplication:
     def __init__(self, url_schema):
         self.handlers = []
         self.logger = logging.getLogger('wsgi')

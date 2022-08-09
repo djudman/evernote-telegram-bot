@@ -2,7 +2,7 @@ import traceback
 
 from evernotebot.bot.api import BotApiError
 from evernotebot.bot.errors import EvernoteBotException
-from evernotebot.util.wsgi import Request
+from evernotebot.util.asgi import Request
 
 
 async def telegram_hook(request: Request):

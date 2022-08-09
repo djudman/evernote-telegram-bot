@@ -9,7 +9,7 @@ from urllib.parse import parse_qsl
 import urllib3
 
 from evernotebot.storage import Storage
-from evernotebot.util.wsgi import WsgiApplication
+from evernotebot.util.asgi import AsgiApplication
 from tests.telegram.models import Chat, User
 
 
@@ -21,7 +21,7 @@ def validate_token(method):
     return wrapper
 
 
-class Api(WsgiApplication):
+class Api(AsgiApplication):
     def __init__(self, host: str, port: int):
         url_schema = (
             ('CREATE', r'^/user$', self.api_add_user),
