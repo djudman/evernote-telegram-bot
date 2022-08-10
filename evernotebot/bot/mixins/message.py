@@ -67,7 +67,7 @@ def get_message_caption(message: dict) -> str:
             name += f' {username}'
         return f'Forwarded from {name}'
     if chat := message.get('forward_from_chat'):
-        name = chat.get('title', chat['username'])
+        name = chat.get('title', '')
         return f'Forwarded from {chat["type"]} {name}'
     if sender_name := message.get('forward_sender_name'):
         return f'Forwarded from {sender_name}'
@@ -76,7 +76,12 @@ def get_message_caption(message: dict) -> str:
 
 def get_telegram_link(message: dict) -> str:
     if chat := message.get('forward_from_chat'):
-        username = chat['username']
+        username = chat.get('username')
+        # TODO: get link to message
+        # https://t.me/c/1229931078/892
+        # https://t.me/c/<forward_from_chat.id>/<forward_from_message_id>
+        if not username:
+            return 'https://t.me'
         message_id = message['forward_from_message_id']
         return f'https://t.me/{username}/{message_id}'
 
@@ -142,7 +147,8 @@ class MessageHandlerMixin(EvernoteMixin):
         text = ''
         telegram_link = get_telegram_link(message)
         if telegram_link:
-            text = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p><pre>{message["caption"]}</pre></div>'
+            caption = message.get('caption') or 'File'
+            text = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p><pre>{caption}</pre></div>'
         self.save_note('', title=title, files=files, html=text)
 
     def download_telegram_file(self, file_id: str, file_size: int, dirpath: str):
