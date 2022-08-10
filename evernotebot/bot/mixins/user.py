@@ -70,9 +70,9 @@ class UserMixin(BaseMixin):
         # self._users.close()
 
     def find_user(self, query: dict) -> dict:
-        users = self._users.get_all(query)
+        users = list(self._users.get_all(query))
         if not users:
             raise Exception(f'Cant find user with query `{query}`')
-        user = list(users).pop()
+        user = users.pop()
         self.user = self._users.get(user['id'])
         return self.user
