@@ -42,12 +42,12 @@ class EvernoteBot(
         storage_config = config['storage']
         self.failed_updates = Storage('failed_updates', storage_config)
 
-    def stop(self):
-        self.exec_all_mixins('on_bot_stop')
+    async def stop(self):
+        await self.exec_all_mixins('on_bot_stop')
         self.failed_updates.close()
 
     async def process_update(self, update: dict):
-        self.logger.fatal(update)
+        self.logger.debug(update)
         try:
             await self.exec_all_mixins('on_bot_update', update)
             if 'message' in update:

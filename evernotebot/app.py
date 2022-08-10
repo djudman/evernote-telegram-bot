@@ -1,3 +1,4 @@
+import asyncio
 import atexit
 import json
 import logging
@@ -31,4 +32,4 @@ class EvernoteBotApplication(AsgiApplication):
         logging.getLogger('evernotebot').info(json.dumps(self.config, indent=4))
 
     def shutdown(self):
-        self.bot.stop()
+        asyncio.run(self.bot.stop())
