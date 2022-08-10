@@ -44,7 +44,9 @@ class UserMixin(BaseMixin):
     async def on_message(self, message: dict):
         if self.user.get('created'):
             return
-        name = f"{self.user['first_name']} {self.user['last_name']}, id = {self.user['user_id']}"
+        name = self.user.get('first_name', '')
+        last_name = self.user.get('last_name', '')
+        name = ' '.join([name, last_name, f'id = {self.user["user_id"]}'])
         text = f'Unregistered user {name}. You\'ve to send /start command to register'
         raise EvernoteBotException(text)
 

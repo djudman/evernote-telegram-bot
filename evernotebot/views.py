@@ -1,5 +1,6 @@
 import traceback
 
+from evernotebot.bot import EvernoteBot
 from evernotebot.bot.api import BotApiError
 from evernotebot.bot.errors import EvernoteBotException
 from evernotebot.util.asgi import Request
@@ -8,7 +9,7 @@ from evernotebot.util.asgi import Request
 async def telegram_hook(request: Request):
     data = await request.json()
     if data:
-        bot = request.app.bot
+        bot: EvernoteBot = request.app.bot
         try:
             await bot.process_update(data)
         except BotApiError as e:
