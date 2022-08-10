@@ -82,7 +82,7 @@ def get_telegram_link(message: dict) -> str:
 
 
 class MessageHandlerMixin(EvernoteMixin):
-    def on_receive_text(self, message: dict):
+    async def on_receive_text(self, message: dict):
         html = format_html(message)
         telegram_link = get_telegram_link(message)
         if telegram_link:
@@ -90,7 +90,7 @@ class MessageHandlerMixin(EvernoteMixin):
         title = get_message_caption(message) or '[Telegram bot]'
         self.save_note('', title=title, html=html)
 
-    def on_receive_photo(self, message: dict):
+    async def on_receive_photo(self, message: dict):
         max_size = 20 * 1024 * 1024  # telegram restriction. We can't download any file that has size more than 20Mb
         file_id = None
         file_size = math.inf
@@ -101,22 +101,22 @@ class MessageHandlerMixin(EvernoteMixin):
                 file_id = photo['file_id']
         self.save_file(file_id, file_size, message)
 
-    def on_receive_video(self, message: dict):
+    async def on_receive_video(self, message: dict):
         file_size = message['video']['file_size']
         file_id = message['video']['file_id']
         self.save_file(file_id, file_size, message)
 
-    def on_receive_document(self, message: dict):
+    async def on_receive_document(self, message: dict):
         file_size = message['document']['file_size']
         file_id = message['document']['file_id']
         self.save_file(file_id, file_size, message)
 
-    def on_receive_voice(self, message: dict):
+    async def on_receive_voice(self, message: dict):
         file_id = message['voice']['file_id']
         file_size = message['voice']['file_size']
         self.save_file(file_id, file_size, message)
 
-    def on_receive_location(self, message: dict):
+    async def on_receive_location(self, message: dict):
         latitude = message['location']['latitude']
         longitude = message['location']['longitude']
         maps_url = f'https://maps.google.com/maps?q={latitude},{longitude}'

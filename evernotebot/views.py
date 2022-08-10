@@ -10,7 +10,7 @@ async def telegram_hook(request: Request):
     if data:
         bot = request.app.bot
         try:
-            bot.process_update(data)
+            await bot.process_update(data)
         except BotApiError as e:
             bot.logger.error(f'{traceback.format_exc()} {e}')
         return 'ok'
@@ -26,7 +26,7 @@ async def evernote_oauth(request: Request):
         raise Exception(f'Invalid access type {access_type}')
     verifier = params.get('oauth_verifier')
     try:
-        bot.evernote_auth(callback_key, access_type, verifier)
+        await bot.evernote_auth(callback_key, access_type, verifier)
     except EvernoteBotException as e:
-        bot.send_message(e.message)
+        await bot.send_message(e.message)
     return request.make_response(status=302, body=bot.url.encode())

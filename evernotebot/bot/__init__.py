@@ -46,23 +46,23 @@ class EvernoteBot(
         self.exec_all_mixins('on_bot_stop')
         self.failed_updates.close()
 
-    def process_update(self, update: dict):
+    async def process_update(self, update: dict):
         self.logger.fatal(update)
         try:
-            self.exec_all_mixins('on_bot_update', update)
+            await self.exec_all_mixins('on_bot_update', update)
             if 'message' in update:
-                self.receive_message(update['message'])
+                await self.receive_message(update['message'])
             elif 'edited_message' in update:
                 pass
             elif 'channel_post' in update:
-                self.channel_post(update['channel_post'])
+                await self.channel_post(update['channel_post'])
             elif 'edited_channel_post' in update:
                 pass
             else:
                 self.logger.warning('update is ignored: {0}'.format(str(update)))
         except EvernoteBotException as e:
             self.logger.error(f'{traceback.format_exc()} {e}')
-            self.send_message(f'\u274c Error. {e}')
+            await self.send_message(f'\u274c Error. {e}')
         except Exception:
             self.logger.error(traceback.format_exc())
             self.failed_updates.create({
@@ -71,25 +71,25 @@ class EvernoteBot(
                 'exception': traceback.format_exc(),
             })
         finally:
-            self.exec_all_mixins('on_bot_update_finished')
+            await self.exec_all_mixins('on_bot_update_finished')
 
-    def receive_message(self, message: dict):
+    async def receive_message(self, message: dict):
         if command_name := parse_command(message):
-            self.exec_all_mixins('on_command', command_name)
+            await self.exec_all_mixins('on_command', command_name)
             return
         user_state = self.user.get('state')
         if user_state:
-            self.exec_all_mixins('on_user_state', user_state, message)
+            await self.exec_all_mixins('on_user_state', user_state, message)
             return
-        self.exec_all_mixins('on_message', message)
+        await self.exec_all_mixins('on_message', message)
         message_attrs = ('text', 'photo', 'voice', 'audio', 'video', 'document', 'location')
         for message_type in message_attrs:
             if not message.get(message_type):
                 continue
-            status_message = self.send_message(f'{message_type.capitalize()} accepted')
-            self.exec_all_mixins(f'on_receive_{message_type}', message)
+            status_message = await self.send_message(f'{message_type.capitalize()} accepted')
+            await self.exec_all_mixins(f'on_receive_{message_type}', message)
             if status_message:
-                self.edit_message(status_message['message_id'], 'Saved')
+                await self.edit_message(status_message['message_id'], 'Saved')
 
-    def channel_post(self, channel_post: dict):
-        self.receive_message(channel_post)
+    async def channel_post(self, channel_post: dict):
+        await self.receive_message(channel_post)

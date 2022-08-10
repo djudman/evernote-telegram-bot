@@ -9,7 +9,7 @@ class ChatMixin(UserMixin, BotApiMixin):
     def __init__(self, config: dict):
         super(ChatMixin, self).__init__(config)
 
-    def send_message(
+    async def send_message(
             self,
             text: str,
             buttons: List[Dict] = None,
@@ -26,7 +26,7 @@ class ChatMixin(UserMixin, BotApiMixin):
         message = self.api.sendMessage(chat_id, text, keyboard, parse_mode)
         return message
 
-    def edit_message(self, message_id: int, text: str = None, buttons: List[Dict] = None):
+    async def edit_message(self, message_id: int, text: str = None, buttons: List[Dict] = None):
         inline_keyboard = json.dumps({'inline_keyboard': []})
         if buttons is not None:
             inline_keyboard = json.dumps({'inline_keyboard': [buttons]})

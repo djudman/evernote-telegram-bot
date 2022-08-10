@@ -4,7 +4,7 @@ from evernotebot.bot.mixins.chat import ChatMixin
 
 
 class StartCommandMixin(EvernoteMixin):
-    def on_command(self, name: str):
+    async def on_command(self, name: str):
         if name != 'start':
             return
         text = '''Welcome! It's bot for saving your notes to Evernote on fly.
@@ -23,7 +23,7 @@ def check_user(user: dict):
 
 
 class SwitchModeCommand(EvernoteMixin):
-    def on_command(self, name: str):
+    async def on_command(self, name: str):
         if name != 'switch_mode':
             return
         check_user(self.user)
@@ -38,11 +38,11 @@ class SwitchModeCommand(EvernoteMixin):
             'resize_keyboard': True,
             'one_time_keyboard': True,
         }
-        self.send_message('Please, select mode', keyboard_data=keyboard)
+        await self.send_message('Please, select mode', keyboard_data=keyboard)
         self.user['state'] = 'switch_mode'
         self.save_user()
 
-    def on_user_state(self, state: str, message: dict):
+    async def on_user_state(self, state: str, message: dict):
         if state != 'switch_mode':
             return
         del self.user['state']
@@ -54,21 +54,21 @@ class SwitchModeCommand(EvernoteMixin):
         if mode not in ('one_note', 'multiple_notes'):
             raise EvernoteBotException(f'Unknown mode `{title}`')
         if self.user['bot_mode'] == mode:
-            self.send_message(f'The bot already in `{title}` mode.')
+            await self.send_message(f'The bot already in `{title}` mode.')
         elif mode == 'one_note':
-            self.switch_mode_one_note()
+            await self.switch_mode_one_note()
         elif mode == 'multiple_notes':
             # del self.user['evernote']['shared_note_id']
             self.user['bot_mode'] = mode
-            self.send_message(f'The bot has switched to `{title}` mode.')
+            await self.send_message(f'The bot has switched to `{title}` mode.')
         self.save_user()
 
-    def switch_mode_one_note(self):
+    async def switch_mode_one_note(self):
         settings = self.user['evernote']
         if settings['access'] != 'readwrite':
-            self.send_message('To enable `One note` mode you have to allow to the bot both reading and updating your notes')
+            await self.send_message('To enable `One note` mode you have to allow to the bot both reading and updating your notes')
             text = 'Please, sign in and give the permissions to the bot.'
-            oauth_data = self.get_evernote_oauth_data(text, access='readwrite')
+            oauth_data = await self.get_evernote_oauth_data(text, access='readwrite')
             self.user['evernote']['oauth'] = oauth_data
             self.save_user()
             return
@@ -76,13 +76,13 @@ class SwitchModeCommand(EvernoteMixin):
         note_id, note_url = self.create_shared_note(nb_id, title='Telegram bot notes')
         settings['shared_note_id'] = note_id
         text = f'Your notes will be saved to <a href="{note_url}">this note</a>'
-        self.send_message(text, parse_mode='Html')
+        await self.send_message(text, parse_mode='Html')
         self.user['bot_mode'] = 'one_note'
         self.save_user()
 
 
 class SwitchNotebookCommand(EvernoteMixin):
-    def on_command(self, name: str):
+    async def on_command(self, name: str):
         if name != 'notebook':
             return
         check_user(self.user)
@@ -99,11 +99,11 @@ class SwitchNotebookCommand(EvernoteMixin):
             'resize_keyboard': True,
             'one_time_keyboard': True,
         }
-        self.send_message('Please, select notebook', keyboard_data=keyboard)
+        await self.send_message('Please, select notebook', keyboard_data=keyboard)
         self.user['state'] = 'switch_notebook'
         self.save_user()
 
-    def on_user_state(self, state: str, message: dict):
+    async def on_user_state(self, state: str, message: dict):
         user = self.user
         if state != 'switch_notebook':
             return
@@ -118,15 +118,15 @@ class SwitchNotebookCommand(EvernoteMixin):
         notebook = notebooks[0]
         user['evernote']['notebook']['name'] = notebook['name']
         user['evernote']['notebook']['guid'] = notebook['guid']
-        self.send_message(f'Current notebook: {notebook["name"]}')
+        await self.send_message(f'Current notebook: {notebook["name"]}')
         self.save_user()
 
 
 class HelpCommandMixin(ChatMixin):
-    def on_command(self, name: str):
+    async def on_command(self, name: str):
         if name != 'help':
             return
-        self.send_message('''This is bot for Evernote (https://evernote.com).
+        await self.send_message('''This is bot for Evernote (https://evernote.com).
 
 Just send message to bot and it will create note in your Evernote notebook.
 

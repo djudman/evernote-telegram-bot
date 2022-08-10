@@ -13,8 +13,8 @@ class EvernoteMixin(ChatMixin):
         super(EvernoteMixin, self).__init__(config)
         self._evernote_api: EvernoteApi = None
 
-    def on_message(self, message: dict):
-        super(EvernoteMixin, self).on_message(message)
+    async def on_message(self, message: dict):
+        await super(EvernoteMixin, self).on_message(message)
         token = self.user.get('evernote', {}).get('access_token')
         if not token:
             raise EvernoteBotException('You have to sign in to Evernote first. Send /start and link account')
@@ -30,9 +30,9 @@ class EvernoteMixin(ChatMixin):
         self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
         return self._evernote_api
 
-    def get_evernote_oauth_data(self, message_text: str, access: str = 'readonly') -> dict:
+    async def get_evernote_oauth_data(self, message_text: str, access: str = 'readonly') -> dict:
         auth_button = {'text': 'Waiting for Evernote...', 'url': self.url}
-        status_message = self.send_message(message_text, buttons=[auth_button])
+        status_message = await self.send_message(message_text, buttons=[auth_button])
         app_config = self.config['evernote']['access'][access]
         try:
             oauth_data = get_oauth_data(
@@ -43,15 +43,15 @@ class EvernoteMixin(ChatMixin):
                 access,
                 sandbox=self.config['debug'])
             auth_button = {'text': 'Sign in with Evernote', 'url': oauth_data['oauth_url']}
-            self.edit_message(status_message['message_id'], buttons=[auth_button])
+            await self.edit_message(status_message['message_id'], buttons=[auth_button])
             return oauth_data
         except Exception as e:
             auth_button = {'text': 'Evernote request failed', 'url': self.url}
-            self.edit_message(status_message['message_id'], buttons=[auth_button])
-            self.send_message('It seems Evernote API does not work properly. Please, try again later')
+            await self.edit_message(status_message['message_id'], buttons=[auth_button])
+            await self.send_message('It seems Evernote API does not work properly. Please, try again later')
             raise e
 
-    def evernote_auth(self, callback_key: str, access: str, oauth_verifier: str):
+    async def evernote_auth(self, callback_key: str, access: str, oauth_verifier: str):
         if not oauth_verifier:
             raise EvernoteBotException('We are sorry, but you have declined authorization.')
         user = self.find_user({'evernote.oauth.callback_key': callback_key})
@@ -75,17 +75,17 @@ class EvernoteMixin(ChatMixin):
             logging.getLogger('evernotebot').fatal(e, exc_info=True)
             raise EvernoteBotException('Getting evernote access token failed. Try again later.')
         try:
-            self.user_setup_by_access(self.user, access)
+            await self.user_setup_by_access(self.user, access)
             self.save_user()
         except Exception as e:
             logging.getLogger('evernotebot').fatal(e, exc_info=True)
             raise EvernoteBotException('User initial setup failed. Try again later.')
 
-    def user_setup_by_access(self, user: dict, access_type: str) -> None:
+    async def user_setup_by_access(self, user: dict, access_type: str) -> None:
         user['evernote']['access'] = access_type
         del user['evernote']['oauth']
         if access_type == 'readonly':
-            self.send_message('Evernote account is connected.\nFrom now you can just send a message and a note will be created.')
+            await self.send_message('Evernote account is connected.\nFrom now you can just send a message and a note will be created.')
             default_notebook = self.evernote_api.get_default_notebook()
             nb_name = default_notebook['name']
             user['evernote']['notebook'] = {
@@ -93,7 +93,7 @@ class EvernoteMixin(ChatMixin):
                 'guid': default_notebook['guid'],
             }
             mode = user['bot_mode'].replace('_', ' ').capitalize()
-            self.send_message(f'Current notebook: {nb_name}\nCurrent mode: {mode}')
+            await self.send_message(f'Current notebook: {nb_name}\nCurrent mode: {mode}')
 
     def evernote_check_quota(self, file_size: int):
         quota = self.evernote_api.get_quota_info()

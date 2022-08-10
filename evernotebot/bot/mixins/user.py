@@ -20,10 +20,10 @@ class UserMixin(BaseMixin):
         self.user = {}
         self._users = Storage('users', config['storage'])
 
-    def on_bot_stop(self):
+    async def on_bot_stop(self):
         self._users.close()
 
-    def on_bot_update(self, update: dict):
+    async def on_bot_update(self, update: dict):
         message = update.get('message') or update.get('channel_post')
         if not message:
             return
@@ -41,7 +41,7 @@ class UserMixin(BaseMixin):
             }
         self.user = user
 
-    def on_message(self, message: dict):
+    async def on_message(self, message: dict):
         if self.user.get('created'):
             return
         name = f"{self.user['first_name']} {self.user['last_name']}, id = {self.user['user_id']}"
