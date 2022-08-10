@@ -68,7 +68,7 @@ def get_message_caption(message: dict) -> str:
         return f'Forwarded from {name}'
     if chat := message.get('forward_from_chat'):
         name = chat.get('title', chat['username'])
-        return f'Forwarded from {chat.type} {name}'
+        return f'Forwarded from {chat["type"]} {name}'
     if sender_name := message.get('forward_sender_name'):
         return f'Forwarded from {sender_name}'
     return message.get('caption')
