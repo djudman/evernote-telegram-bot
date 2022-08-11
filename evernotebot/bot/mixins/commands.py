@@ -56,13 +56,13 @@ class SwitchModeCommand(EvernoteMixin):
         if mode not in ('one_note', 'multiple_notes'):
             raise EvernoteBotException(f'Unknown mode `{title}`')
         if self.user['bot_mode'] == mode:
-            await self.send_message(f'The bot already in `{title}` mode.')
+            await self.send_message(f'The bot already in `{title}` mode.', keyboard_data={'hide_keyboard': True})
         elif mode == 'one_note':
             await self.switch_mode_one_note()
         elif mode == 'multiple_notes':
             # del self.user['evernote']['shared_note_id']
             self.user['bot_mode'] = mode
-            await self.send_message(f'The bot has switched to `{title}` mode.')
+            await self.send_message(f'The bot has switched to `{title}` mode.', keyboard_data={'hide_keyboard': True})
         self.save_user()
 
     async def switch_mode_one_note(self):
@@ -120,7 +120,7 @@ class SwitchNotebookCommand(EvernoteMixin):
         notebook = notebooks[0]
         user['evernote']['notebook']['name'] = notebook['name']
         user['evernote']['notebook']['guid'] = notebook['guid']
-        await self.send_message(f'Current notebook: {notebook["name"]}')
+        await self.send_message(f'Current notebook: {notebook["name"]}', keyboard_data={'hide_keyboard': True})
         self.save_user()
 
 
