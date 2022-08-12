@@ -2,12 +2,11 @@ import hashlib
 import json
 import logging
 import random
-import ssl
-from http.client import HTTPConnection, HTTPSConnection
 from json import JSONDecodeError
 from time import time
 from typing import Optional
-from urllib.parse import urlencode, urlparse
+
+import aiohttp
 
 
 logger = logging.getLogger('telegram.api')
@@ -24,7 +23,7 @@ class BotApiError(Exception):
 
 
 def log_http_request(method):
-    def wrapper(obj, url: str, params: dict):
+    async def wrapper(obj, url: str, params: dict):
         h = hashlib.sha256()
         h.update('{0}_{1}_{2}'.format(time(), url, random.random()).encode())  # nosec
         request_id = h.hexdigest()
@@ -33,7 +32,7 @@ def log_http_request(method):
             'type': 'request',
             'request': {'id': request_id, 'url': url, 'params': params},
         })
-        raw_response = method(obj, url, params)
+        raw_response = await method(obj, url, params)
         logger.debug({
             'ts': time(),
             'type': 'response',
@@ -51,33 +50,16 @@ class BotApi:
         self.api_url = api_url.rstrip('/')
 
     @log_http_request
-    def __http_post_request(self, url: str, params: dict) -> bytes:
-        parse_result = urlparse(url)
-        hostname = parse_result.netloc
-        if url.startswith('https'):
-            context = ssl.SSLContext()
-            conn = HTTPSConnection(hostname, None, context=context)  # nosec
-        else:
-            conn = HTTPConnection(hostname, None)
-        body = urlencode(params)
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': len(body),
-        }
-        request_url = f'{parse_result.path}?{parse_result.query}'
-        conn.connect()
-        try:
-            conn.request('POST', request_url, body, headers)
-            response = conn.getresponse()
-            data = response.read()
-        finally:
-            conn.close()
+    async def __http_post_request(self, url: str, params: dict) -> bytes:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(verify_ssl=False)) as session:
+            async with session.post(url, json=params) as response:
+                data = await response.read()
         return data
 
-    def __api_request(self, api_method: str, **kwargs) -> dict:
+    async def __api_request(self, api_method: str, **kwargs) -> dict:
         url = f'{self.api_url}/bot{self.token}/{api_method}'
         request_params = {k: v for k, v in kwargs.items() if v is not None}
-        raw_response = self.__http_post_request(url, request_params)
+        raw_response = await self.__http_post_request(url, request_params)
         try:
             response = json.loads(raw_response.decode())
         except JSONDecodeError:
@@ -90,10 +72,10 @@ class BotApi:
             raise BotApiError(response['error_code'], response['description'])
         return response['result']
 
-    def setWebhook(self, url: str, certificate=None, max_connections=40, allowed_updates=None):
+    async def setWebhook(self, url: str, certificate=None, max_connections=40, allowed_updates=None):
         if allowed_updates is None:
             allowed_updates = []
-        return self.__api_request(
+        return await self.__api_request(
             'setWebhook',
             url=url,
             certificate=certificate,
@@ -101,8 +83,8 @@ class BotApi:
             allowed_updates=allowed_updates
         )
 
-    def sendMessage(self, chat_id: int, text: str, reply_markup: Optional[str] = None, parse_mode=None) -> dict:
-        return self.__api_request(
+    async def sendMessage(self, chat_id: int, text: str, reply_markup: Optional[str] = None, parse_mode=None) -> dict:
+        return await self.__api_request(
             'sendMessage',
             chat_id=chat_id,
             text=text,
@@ -110,16 +92,16 @@ class BotApi:
             parse_mode=parse_mode
         )
 
-    def editMessageReplyMarkup(self, chat_id: int, message_id, reply_markup):
-        return self.__api_request(
+    async def editMessageReplyMarkup(self, chat_id: int, message_id, reply_markup):
+        return await self.__api_request(
             'editMessageReplyMarkup',
             chat_id=chat_id,
             message_id=message_id,
             reply_markup=reply_markup
         )
 
-    def editMessageText(self, chat_id: int, message_id, text, reply_markup=None):
-        return self.__api_request(
+    async def editMessageText(self, chat_id: int, message_id, text, reply_markup=None):
+        return await self.__api_request(
             'editMessageText',
             chat_id=chat_id,
             message_id=message_id,
@@ -127,7 +109,7 @@ class BotApi:
             reply_markup=reply_markup
         )
 
-    def getFile(self, file_id: str):
-        response = self.__api_request('getFile', file_id=file_id)
+    async def getFile(self, file_id: str):
+        response = await self.__api_request('getFile', file_id=file_id)
         path = response['file_path']
         return f'{self.api_url}/file/bot{self.token}/{path}'

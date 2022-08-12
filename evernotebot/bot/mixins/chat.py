@@ -23,7 +23,7 @@ class ChatMixin(UserMixin, BotApiMixin):
         elif buttons is not None:
             keyboard = json.dumps({'inline_keyboard': [buttons]})
         chat_id = self.user['chat_id']
-        message = self.api.sendMessage(chat_id, text, keyboard, parse_mode)
+        message = await self.api.sendMessage(chat_id, text, keyboard, parse_mode)
         return message
 
     async def edit_message(self, message_id: int, text: str = None, buttons: List[Dict] = None):
@@ -32,6 +32,6 @@ class ChatMixin(UserMixin, BotApiMixin):
             inline_keyboard = json.dumps({'inline_keyboard': [buttons]})
         chat_id = self.user['chat_id']
         if text is not None:
-            self.api.editMessageText(chat_id, message_id, text, inline_keyboard)
+            await self.api.editMessageText(chat_id, message_id, text, inline_keyboard)
         else:
-            self.api.editMessageReplyMarkup(chat_id, message_id, inline_keyboard)
+            await self.api.editMessageReplyMarkup(chat_id, message_id, inline_keyboard)

@@ -104,22 +104,22 @@ class MessageHandlerMixin(EvernoteMixin):
                     (file_size == math.inf or file_size < photo['file_size']):
                 file_size = photo['file_size']
                 file_id = photo['file_id']
-        self.save_file(file_id, file_size, message)
+        await self.save_file(file_id, file_size, message)
 
     async def on_receive_video(self, message: dict):
         file_size = message['video']['file_size']
         file_id = message['video']['file_id']
-        self.save_file(file_id, file_size, message)
+        await self.save_file(file_id, file_size, message)
 
     async def on_receive_document(self, message: dict):
         file_size = message['document']['file_size']
         file_id = message['document']['file_id']
-        self.save_file(file_id, file_size, message)
+        await self.save_file(file_id, file_size, message)
 
     async def on_receive_voice(self, message: dict):
         file_id = message['voice']['file_id']
         file_size = message['voice']['file_size']
-        self.save_file(file_id, file_size, message)
+        await self.save_file(file_id, file_size, message)
 
     async def on_receive_location(self, message: dict):
         latitude = message['location']['latitude']
@@ -137,9 +137,9 @@ class MessageHandlerMixin(EvernoteMixin):
         title = get_message_caption(message) or title
         self.save_note(title=title, html=html)
 
-    def save_file(self, file_id: str, file_size: int, message: dict):
+    async def save_file(self, file_id: str, file_size: int, message: dict):
         download_dir = self.config['tmp_root']
-        filename, short_name = self.download_telegram_file(file_id, file_size, download_dir)
+        filename, short_name = await self.download_telegram_file(file_id, file_size, download_dir)
         self.evernote_check_quota(file_size)
         message_text = message.get('text')
         title = get_message_caption(message) or (message_text and message_text[:20]) or 'File'
@@ -151,11 +151,11 @@ class MessageHandlerMixin(EvernoteMixin):
             text = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p><pre>{caption}</pre></div>'
         self.save_note('', title=title, files=files, html=text)
 
-    def download_telegram_file(self, file_id: str, file_size: int, dirpath: str):
+    async def download_telegram_file(self, file_id: str, file_size: int, dirpath: str):
         max_size = 20 * 1024 * 1024
         if file_size > max_size:
             raise EvernoteBotException('File too big. Telegram does not allow to the bot to download files over 20Mb.')
-        download_url = self.api.getFile(file_id)
+        download_url = await self.api.getFile(file_id)
         data = make_request(download_url)
         short_name = basename(urlparse(download_url).path)
         filepath = join(dirpath, f'{file_id}_{short_name}')
