@@ -1,9 +1,12 @@
+import asyncio
 import datetime
+import functools
 import hashlib
 import json
 import mimetypes
 import re
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor
 from typing import List
 
 import evernote.edam.type.ttypes as Types
@@ -119,23 +122,32 @@ class EvernoteApi:
         self._token = access_token
         self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
         self._notes_store = self._sdk.get_note_store()
+        self.executor = ThreadPoolExecutor()
+
+    async def async_run(self, callable, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        closure = functools.partial(callable, *args, **kwargs)
+        return await loop.run_in_executor(self.executor, closure)
 
     @staticmethod
-    def get_access_token(app_key, app_secret, token, secret, verifier, sandbox=False):
+    async def get_access_token(app_key, app_secret, token, secret, verifier, sandbox=False):
         sdk = EvernoteSdk(consumer_key=app_key, consumer_secret=app_secret, sandbox=sandbox)
-        return sdk.get_access_token(token, secret, verifier)
+        get_access_token = functools.partial(sdk.get_access_token, token, secret, verifier)
+        loop = asyncio.get_event_loop()
+        executor = ThreadPoolExecutor()
+        return await loop.run_in_executor(executor, get_access_token)
 
-    def _note_store_call(self, method, *args, **kwargs):
+    async def _note_store_call(self, method, *args, **kwargs):
         try:
             method = getattr(self._notes_store, method)
-            return method(*args, **kwargs)
+            return await self.async_run(method, *args, **kwargs)
         except Exception as e:
             if isinstance(e, EDAMUserException) and e.errorCode == 3 and e.parameter == 'authenticationToken':
                 raise EvernoteApiError('Invalid auth token')
             raise EvernoteApiError()
 
-    def get_all_notebooks(self, query: dict = None) -> List[dict]:
-        notebooks = self._note_store_call('listNotebooks')
+    async def get_all_notebooks(self, query: dict = None) -> List[dict]:
+        notebooks = await self._note_store_call('listNotebooks')
         notebooks = [{"guid": nb.guid, "name": nb.name} for nb in notebooks]
         if not query:
             return notebooks
@@ -143,14 +155,14 @@ class EvernoteApi:
             filter(lambda nb: nb["guid"] == query.get("guid") or nb["name"] == query.get("name"), notebooks)
         )
 
-    def get_default_notebook(self):
-        notebook = self._note_store_call('getDefaultNotebook')
+    async def get_default_notebook(self):
+        notebook = await self._note_store_call('getDefaultNotebook')
         return {
             'guid': notebook.guid,
             'name': notebook.name,
         }
 
-    def create_note(self, notebook_id, text=None, title=None, **kwargs):
+    async def create_note(self, notebook_id, text=None, title=None, **kwargs):
         note = Types.Note()
         note.title = title and title.replace('\n', ' ') or ''  # Evernote doesn't support '\n' in titles
         note.notebookGuid = notebook_id
@@ -160,31 +172,31 @@ class EvernoteApi:
             list(map(lambda f: content.append(file=f), kwargs["files"]))
         note.content = str(content)
         note.resources = content.resources
-        created_note = self._note_store_call('createNote', note)
+        created_note = await self._note_store_call('createNote', note)
         return created_note.guid
 
-    def update_note(self, note_id, text=None, title=None, **kwargs):
-        note = self.get_note(note_id)
+    async def update_note(self, note_id, text=None, title=None, **kwargs):
+        note = await self.get_note(note_id)
         content = NoteContent(note.content)
         content.append(text=text, html=kwargs.get('html'))
         if 'files' in kwargs:
             files = kwargs['files']
             # We create new note for the files...
-            attachments_note_id = self.create_note(note.notebookGuid, text='', title=title, files=files)
+            attachments_note_id = await self.create_note(note.notebookGuid, text='', title=title, files=files)
             # ...and put a link to this note into original note
             for file in files:
                 url = self.get_note_link(attachments_note_id)
                 link = f'<a href="{url}">{file["name"]}</a>'
                 content.append(html=link)
         note.content = str(content)
-        return self._note_store_call('updateNote', note)
+        return await self._note_store_call('updateNote', note)
 
-    def get_note(self, note_guid, **kwargs):
+    async def get_note(self, note_guid):
         with_content = True
         with_resources_data = True,
         with_resources_recognition = False,
         with_resources_alternate_data = False
-        return self._note_store_call('getNote', note_guid, with_content,
+        return await self._note_store_call('getNote', note_guid, with_content,
                                      with_resources_data, with_resources_recognition,
                                      with_resources_alternate_data)
 
@@ -199,10 +211,10 @@ class EvernoteApi:
             return f"evernote:///view/{user_id}/{shard}/{note_guid}/{note_guid}/"
         return f"https://{service}/shard/{shard}/nl/{user_id}/{note_guid}/"
 
-    def get_quota_info(self):
+    async def get_quota_info(self):
         user_store = self._sdk.get_user_store()
         user = user_store.getUser()
-        state = self._note_store_call('getSyncState')
+        state = await self._note_store_call('getSyncState')
         total_monthly_quota = user.accounting.uploadLimit
         used_so_far = state.uploaded
         quota_remaining = total_monthly_quota - used_so_far

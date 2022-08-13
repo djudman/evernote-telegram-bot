@@ -75,7 +75,7 @@ class SwitchModeCommand(EvernoteMixin):
             self.save_user()
             return
         nb_id = settings['notebook']['guid']
-        note_id, note_url = self.create_shared_note(nb_id, title='Telegram bot notes')
+        note_id, note_url = await self.create_shared_note(nb_id, title='Telegram bot notes')
         settings['shared_note_id'] = note_id
         text = f'Your notes will be saved to <a href="{note_url}">this note</a>'
         await self.send_message(text, parse_mode='Html')
@@ -88,7 +88,7 @@ class SwitchNotebookCommand(EvernoteMixin):
         if name != 'notebook':
             return
         check_user(self.user)
-        all_notebooks = self.evernote_get_notebooks()
+        all_notebooks = await self.evernote_get_notebooks()
         buttons = []
         current_nb_name = self.user['evernote']['notebook']['name']
         for nb in all_notebooks:
@@ -113,7 +113,7 @@ class SwitchNotebookCommand(EvernoteMixin):
         name = message['text']
         if name.startswith('> ') and name.endswith(' <'):
             name = name[2:-2]
-        notebooks = self.evernote_get_notebooks({'name': name})
+        notebooks = await self.evernote_get_notebooks({'name': name})
         if not notebooks:
             raise EvernoteBotException(f'Notebook `{name}` not found')
         # TODO: self.create_note(notebook) if bot_user.bot_mode == 'one_note'

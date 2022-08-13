@@ -58,7 +58,7 @@ class EvernoteMixin(ChatMixin):
         oauth = user['evernote']['oauth']
         app_config = self.config['evernote']['access'][access]
         try:
-            access_token = EvernoteApi.get_access_token(
+            access_token = await EvernoteApi.get_access_token(
                 app_config['key'],
                 app_config['secret'],
                 oauth['token'],
@@ -86,7 +86,7 @@ class EvernoteMixin(ChatMixin):
         del user['evernote']['oauth']
         if access_type == 'readonly':
             await self.send_message('Evernote account is connected.\nFrom now you can just send a message and a note will be created.')
-            default_notebook = self.evernote_api.get_default_notebook()
+            default_notebook = await self.evernote_api.get_default_notebook()
             nb_name = default_notebook['name']
             user['evernote']['notebook'] = {
                 'name': nb_name,
@@ -95,27 +95,27 @@ class EvernoteMixin(ChatMixin):
             mode = user['bot_mode'].replace('_', ' ').capitalize()
             await self.send_message(f'Current notebook: {nb_name}\nCurrent mode: {mode}')
 
-    def evernote_check_quota(self, file_size: int):
-        quota = self.evernote_api.get_quota_info()
+    async def evernote_check_quota(self, file_size: int):
+        quota = await self.evernote_api.get_quota_info()
         if quota['remaining'] < file_size:
             reset_date = quota['reset_date'].strftime('%Y-%m-%d %H:%M:%S')
             remain_bytes = quota['remaining']
             raise EvernoteBotException(f'Your evernote quota is out ({remain_bytes} bytes remains till {reset_date})')
 
-    def evernote_get_notebooks(self, query: dict = None) -> Tuple[dict]:
-        nbs = self.evernote_api.get_all_notebooks(query)
+    async def evernote_get_notebooks(self, query: dict = None) -> Tuple[dict]:
+        nbs = await self.evernote_api.get_all_notebooks(query)
         return tuple((nb for nb in nbs))
 
-    def create_shared_note(self, notebook_guid: str, title):
-        note_id = self.evernote_api.create_note(notebook_guid, title=title)
+    async def create_shared_note(self, notebook_guid: str, title):
+        note_id = await self.evernote_api.create_note(notebook_guid, title=title)
         note_url = self.evernote_api.get_note_link(note_id)
         return note_id, note_url
 
-    def save_note(self, text: str = None, title: str = None, **kwargs):
+    async def save_note(self, text: str = None, title: str = None, **kwargs):
         user = self.user
         if user['bot_mode'] == 'one_note':
             note_id = user['evernote']['shared_note_id']
-            self.evernote_api.update_note(note_id, text, title, **kwargs)
+            await self.evernote_api.update_note(note_id, text, title, **kwargs)
         else:
             notebook_id = user['evernote']['notebook']['guid']
-            self.evernote_api.create_note(notebook_id, text, title, **kwargs)
+            await self.evernote_api.create_note(notebook_id, text, title, **kwargs)

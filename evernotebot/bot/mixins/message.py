@@ -93,7 +93,7 @@ class MessageHandlerMixin(EvernoteMixin):
         if telegram_link:
             html = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p>{html}</div>'
         title = get_message_caption(message) or '[Telegram bot]'
-        self.save_note('', title=title, html=html)
+        await self.save_note('', title=title, html=html)
 
     async def on_receive_photo(self, message: dict):
         max_size = 20 * 1024 * 1024  # telegram restriction. We can't download any file that has size more than 20Mb
@@ -135,12 +135,12 @@ class MessageHandlerMixin(EvernoteMixin):
                 url = f'https://foursquare.com/v/{foursquare_id}'
                 html += f'<br /><a href="{url}">{url}</a>'
         title = get_message_caption(message) or title
-        self.save_note(title=title, html=html)
+        await self.save_note(title=title, html=html)
 
     async def save_file(self, file_id: str, file_size: int, message: dict):
         download_dir = self.config['tmp_root']
         filename, short_name = await self.download_telegram_file(file_id, file_size, download_dir)
-        self.evernote_check_quota(file_size)
+        await self.evernote_check_quota(file_size)
         message_text = message.get('text')
         title = get_message_caption(message) or (message_text and message_text[:20]) or 'File'
         files = ({'path': filename, 'name': short_name},)
@@ -149,7 +149,7 @@ class MessageHandlerMixin(EvernoteMixin):
         if telegram_link:
             caption = message.get('caption') or 'File'
             text = f'<div><p><a href="{telegram_link}">{telegram_link}</a></p><pre>{caption}</pre></div>'
-        self.save_note('', title=title, files=files, html=text)
+        await self.save_note('', title=title, files=files, html=text)
 
     async def download_telegram_file(self, file_id: str, file_size: int, dirpath: str):
         max_size = 20 * 1024 * 1024
