@@ -22,8 +22,6 @@ class EvernoteMixin(ChatMixin):
 
     @property
     def evernote_api(self):
-        if self._evernote_api:
-            return self._evernote_api
         token = self.user.get('evernote', {}).get('access_token')
         if not token:
             raise EvernoteBotException('You have to sign in to Evernote first. Send /start and link account')
