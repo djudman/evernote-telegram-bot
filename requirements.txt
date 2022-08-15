@@ -7,3 +7,4 @@ httptools==0.4.0
 watchfiles==0.16.1
 uvicorn==0.18.2
 aiohttp==3.8.1
+sqlalchemy==1.4.40
