@@ -8,3 +8,6 @@ watchfiles==0.16.1
 uvicorn==0.18.2
 aiohttp==3.8.1
 sqlalchemy==1.4.40
+aiosqlite==0.17.0
+# DEV
+pytest==7.1.2
