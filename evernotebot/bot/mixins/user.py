@@ -1,9 +1,9 @@
-from copy import copy
 from time import time
 
 from evernotebot.bot.errors import EvernoteBotException
 from evernotebot.bot.mixins.base import BaseMixin
 from evernotebot.storage import Storage
+from evernotebot.storage.models import User
 
 
 def dict_merge(d1: dict, d2: dict):
@@ -17,7 +17,8 @@ def dict_merge(d1: dict, d2: dict):
 class UserMixin(BaseMixin):
     def __init__(self, config: dict):
         super(UserMixin, self).__init__(config)
-        self.user = {}
+        self.user: User = None
+        self.current_user: User = None
         self._users = Storage('users', config['storage'])
 
     async def on_bot_stop(self):
@@ -28,43 +29,34 @@ class UserMixin(BaseMixin):
         if not message:
             return
         from_user = message.get('from') or message.get('sender_chat')
-        user = self._users.get(from_user['id'])
+        user = await self.storage.get(User, from_user['id'])
         if not user:
-            user = {
-                'id': from_user['id'],
-                'user_id': from_user['id'],
-                'chat_id': message['chat']['id'],
-                'first_name': from_user.get('first_name'),
-                'last_name': from_user.get('last_name'),
-                'username': from_user.get('username'),
-                'bot_mode': 'multiple_notes',
-            }
+            user = User(
+                id=from_user['id'],
+                user_id=from_user['id'],
+                chat_id=message['chat']['id'],
+                first_name=from_user.get('first_name'),
+                last_name=from_user.get('last_name'),
+                username=from_user.get('username'),
+                bot_mode='multiple_notes'
+            )
         self.user = user
 
     async def on_message(self, message: dict):
-        if self.user.get('created'):
+        if self.user.created:
             return
-        name = self.user.get('first_name', '')
-        last_name = self.user.get('last_name', '')
+        name = self.user.first_name or ''
+        last_name = self.user.last_name or ''
         name = ' '.join([name, last_name, f'id = {self.user["user_id"]}'])
         text = f'Unregistered user {name}. You\'ve to send /start command to register'
         raise EvernoteBotException(text)
 
-    def save_user(self):
-        if not self.user.get('created'):
-            current_time = time()
-            user_data = copy(self.user)
-            dict_merge(user_data, {
-                'created': current_time,
-                'last_request_ts': current_time,
-                'bot_mode': self.config['default_mode'],
-                'evernote': {
-                    'access': 'readonly',
-                },
-            })
-            self._users.create(user_data)
-        else:
-            self._users.save(self.user)
+    async def save_user(self):
+        if not self.user.created:
+            self.user.created = time()
+            self.user.bot_mode = self.config['default_mode']
+            self.user.evernote_access = 'readonly'
+        await self.storage.save([self.user])
 
     # def on_bot_update_finished(self):
         # self._users.close()

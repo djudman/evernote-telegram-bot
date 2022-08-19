@@ -82,60 +82,60 @@ class NoteContent:
         return str(self)
 
 
-def get_oauth_data(
-        user_id: int,
-        app_key: str,
-        app_secret: str,
-        callback_url: str,
-        access='basic',
-        sandbox=False):
-
-    bytes_key = f'{app_key}{app_secret}{user_id}{access}'.encode()
-    callback_key = hashlib.sha1(bytes_key).hexdigest()
-    qs = urllib.parse.urlencode({'access': access, 'key': callback_key})
-    callback_url = f'{callback_url}?{qs}'
-    sdk = EvernoteSdk(consumer_key=app_key, consumer_secret=app_secret, sandbox=sandbox)
-    request_token = None
-    try:
-        request_token = sdk.get_request_token(callback_url)
-        token = request_token['oauth_token']
-        secret = request_token['oauth_token_secret']
-        oauth_url = sdk.get_authorize_url(request_token)
-    except Exception as e:
-        if isinstance(request_token, dict):
-            if len(request_token) == 1:
-                key, value = request_token.popitem()
-                token_data = f'{key}{value}'
-            else:
-                token_data = json.dumps(request_token)
-        raise EvernoteApiError(f'Cant obtain oauth_token. Got: {token_data}') from e
-    return {
-        'callback_key': callback_key,
-        'token': token,
-        'secret': secret,
-        'oauth_url': oauth_url,
-    }
-
-
 class EvernoteApi:
-    def __init__(self, access_token, sandbox=True):
-        self._token = access_token
-        self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
-        self._notes_store = self._sdk.get_note_store()
-        self.executor = ThreadPoolExecutor()
+    def __init__(self, access_token=None, sandbox=True):
+        self.token = access_token
+        if access_token:
+            self._sdk = EvernoteSdk(token=access_token, sandbox=sandbox)
+            self._notes_store = self._sdk.get_note_store()
+            self.executor = ThreadPoolExecutor()
 
     async def async_run(self, callable, *args, **kwargs):
         loop = asyncio.get_event_loop()
         closure = functools.partial(callable, *args, **kwargs)
         return await loop.run_in_executor(self.executor, closure)
 
-    @staticmethod
-    async def get_access_token(app_key, app_secret, token, secret, verifier, sandbox=False):
+    async def get_access_token(self, app_key, app_secret, token, secret, verifier, sandbox=False):
         sdk = EvernoteSdk(consumer_key=app_key, consumer_secret=app_secret, sandbox=sandbox)
         get_access_token = functools.partial(sdk.get_access_token, token, secret, verifier)
         loop = asyncio.get_event_loop()
         executor = ThreadPoolExecutor()
         return await loop.run_in_executor(executor, get_access_token)
+
+    def get_oauth_data(
+            self,
+            user_id: int,
+            app_key: str,
+            app_secret: str,
+            callback_url: str,
+            access='basic',
+            sandbox=False):
+
+        bytes_key = f'{app_key}{app_secret}{user_id}{access}'.encode()
+        callback_key = hashlib.sha1(bytes_key).hexdigest()
+        qs = urllib.parse.urlencode({'access': access, 'key': callback_key})
+        callback_url = f'{callback_url}?{qs}'
+        sdk = EvernoteSdk(consumer_key=app_key, consumer_secret=app_secret, sandbox=sandbox)
+        request_token = None
+        try:
+            request_token = sdk.get_request_token(callback_url)
+            token = request_token['oauth_token']
+            secret = request_token['oauth_token_secret']
+            oauth_url = sdk.get_authorize_url(request_token)
+        except Exception as e:
+            if isinstance(request_token, dict):
+                if len(request_token) == 1:
+                    key, value = request_token.popitem()
+                    token_data = f'{key}{value}'
+                else:
+                    token_data = json.dumps(request_token)
+            raise EvernoteApiError(f'Cant obtain oauth_token. Got: {token_data}') from e
+        return {
+            'callback_key': callback_key,
+            'token': token,
+            'secret': secret,
+            'oauth_url': oauth_url,
+        }
 
     async def _note_store_call(self, method, *args, **kwargs):
         try:
@@ -196,13 +196,13 @@ class EvernoteApi:
         with_resources_data = True,
         with_resources_recognition = False,
         with_resources_alternate_data = False
-        return await self._note_store_call('getNote', note_guid, with_content,
-                                     with_resources_data, with_resources_recognition,
-                                     with_resources_alternate_data)
+        return await self._note_store_call(
+            'getNote', note_guid, with_content, with_resources_data,
+            with_resources_recognition, with_resources_alternate_data)
 
     def get_note_link(self, note_guid, app_link=False):
         user_store = self._sdk.get_user_store()
-        user = user_store.getUser(self._token)
+        user = user_store.getUser(self.token)
         user_id = user.id
         user = {"id": user_id, "shard_id": user.shardId}
         service = self._sdk.service_host

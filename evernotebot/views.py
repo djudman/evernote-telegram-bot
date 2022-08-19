@@ -31,7 +31,7 @@ async def telegram_hook(request: Request):
 
 
 async def evernote_oauth(request: Request):
-    bot = request.app.bot
+    bot: EvernoteBot = request.app.bot
     params = request.GET
     callback_key = params['key']
     access_type = params['access']

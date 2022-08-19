@@ -1,0 +1,30 @@
+{
+    "update_id": 102739888,
+    "message": {
+        "message_id": 614673,
+        "from": {
+            "id": 1443186301,
+            "is_bot": false,
+            "first_name": "\u041e\u0433\u043e,",
+            "last_name": "\u043f\u043e\u043d\u0438\u043c\u0430\u044e",
+            "username": "FindNewBot_worker",
+            "language_code": "en"
+        },
+        "chat": {
+            "id": 1443186301,
+            "first_name": "\u041e\u0433\u043e,",
+            "last_name": "\u043f\u043e\u043d\u0438\u043c\u0430\u044e",
+            "username": "FindNewBot_worker",
+            "type": "private"
+        },
+        "date": 1660627677,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}

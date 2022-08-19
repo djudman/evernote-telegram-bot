@@ -1,0 +1,33 @@
+[
+    {
+        "ok": true,
+        "result": {
+            "message_id": 614697,
+            "from": {
+                "id": 182401253,
+                "is_bot": true,
+                "first_name": "Evernote",
+                "username": "evernoterobot"
+            },
+            "chat": {
+                "id": 233961180,
+                "first_name": "\u0428\u0430\u0445\u0440\u0443\u0445",
+                "last_name": "\u0418\u0441\u0430\u043a\u043e\u0432",
+                "username": "RoyalSpirit",
+                "type": "private"
+            },
+            "date": 1660645480,
+            "text": "Welcome! It's bot for saving your notes to Evernote on fly.\nPlease tap on button below to link your Evernote account with bot.",
+            "reply_markup": {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "Waiting for Evernote...",
+                            "url": "https://t.me/evernoterobot"
+                        }
+                    ]
+                ]
+            }
+        }
+    }
+]

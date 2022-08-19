@@ -22,7 +22,7 @@ class ChatMixin(UserMixin, BotApiMixin):
             keyboard = json.dumps(keyboard_data)
         elif buttons is not None:
             keyboard = json.dumps({'inline_keyboard': [buttons]})
-        chat_id = self.user['chat_id']
+        chat_id = self.user.chat_id
         message = await self.api.sendMessage(chat_id, text, keyboard, parse_mode)
         return message
 

@@ -3,7 +3,7 @@ from typing import Tuple
 
 from evernotebot.bot.errors import EvernoteBotException
 from evernotebot.bot.mixins.chat import ChatMixin
-from evernotebot.util.evernote.client import EvernoteApi, get_oauth_data
+from evernotebot.util.evernote.client import EvernoteApi
 
 from requests_oauthlib.oauth1_session import TokenRequestDenied
 
@@ -11,21 +11,21 @@ from requests_oauthlib.oauth1_session import TokenRequestDenied
 class EvernoteMixin(ChatMixin):
     def __init__(self, config: dict):
         super(EvernoteMixin, self).__init__(config)
-        self._evernote_api: EvernoteApi = None
+        self._evernote_api: EvernoteApi = EvernoteApi(sandbox=config['debug'])
 
     async def on_message(self, message: dict):
         await super(EvernoteMixin, self).on_message(message)
-        token = self.user.get('evernote', {}).get('access_token')
+        token = self.user.evernote_access_token
         if not token:
             raise EvernoteBotException('You have to sign in to Evernote first. Send /start and link account')
-        self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
+        if self._evernote_api.token != token:
+            self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
 
     @property
     def evernote_api(self):
-        token = self.user.get('evernote', {}).get('access_token')
-        if not token:
-            raise EvernoteBotException('You have to sign in to Evernote first. Send /start and link account')
-        self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
+        token = self.user.evernote_access_token
+        if token and self._evernote_api.token != token:
+            self._evernote_api = EvernoteApi(token, sandbox=self.config['debug'])
         return self._evernote_api
 
     async def get_evernote_oauth_data(self, message_text: str, access: str = 'readonly') -> dict:
@@ -33,8 +33,8 @@ class EvernoteMixin(ChatMixin):
         status_message = await self.send_message(message_text, buttons=[auth_button])
         app_config = self.config['evernote']['access'][access]
         try:
-            oauth_data = get_oauth_data(
-                self.user['user_id'],
+            oauth_data = self.evernote_api.get_oauth_data(
+                self.user.id,
                 app_config['key'],
                 app_config['secret'],
                 self.config['oauth_callback_url'],
@@ -56,7 +56,7 @@ class EvernoteMixin(ChatMixin):
         oauth = user['evernote']['oauth']
         app_config = self.config['evernote']['access'][access]
         try:
-            access_token = await EvernoteApi.get_access_token(
+            access_token = await self.evernote_api.get_access_token(
                 app_config['key'],
                 app_config['secret'],
                 oauth['token'],
@@ -74,7 +74,7 @@ class EvernoteMixin(ChatMixin):
             raise EvernoteBotException('Getting evernote access token failed. Try again later.')
         try:
             await self.user_setup_by_access(self.user, access)
-            self.save_user()
+            await self.save_user()
         except Exception as e:
             logging.getLogger('evernotebot').fatal(e, exc_info=True)
             raise EvernoteBotException('User initial setup failed. Try again later.')

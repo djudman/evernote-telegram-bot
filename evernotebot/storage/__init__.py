@@ -4,6 +4,10 @@ from typing import Dict, Generator, Optional
 
 import evernotebot.storage.providers as providers
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+
 
 class Storage:
     def __init__(self, name: str, config: dict):
@@ -35,3 +39,26 @@ class Storage:
 
     def close(self):
         return self.provider.close()
+
+
+class SqliteStorage:
+    def __init__(self, config: dict) -> None:
+        dirpath = config['dirpath']
+        db_name = config['db_name']
+        self.filepath = f'{dirpath}/{db_name}.sqlite'
+        self.engine = create_async_engine(f'sqlite+aiosqlite:///{self.filepath}', future=True)
+
+    async def save(self, models):
+        async_session = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
+        async with async_session() as session:
+            async with session.begin():
+                session.add_all(models)
+                await session.commit()
+
+    async def get(self, model_class, pk: int):
+        async_session = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
+        async with async_session() as session:
+            async with session.begin():
+                stmt = select(model_class).where(model_class.id == pk)
+                result = await session.execute(stmt)
+                return result.scalars().first()
